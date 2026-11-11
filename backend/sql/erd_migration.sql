@@ -213,11 +213,61 @@ CREATE TABLE IF NOT EXISTS bookings (
     store_reject_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT ck_booking_time_range CHECK (start_time < end_time),
+    CONSTRAINT ck_booking_rental_amount CHECK (rental_amount >= 0),
+    CONSTRAINT ck_booking_delivery_fee CHECK (delivery_fee >= 0),
+    CONSTRAINT ck_booking_deposit_amount CHECK (deposit_amount >= 0),
+    CONSTRAINT ck_booking_total_amount CHECK (total_amount >= 0),
     FOREIGN KEY (customer_id) REFERENCES users(id),
     FOREIGN KEY (vehicle_id) REFERENCES vehicles(id),
     FOREIGN KEY (store_id) REFERENCES stores(id),
     FOREIGN KEY (delivery_point_id) REFERENCES delivery_points(id),
-    FOREIGN KEY (cancelled_by) REFERENCES users(id)
+    FOREIGN KEY (cancelled_by) REFERENCES users(id),
+    INDEX ix_bookings_vehicle_time (vehicle_id, start_time, end_time),
+    INDEX ix_bookings_vehicle_status_time (vehicle_id, status, start_time, end_time),
+    INDEX ix_bookings_status_hold_expires (status, hold_expires_at)
+);
+
+-- Giữ chỗ tạm thời cho xe. Một giữ chỗ mới có hiệu lực tối đa 30 phút.
+CREATE TABLE IF NOT EXISTS vehicle_reservations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    vehicle_id INT NOT NULL,
+    customer_id INT NOT NULL,
+    booking_id INT NULL,
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL 30 MINUTE),
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT ck_reservation_time_range CHECK (start_time < end_time),
+    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL,
+    INDEX ix_reservations_vehicle_time (vehicle_id, start_time, end_time),
+    INDEX ix_reservations_vehicle_status_expiry (vehicle_id, status, expires_at),
+    INDEX ix_reservations_status_expiry (status, expires_at)
+);
+
+-- Lịch chiếm dụng xe: đơn thuê, giữ chỗ, bảo trì hoặc khóa xe.
+CREATE TABLE IF NOT EXISTS vehicle_schedules (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    vehicle_id INT NOT NULL,
+    booking_id INT NULL,
+    reservation_id INT NULL,
+    schedule_type VARCHAR(20) NOT NULL DEFAULT 'RENTAL',
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    note VARCHAR(500) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT ck_schedule_time_range CHECK (start_time < end_time),
+    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL,
+    FOREIGN KEY (reservation_id) REFERENCES vehicle_reservations(id) ON DELETE SET NULL,
+    INDEX ix_schedules_vehicle_time (vehicle_id, start_time, end_time),
+    INDEX ix_schedules_vehicle_status_time (vehicle_id, status, start_time, end_time)
 );
 
 CREATE TABLE IF NOT EXISTS booking_status_histories (
