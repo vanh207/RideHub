@@ -13,3 +13,8 @@ from app.schemas.payment import (
     RefundResponse,
     PaymentWebhookLogCreate
 )
+
+from .user import UserBase, UserCreate, UserResponse
+from .identity_document import IdentityDocumentBase, IdentityDocumentCreate, IdentityDocumentResponse
+from .driver_license import DriverLicenseBase, DriverLicenseCreate, DriverLicenseResponse
+from .store import StoreBase, StoreCreate, StoreResponse
