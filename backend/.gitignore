@@ -7,8 +7,6 @@ env/
 
 # Cấu hình bí mật
 .env
-*.pyc
-
 
 # IDE
 .vscode/

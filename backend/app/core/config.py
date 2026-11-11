@@ -21,17 +21,6 @@ class Settings(BaseSettings):
     # Chuỗi các origin cách nhau bằng dấu phẩy, hoặc "*"
     CORS_ORIGINS: str = "*"
 
-    # ---- Cấu hình Email (SMTP hoặc Mock) ----
-    # "smtp" để gửi mail thật (qua Gmail, SendGrid...), "mock" để in ra console trong môi trường dev/test
-    EMAIL_BACKEND: str = "mock"
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    SMTP_FROM_EMAIL: str = "no-reply@ridehub.vn"
-    SMTP_FROM_NAME: str = "RideHub Notification"
-    SMTP_TLS: bool = True
-
     @property
     def database_url(self) -> str:
         # mysql+pymysql://user:password@host:port/database
