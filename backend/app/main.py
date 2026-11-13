@@ -12,9 +12,9 @@ from sqlalchemy.exc import OperationalError
 from app import models  # noqa: F401 - import để SQLAlchemy biết các bảng
 from app.core.config import settings
 from app.db.session import Base, engine
-from app.routers import health, items, payment
+from app.routers import health, items, payment, notifications, chat, faq, handover, vehicles, delivery, store_staff
 
-
+    
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Tự tạo các bảng còn thiếu khi server khởi động (bảng đã có thì bỏ qua).
@@ -45,6 +45,13 @@ app.include_router(health.router, prefix="/api")
 app.include_router(items.router, prefix="/api")
 app.include_router(payment.router, prefix="/api")
 
+app.include_router(chat.router, prefix="/api")
+app.include_router(faq.router, prefix="/api")
+app.include_router(handover.router, prefix="/api")
+app.include_router(notifications.router, prefix="/api")
+app.include_router(vehicles.router, prefix="/api")
+app.include_router(delivery.router, prefix="/api")
+app.include_router(store_staff.router, prefix="/api")
 
 @app.get("/")
 def root():

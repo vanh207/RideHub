@@ -7,6 +7,8 @@ env/
 
 # Cấu hình bí mật
 .env
+.env.example
+
 
 # IDE
 .vscode/

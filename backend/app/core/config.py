@@ -21,9 +21,22 @@ class Settings(BaseSettings):
     # Chuỗi các origin cách nhau bằng dấu phẩy, hoặc "*"
     CORS_ORIGINS: str = "*"
 
+<<<<<<< HEAD
     # Cổng thanh toán Sandbox (Mock Payment Gateway - TF19E3D)
     PAYMENT_GATEWAY_SECRET: str = "ridehub_mock_secret_key_2026_tf19e3d"
     PAYMENT_MOCK_BASE_URL: str = "https://sandbox.ridehub.vn"
+=======
+    # ---- Cấu hình Email (SMTP hoặc Mock) ----
+    # "smtp" để gửi mail thật (qua Gmail, SendGrid...), "mock" để in ra console trong môi trường dev/test
+    EMAIL_BACKEND: str = "mock"
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = "no-reply@ridehub.vn"
+    SMTP_FROM_NAME: str = "RideHub Notification"
+    SMTP_TLS: bool = True
+>>>>>>> 669344b168c50c24afce84a94b85c301d964370e
 
     @property
     def database_url(self) -> str:
