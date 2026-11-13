@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tìm &amp; Thuê xe — RideHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <div class="blob-layer" aria-hidden="true" data-pause-offscreen>
+    <div class="morph-blob morph-blob--1"></div>
+    <div class="morph-blob morph-blob--2"></div>
+  </div>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <header id="mainNavbar" class="navbar is-scrolled">
+    <div class="container navbar-inner">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;" />
+      </a>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">Trang chủ</a>
+        <a href="vehicles.html" class="nav-link is-active">Tìm &amp; Thuê xe</a>
+        <a href="trips.html" class="nav-link">Chuyến đi</a>
+        <a href="chat.html" class="nav-link">Tin nhắn</a>
+        <a href="index.html#storySection" class="nav-link">Hướng dẫn thuê xe</a>
+        <a href="store-portal.html" class="nav-link">Cửa hàng</a>
+        <a href="admin-ops.html" class="nav-link">Quản trị Admin</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <aside id="mobileDrawer" class="mobile-drawer">
+    <a href="index.html">Trang chủ</a>
+    <a href="vehicles.html">Tìm &amp; Thuê xe</a>
+    <a href="trips.html">Chuyến đi</a>
+    <a href="chat.html">Tin nhắn</a>
+    <a href="index.html#storySection">Hướng dẫn thuê xe</a>
+    <a href="store-portal.html">Cổng Cửa hàng</a>
+    <a href="admin-ops.html">Quản trị Admin</a>
+  </aside>
+
+  <section class="subpage-hero">
+    <div class="aurora-bg" aria-hidden="true"></div>
+    <div class="container" style="position:relative;z-index:2;">
+      <span class="eyebrow">Khám phá phương tiện</span>
+      <h1 class="section-title" data-reveal="text-mask">Tìm kiếm phương tiện khả dụng theo thời gian thực</h1>
+      <p class="section-subtitle">Tự động đối soát lịch trống, đảm bảo phương tiện sẵn sàng và đạt chuẩn an toàn.</p>
+    </div>
+  </section>
+
+  <main class="subpage-main">
+    <div id="guestInviteBanner" class="container" style="margin-bottom:18px;" hidden>
+      <div class="panel-card" style="padding:14px 20px;background:var(--green-50);border-color:var(--green-300);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div style="font-size:14px;font-weight:600;color:var(--green-800);">Đăng ký 1 phút để giữ chỗ xe này và nhận ưu đãi chuyến đầu tiên.</div>
+        <div style="display:flex;gap:8px;">
+          <a href="auth.html" class="btn btn-primary" style="min-height:34px;padding:4px 14px;font-size:12px;">Đăng ký ngay</a>
+          <button id="dismissGuestBanner" class="btn btn-soft" style="min-height:34px;padding:4px 12px;font-size:12px;" type="button">Ẩn</button>
+        </div>
+      </div>
+    </div>
+    <div class="container two-col-layout">
+      <!-- Filter Sidebar -->
+      <aside class="panel-card">
+        <h2 style="margin:0 0 16px;font-size:1.1rem;">Bộ lọc tìm kiếm</h2>
+
+        <div class="filter-group">
+          <label class="filter-label" for="cityFilter">Thành phố</label>
+          <select id="cityFilter" class="form-select">
+            <option>TP. Hồ Chí Minh</option>
+            <option>Hà Nội</option>
+            <option>Đà Nẵng</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label" for="filterScheduleInput">Nhận xe — Trả xe (<span id="filterDurationText">3 ngày</span>)</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="filterScheduleInput" class="form-input" type="text" value="12/11 21:00 → 15/11 11:00" placeholder="VD: 12/11 21:00 → 15/11 11:00" style="flex:1;font-weight:700;color:var(--green-800);" />
+            <button id="openFilterDateTimeBtn" class="btn btn-soft" style="min-height:42px;padding:6px 12px;font-size:12px;" type="button">Lịch</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Loại phương tiện</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <label class="pill-check"><input type="radio" name="vType" value="all" checked /> Tất cả</label>
+            <label class="pill-check"><input type="radio" name="vType" value="moto" /> Xe máy</label>
+            <label class="pill-check"><input type="radio" name="vType" value="car" /> Ô tô</label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Hộp số &amp; Nhiên liệu</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <label class="pill-check"><input type="checkbox" id="chkFuelEco" checked /> Điện / Xanh</label>
+            <label class="pill-check"><input type="checkbox" id="chkTransAuto" /> Tự động</label>
+            <label class="pill-check"><input type="checkbox" id="chkTransManual" /> Xe số</label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label" for="priceFilter">Giá tối đa / ngày: <strong id="priceCapLabel">1.500.000đ</strong></label>
+          <input id="priceFilter" type="range" min="100000" max="2000000" step="50000" value="2000000" style="width:100%;accent-color:var(--green-500);" oninput="document.getElementById('priceCapLabel').textContent=Number(this.value).toLocaleString('vi-VN')+'đ'" />
+        </div>
+
+        <button id="applyFilterBtn" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button">Áp dụng bộ lọc</button>
+      </aside>
+
+      <!-- Results Area -->
+      <div>
+        <div class="panel-card" style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div><strong id="resultsCount">24 phương tiện</strong> khả dụng • <span id="resultsDateSummary" style="color:var(--green-700);font-weight:700;">12/11 21:00 &rarr; 15/11 11:00</span></div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:13px;color:var(--text-muted);">Sắp xếp:</span>
+            <select id="sortResults" class="form-select" style="width:auto;">
+              <option value="featured">Phổ biến nhất</option>
+              <option value="price-asc">Giá thấp → cao</option>
+              <option value="price-desc">Giá cao → thấp</option>
+              <option value="rating">Đánh giá cao nhất</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Search Loader -->
+        <div id="filterLoader" hidden class="panel-card" style="margin-bottom:20px;text-align:center;">
+          <div style="font-weight:700;color:var(--green-700);margin-bottom:8px;">Đang kiểm tra lịch trống &amp; thời gian đệm...</div>
+          <div style="height:34px;position:relative;overflow:hidden;border-bottom:2px dashed var(--green-300);max-width:360px;margin:0 auto;">
+            <div style="position:absolute;left:0;bottom:2px;width:48px;animation:loaderMotoZoom 1.1s var(--ease-in-out) infinite;">
+              <svg viewBox="0 0 110 64" width="48" height="28"><path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#22c55e"/><circle cx="27" cy="45" r="10" fill="#132a1c"/><circle cx="81" cy="45" r="10" fill="#132a1c"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 cards per row, 9 cards per page -->
+        <div id="vehiclesGrid" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:20px;"></div>
+
+        <!-- Pagination Controls -->
+        <div id="vehiclesPagination" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:28px;flex-wrap:wrap;padding:16px;background:var(--bg-surface-soft);border-radius:14px;border:1px solid var(--green-100);">
+          <button id="prevPageBtn" class="btn btn-soft" style="min-height:36px;padding:6px 14px;font-size:13px;" type="button">&larr; Trước</button>
+          <div id="paginationNumbers" style="display:flex;gap:6px;"></div>
+          <button id="nextPageBtn" class="btn btn-soft" style="min-height:36px;padding:6px 14px;font-size:13px;" type="button">Sau &rarr;</button>
+          <span id="paginationInfo" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-left:10px;">Trang 1 / 3 (24 xe)</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ======================================================================
+       FOOTER (CHUNG TOÀN HỆ THỐNG RIDEHUB)
+       ====================================================================== -->
+  <footer class="site-footer">
+    <div class="footer-road-edge">
+      <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Nền tảng thuê xe thông minh">
+        <svg viewBox="0 0 110 64" width="76" height="32"><path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#4ade80"/><g transform="translate(27,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g><g transform="translate(81,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g></svg>
+      </div>
+    </div>
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Cột 1: Về RideHub -->
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <img src="assets/logo-rh.png" alt="RideHub Logo" style="height:34px;width:auto;filter:brightness(0) invert(1);" />
+            <span style="font-family:var(--font-display);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">RideHub</span>
+          </div>
+          <p style="font-size:13px;line-height:1.65;color:#d1fae5;margin:0 0 14px;">
+            Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+          </p>
+          <div style="font-size:12.5px;color:#a7f3d0;display:flex;flex-direction:column;gap:5px;">
+            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868" style="color:var(--green-300);text-decoration:none;">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn" style="color:var(--green-300);text-decoration:none;">support@ridehub.vn</a></div>
+            <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+          </div>
+        </div>
+
+        <!-- Cột 2: Khám phá & Dịch vụ -->
+        <div>
+          <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="index.html">Trang chủ</a></li>
+            <li class="footer-link-item"><a href="vehicles.html">Tìm &amp; Thuê xe máy, Ô tô</a></li>
+            <li class="footer-link-item"><a href="trips.html">Hành trình &amp; Chuyến đi của tôi</a></li>
+            <li class="footer-link-item"><a href="booking.html">Đơn thuê &amp; Thanh toán cọc</a></li>
+            <li class="footer-link-item"><a href="index.html#storySection">Quy trình bàn giao 4 bước</a></li>
+          </ul>
+        </div>
+
+        <!-- Cột 3: Quản trị & Đối tác -->
+        <div>
+          <div class="footer-col-title">Dành cho Đối tác</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="store-portal.html">Cổng Quản lý Cửa hàng</a></li>
+            <li class="footer-link-item"><a href="admin-ops.html">Trung tâm Quản trị Admin</a></li>
+            <li class="footer-link-item"><a href="chat.html">Kênh Hỗ trợ &amp; Tin nhắn trực tuyến</a></li>
+            <li class="footer-link-item"><a href="auth.html">Đăng ký làm Chủ xe / Đối tác</a></li>
+            <li class="footer-link-item"><a href="index.html#featuresSection">Hệ thống đối soát tự động PayOS</a></li>
+          </ul>
+        </div>
+
+        <!-- Cột 4: Cam kết an tâm & Tiêu chuẩn -->
+        <div>
+          <div class="footer-col-title">Cam kết &amp; An toàn</div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#d1fae5;line-height:1.55;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt Face Match.</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Minh bạch bàn giao:</strong> Quay video toàn cảnh 360°, ảnh biên bản &amp; ảnh ODO thực tế.</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Hoàn tiền cọc tự động:</strong> Hoàn 100% trước 24h khi khách hủy theo chính sách.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-divider"></div>
+
+      <div class="footer-bottom-row">
+        <div>
+          © 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Bảo mật PayOS VietQR</span>
+          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Chuẩn an toàn eKYC Chip</span>
+          <a href="index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Điều khoản sử dụng</a>
+          <a href="index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Vehicle Detail Modal — Sắp xếp dọc, ít border -->
+  <div id="vehicleDetailModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="width:min(600px,95vw);display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 id="detailTitle" style="margin:0;font-size:1.3rem;">Chi tiết phương tiện</h3>
+        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+      </div>
+
+      <!-- Chỉ hiển thị ảnh xe -->
+      <div id="detailImageBox" class="vehicle-card-media" style="height:200px;min-height:200px;flex-shrink:0;width:100%;"></div>
+
+      <!-- Tên, loại số, nhiên liệu, số chỗ -->
+      <div id="detailChips" class="vehicle-meta-chips"></div>
+
+      <!-- Thời gian thuê xe (điền trực tiếp hoặc mở lịch) -->
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <label class="filter-label" for="detailScheduleInput" style="margin:0;">Thời gian thuê xe (<span id="detailDurationText">3 ngày</span>)</label>
+          <button id="openDateTimePickerBtn" type="button" class="btn btn-soft" style="min-height:30px;padding:4px 10px;font-size:12px;">Mở lịch</button>
+        </div>
+        <input id="detailScheduleInput" class="form-input" type="text" value="12/11 21:00 → 15/11 11:00" placeholder="VD: 12/11 21:00 → 15/11 11:00" style="font-weight:700;color:var(--green-800);" />
+      </div>
+
+      <!-- Hình thức nhận xe -->
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);display:flex;flex-direction:column;gap:10px;">
+        <div class="filter-label" style="margin:0;">Hình thức nhận xe</div>
+        <button id="btnSelfPickup" type="button" class="btn btn-primary" style="width:100%;">Tôi tự đến lấy xe (0đ)</button>
+        <button id="btnDelivery" type="button" class="btn btn-soft" style="width:100%;">Giao xe tận nơi (+30.000đ)</button>
+        <div id="pickupAddressNote" style="font-size:13px;color:var(--green-800);font-weight:600;"></div>
+        <div id="deliveryAddressWrap" hidden>
+          <input id="deliveryAddressInput" class="form-input" type="text" placeholder="Nhập địa chỉ giao xe tận nơi..." />
+        </div>
+      </div>
+
+      <!-- Tiện ích bổ sung -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="filter-label" style="margin:0;">Tiện ích bổ sung</div>
+        <label class="pill-check"><input type="checkbox" class="addon-chk" data-price="35000" data-perday="1" /> Bảo hiểm chuyến đi (+35.000đ/ngày)</label>
+        <label class="pill-check"><input type="checkbox" class="addon-chk" data-price="20000" data-perday="0" /> Ghế trẻ em / Nón bảo hiểm thêm (+20.000đ)</label>
+        <label class="pill-check"><input type="checkbox" class="addon-chk" data-price="25000" data-perday="0" /> Giao nhận ngoài giờ (+25.000đ)</label>
+      </div>
+
+      <!-- Mô tả xe -->
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);">
+        <strong style="font-size:13px;display:block;margin-bottom:4px;">Mô tả xe</strong>
+        <p id="detailDesc" style="margin:0;font-size:13px;color:var(--text-secondary);"></p>
+      </div>
+
+      <!-- Các tiện nghi trên xe -->
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);">
+        <strong style="font-size:13px;display:block;margin-bottom:8px;">Các tiện nghi trên xe</strong>
+        <div id="detailAmenities" class="vehicle-meta-chips"></div>
+      </div>
+
+      <!-- Chủ xe (hiển thị avatar, đánh giá sao, ấn để xem xe của chủ xe) -->
+      <div id="detailOwnerCard" role="button" tabindex="0" style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);cursor:pointer;display:flex;align-items:center;gap:14px;transition:background-color 0.2s var(--ease-out);">
+        <div id="detailOwnerAvatar" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#ffffff;display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:1.1rem;flex-shrink:0;">GR</div>
+        <div style="flex:1;">
+          <strong style="font-size:13px;display:block;margin-bottom:2px;">Chủ xe</strong>
+          <div id="detailOwnerInfo" style="font-size:14px;font-weight:700;color:var(--text-primary);"></div>
+          <div class="vehicle-stats-row" id="detailOwnerStat" style="margin-top:2px;"></div>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:var(--green-700);">Xem xe chủ này &rarr;</span>
+      </div>
+
+      <!-- Giấy tờ thuê xe -->
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);font-size:13px;">
+        <strong style="display:block;margin-bottom:4px;">Giấy tờ thuê xe</strong>
+        <div style="color:var(--text-secondary);">CCCD gắn chip (đối chiếu) &amp; GPLX hợp lệ còn hạn theo hạng xe.</div>
+      </div>
+
+      <!-- Tài sản thế chấp -->
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);font-size:13px;">
+        <strong style="display:block;margin-bottom:4px;">Tài sản thế chấp</strong>
+        <div id="detailCollateral" style="color:var(--text-secondary);"></div>
+      </div>
+
+      <!-- Điều khoản -->
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);font-size:13px;">
+        <strong style="display:block;margin-bottom:4px;">Điều khoản</strong>
+        <div style="color:var(--text-secondary);">Sử dụng đúng mục đích, không chở hàng cấm, tuân thủ luật giao thông.</div>
+      </div>
+
+      <!-- Phụ phí -->
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);font-size:13px;">
+        <strong style="display:block;margin-bottom:6px;">Phụ phí</strong>
+        <div style="color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;">
+          <div>• Vượt giới hạn 250km/ngày: 3.000đ/km</div>
+          <div>• Trả xe trễ: 50.000đ/giờ</div>
+          <div>• Vệ sinh / khử mùi: 50.000đ</div>
+        </div>
+      </div>
+
+      <!-- Chính sách hủy chuyến -->
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);font-size:13px;">
+        <strong style="display:block;margin-bottom:6px;">Chính sách hủy chuyến</strong>
+        <div style="color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;">
+          <div>• Trước giờ nhận 24h: hoàn 100% cọc</div>
+          <div>• Trong vòng 24h trước nhận xe: hoàn 70% cọc</div>
+          <div>• Dưới 2h trước nhận xe: không hoàn cọc</div>
+        </div>
+      </div>
+
+      <!-- Giá tổng thuê & Nút Thuê xe -->
+      <div style="padding:16px;border-radius:14px;background:var(--green-100);display:flex;flex-direction:column;gap:12px;">
+        <div>
+          <div style="font-size:12px;color:var(--text-muted);" id="detailPriceBreakdown">Đơn giá × 2 ngày</div>
+          <div style="font-size:1.3rem;font-weight:800;color:var(--green-800);">Tổng thuê: <span id="detailTotalPrice">320.000đ</span></div>
+        </div>
+        <button id="proceedBookingBtn" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button">Thuê xe</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Owner Profile & Fleet Modal -->
+  <div id="ownerProfileModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="width:min(560px,95vw);display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="margin:0;font-size:1.2rem;">Thông tin chủ xe</h3>
+        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:var(--bg-surface-soft);">
+        <div id="ownerModalAvatar" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#ffffff;display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:1.2rem;flex-shrink:0;">GR</div>
+        <div>
+          <h4 id="ownerModalName" style="margin:0 0 4px;font-size:1.05rem;"></h4>
+          <div id="ownerModalStats" style="font-size:13px;color:var(--text-secondary);"></div>
+          <div id="ownerModalAddr" style="font-size:12px;color:var(--text-muted);margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="filter-label" style="margin-bottom:8px;">Các xe chủ xe đang cho thuê</div>
+        <div id="ownerFleetList" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date & Time Range Picker Modal (như mẫu tham khảo) -->
+  <div id="dateTimePickerModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="width:min(440px,95vw);display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="margin:0;font-size:1.15rem;flex:1;text-align:center;">Chọn ngày &amp; giờ</h3>
+        <button data-close-modal class="btn btn-soft" style="min-height:32px;padding:4px 10px;font-size:12px;" type="button">Đóng</button>
+      </div>
+
+      <div style="font-weight:800;font-size:1.05rem;">Thời gian nhận/trả xe</div>
+
+      <div class="dt-mode-pills">
+        <button type="button" class="dt-mode-btn is-active" data-dt-mode="day">Theo ngày</button>
+        <button type="button" class="dt-mode-btn" data-dt-mode="hour">Theo giờ</button>
+        <button type="button" class="dt-mode-btn" data-dt-mode="week">Theo tuần/tháng</button>
+      </div>
+
+      <div class="dt-calendar-card">
+        <div class="dt-cal-header">
+          <button type="button" id="dtPrevMonth" class="dt-cal-nav" aria-label="Tháng trước">&lt;</button>
+          <span id="dtMonthTitle">Tháng 11 2026</span>
+          <button type="button" id="dtNextMonth" class="dt-cal-nav" aria-label="Tháng sau">&gt;</button>
+        </div>
+        <div class="dt-weekdays">
+          <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+        </div>
+        <div id="dtDaysGrid" class="dt-days-grid"></div>
+      </div>
+
+      <div class="dt-summary-strip">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:#ffffff;color:var(--green-700);display:grid;place-items:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);">Thời lượng</div>
+            <strong id="dtSummaryDur" style="font-size:13px;">3 ngày</strong>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;color:var(--text-muted);">Khung thời gian</div>
+          <strong id="dtSummaryRange" style="font-size:13px;color:var(--green-700);">12/11 21:00 &rarr; 15/11 11:00</strong>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <label for="dtPickupTimeInput" style="font-size:13px;font-weight:700;">Giờ nhận xe</label>
+          <input id="dtPickupTimeInput" type="time" class="form-input" value="21:00" style="width:auto;padding:4px 10px;font-size:13px;font-weight:700;" />
+        </div>
+        <div id="dtPickupHours" class="dt-time-scroll"></div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <label for="dtReturnTimeInput" style="font-size:13px;font-weight:700;">Giờ trả xe</label>
+          <input id="dtReturnTimeInput" type="time" class="form-input" value="11:00" style="width:auto;padding:4px 10px;font-size:13px;font-weight:700;" />
+        </div>
+        <div id="dtReturnHours" class="dt-time-scroll"></div>
+      </div>
+
+      <button id="dtDoneBtn" type="button" class="btn btn-primary btn-premium btn-shine" style="width:100%;">Xong</button>
+    </div>
+  </div>
+
+  <script src="js/vehicle-anim.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/auth-rbac.js"></script>
+  <script>
+    (function () {
+      const user = window.AuthRBAC ? window.AuthRBAC.getCurrentUser() : null;
+      const banner = document.getElementById('guestInviteBanner');
+      if (!user && localStorage.getItem('rh_hide_guest_banner') !== '1' && banner) {
+        banner.hidden = false;
+        document.getElementById('dismissGuestBanner')?.addEventListener('click', () => {
+          banner.hidden = true;
+          localStorage.setItem('rh_hide_guest_banner', '1');
+        });
+      }
+
+      document.getElementById('proceedBookingBtn')?.addEventListener('click', () => {
+        const specs = Array.from(document.querySelectorAll('#detailChips .meta-chip')).map((c) => c.textContent.trim()).join(' • ');
+        const isDelivery = document.getElementById('btnDelivery')?.classList.contains('btn-primary');
+        const delFee = isDelivery ? 30000 : 0;
+        const delMode = isDelivery ? 'Giao xe tận nơi' : 'Tôi tự đến lấy xe';
+        const delAddr = isDelivery
+          ? (document.getElementById('deliveryAddressInput')?.value.trim() || 'Địa chỉ giao tận nơi (Quận 1)')
+          : (document.getElementById('pickupAddressNote')?.textContent.replace('Nhận tại:', '').trim() || 'Tại cửa hàng');
+        const addons = Array.from(document.querySelectorAll('.addon-chk:checked')).map((c) => c.parentElement.textContent.trim());
+        const totalText = document.getElementById('detailTotalPrice')?.textContent || '320.000đ';
+        const totalNum = Number(totalText.replace(/\D/g, '')) || 320000;
+        const depositNum = Math.round(totalNum * 0.3);
+
+        const draft = {
+          orderCode: 'RH-' + Math.floor(100000 + Math.random() * 899999),
+          vehicle: document.getElementById('detailTitle')?.textContent || 'VinFast Feliz S (2025)',
+          specs,
+          schedule: document.getElementById('detailScheduleInput')?.value || '12/11 21:00 → 15/11 11:00',
+          deliveryMode: delMode,
+          deliveryAddress: delAddr,
+          deliveryFee: delFee,
+          addons,
+          breakdown: document.getElementById('detailPriceBreakdown')?.textContent || '',
+          totalNum,
+          depositNum,
+          remainNum: totalNum - depositNum,
+          totalText
+        };
+        localStorage.setItem('ridehub_checkout_draft', JSON.stringify(draft));
+        window.location.href = 'booking.html';
+      });
+    })();
+  </script>
+  <script>
+    let activeBasePrice = 160000;
+    let deliveryFee = 0;
+
+    // Date & Time Picker State
+    const dtState = {
+      year: 2026,
+      month: 10, // 0-indexed (10 = Tháng 11)
+      mode: 'day',
+      startDay: 12,
+      endDay: 15,
+      pickingEnd: false,
+      pickupHour: '21:00',
+      returnHour: '11:00'
+    };
+
+    const getDaysCount = () => {
+      if (dtState.mode === 'hour') return 1;
+      if (!dtState.endDay) return 1;
+      return Math.max(1, dtState.endDay - dtState.startDay);
+    };
+
+    const formatRangeText = () => {
+      const m = dtState.month + 1;
+      if (dtState.mode === 'hour') {
+        return `${dtState.startDay}/${m} ${dtState.pickupHour} → ${dtState.startDay}/${m} ${dtState.returnHour}`;
+      }
+      if (!dtState.endDay) {
+        return `${dtState.startDay}/${m} ${dtState.pickupHour} → Chọn ngày trả`;
+      }
+      return `${dtState.startDay}/${m} ${dtState.pickupHour} → ${dtState.endDay}/${m} ${dtState.returnHour}`;
+    };
+
+    const renderCalendar = () => {
+      const firstDay = new Date(dtState.year, dtState.month, 1).getDay(); // 0=CN..6=T7
+      const offset = (firstDay + 6) % 7; // Monday=0..Sunday=6
+      const daysInMonth = new Date(dtState.year, dtState.month + 1, 0).getDate();
+      document.getElementById('dtMonthTitle').textContent = `Tháng ${dtState.month + 1} ${dtState.year}`;
+
+      let html = '';
+      for (let i = 0; i < offset; i++) html += '<span></span>';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const isPast = dtState.month === 10 && d < 12;
+        const isStart = d === dtState.startDay;
+        const hasEnd = dtState.mode !== 'hour' && dtState.endDay !== null;
+        const isEnd = hasEnd && d === dtState.endDay;
+        const inRange = hasEnd && d > dtState.startDay && d < dtState.endDay;
+        const cls = ['dt-day-btn', isPast ? 'is-disabled' : '', isStart ? 'is-start' : '', isEnd ? 'is-end' : '', inRange ? 'is-in-range' : ''].filter(Boolean).join(' ');
+        html += `<button type="button" class="${cls}" ${isPast ? 'disabled' : ''} data-day="${d}">${d}</button>`;
+      }
+      const grid = document.getElementById('dtDaysGrid');
+      grid.innerHTML = html;
+      grid.querySelectorAll('[data-day]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const d = Number(btn.dataset.day);
+          if (dtState.mode === 'hour') {
+            // Thuê theo giờ: chỉ nhảy đúng 1 ngày duy nhất
+            dtState.startDay = d;
+            dtState.endDay = d;
+            dtState.pickingEnd = false;
+          } else {
+            // Thuê theo ngày hoặc tuần/tháng: lần 1 chọn ngày đầu (chưa hiện dải màu), lần 2 chọn ngày sau mới hiện dải màu + nút ngày sau
+            if (!dtState.pickingEnd || d <= dtState.startDay) {
+              dtState.startDay = d;
+              dtState.endDay = null;
+              dtState.pickingEnd = true;
+            } else {
+              dtState.endDay = d;
+              dtState.pickingEnd = false;
+            }
+          }
+          renderCalendar();
+          updateDtSummary();
+        });
+      });
+    };
+
+    const renderHours = () => {
+      const hours = Array.from({ length: 18 }, (_, i) => String(i + 6).padStart(2, '0') + ':00');
+      const makeChips = (elId, activeHour, key) => {
+        const wrap = document.getElementById(elId);
+        wrap.innerHTML = hours.map((h) => `<button type="button" class="dt-time-chip ${h === activeHour ? 'is-active' : ''}" data-h="${h}">${h}</button>`).join('');
+        wrap.querySelectorAll('.dt-time-chip').forEach((b) => {
+          b.addEventListener('click', () => {
+            dtState[key] = b.dataset.h;
+            renderHours();
+            updateDtSummary();
+          });
+        });
+      };
+      makeChips('dtPickupHours', dtState.pickupHour, 'pickupHour');
+      makeChips('dtReturnHours', dtState.returnHour, 'returnHour');
+      const pInp = document.getElementById('dtPickupTimeInput');
+      const rInp = document.getElementById('dtReturnTimeInput');
+      if (pInp) pInp.value = dtState.pickupHour;
+      if (rInp) rInp.value = dtState.returnHour;
+    };
+
+    const updateDtSummary = () => {
+      const days = getDaysCount();
+      const durTxt = dtState.mode === 'hour'
+        ? '1 ngày (theo giờ)'
+        : (!dtState.endDay ? 'Chưa chọn ngày trả' : `${days} ngày`);
+      const rangeTxt = formatRangeText();
+      document.getElementById('dtSummaryDur').textContent = durTxt;
+      document.getElementById('dtSummaryRange').textContent = rangeTxt;
+      document.getElementById('detailDurationText').textContent = durTxt;
+      const dIn = document.getElementById('detailScheduleInput');
+      const fDur = document.getElementById('filterDurationText');
+      const fIn = document.getElementById('filterScheduleInput');
+      const rSum = document.getElementById('resultsDateSummary');
+      if (dIn) dIn.value = rangeTxt;
+      if (fDur) fDur.textContent = durTxt;
+      if (fIn) fIn.value = rangeTxt;
+      if (rSum) rSum.textContent = rangeTxt;
+      recalcTotal();
+    };
+
+    document.getElementById('dtPickupTimeInput')?.addEventListener('input', (e) => {
+      if (e.target.value) { dtState.pickupHour = e.target.value; renderHours(); updateDtSummary(); }
+    });
+    document.getElementById('dtReturnTimeInput')?.addEventListener('input', (e) => {
+      if (e.target.value) { dtState.returnHour = e.target.value; renderHours(); updateDtSummary(); }
+    });
+    document.getElementById('filterScheduleInput')?.addEventListener('input', (e) => {
+      const val = e.target.value;
+      const rSum = document.getElementById('resultsDateSummary');
+      const dIn = document.getElementById('detailScheduleInput');
+      if (rSum) rSum.textContent = val;
+      if (dIn) dIn.value = val;
+    });
+    document.getElementById('detailScheduleInput')?.addEventListener('input', (e) => {
+      const val = e.target.value;
+      const fIn = document.getElementById('filterScheduleInput');
+      const rSum = document.getElementById('resultsDateSummary');
+      if (fIn) fIn.value = val;
+      if (rSum) rSum.textContent = val;
+    });
+
+    const recalcTotal = () => {
+      const days = getDaysCount();
+      let addons = 0;
+      document.querySelectorAll('.addon-chk:checked').forEach((c) => {
+        const p = Number(c.dataset.price || 0);
+        addons += c.dataset.perday === '1' ? p * days : p;
+      });
+      const total = activeBasePrice * days + deliveryFee + addons;
+      document.getElementById('detailPriceBreakdown').textContent =
+        `${activeBasePrice.toLocaleString('vi-VN')}đ × ${days} ngày + Giao nhận ${deliveryFee.toLocaleString('vi-VN')}đ + Tiện ích ${addons.toLocaleString('vi-VN')}đ`;
+      document.getElementById('detailTotalPrice').textContent = total.toLocaleString('vi-VN') + 'đ';
+    };
+
+    document.querySelectorAll('.dt-mode-btn').forEach((b) => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.dt-mode-btn').forEach((x) => x.classList.remove('is-active'));
+        b.classList.add('is-active');
+        dtState.mode = b.dataset.dtMode;
+        if (dtState.mode === 'hour') {
+          dtState.endDay = dtState.startDay;
+          dtState.pickingEnd = false;
+        } else if (dtState.mode === 'week') {
+          dtState.endDay = Math.min(30, dtState.startDay + 7);
+          dtState.pickingEnd = false;
+        } else if (!dtState.endDay || dtState.endDay <= dtState.startDay) {
+          dtState.endDay = null;
+          dtState.pickingEnd = true;
+        }
+        renderCalendar();
+        updateDtSummary();
+      });
+    });
+    document.getElementById('dtPrevMonth')?.addEventListener('click', () => {
+      if (dtState.month > 0) { dtState.month--; renderCalendar(); updateDtSummary(); }
+    });
+    document.getElementById('dtNextMonth')?.addEventListener('click', () => {
+      if (dtState.month < 11) { dtState.month++; renderCalendar(); updateDtSummary(); }
+    });
+    const openPicker = () => {
+      renderCalendar();
+      renderHours();
+      updateDtSummary();
+      document.getElementById('dateTimePickerModal').classList.add('is-open');
+    };
+    document.getElementById('openDateTimePickerBtn')?.addEventListener('click', openPicker);
+    document.getElementById('openFilterDateTimeBtn')?.addEventListener('click', openPicker);
+    document.getElementById('dtDoneBtn')?.addEventListener('click', () => {
+      document.getElementById('dateTimePickerModal').classList.remove('is-open');
+      recalcTotal();
+    });
+
+    const btnSelf = document.getElementById('btnSelfPickup');
+    const btnDel = document.getElementById('btnDelivery');
+    btnSelf?.addEventListener('click', () => {
+      deliveryFee = 0;
+      btnSelf.className = 'btn btn-primary';
+      btnDel.className = 'btn btn-soft';
+      document.getElementById('pickupAddressNote').hidden = false;
+      document.getElementById('deliveryAddressWrap').hidden = true;
+      recalcTotal();
+    });
+    btnDel?.addEventListener('click', () => {
+      deliveryFee = 30000;
+      btnDel.className = 'btn btn-primary';
+      btnSelf.className = 'btn btn-soft';
+      document.getElementById('pickupAddressNote').hidden = true;
+      document.getElementById('deliveryAddressWrap').hidden = false;
+      recalcTotal();
+    });
+    document.querySelectorAll('.addon-chk').forEach((c) => c.addEventListener('change', recalcTotal));
+
+    // ======================================================================
+    // 24 VEHICLES DATASET (9 CARDS/PAGE, 3 COLUMNS/ROW)
+    // ======================================================================
+    const VEHICLES_DATA = [
+      // 12 xe máy
+      { id: 'v1', name: 'VinFast Feliz S (2025)', type: 'moto', category: 'Xe máy', transmission: 'Số tự động', fuel: 'Điện', seats: '2 chỗ', price: 160000, rating: '4.9', trips: '142 chuyến', address: '45 Lý Tự Trọng, Quận 1, TP.HCM', ownerKey: 'moto' },
+      { id: 'v2', name: 'Honda Vision Smartkey (2024)', type: 'moto', category: 'Xe máy', transmission: 'Số tự động', fuel: 'Xăng', seats: '2 chỗ', price: 140000, rating: '4.8', trips: '215 chuyến', address: '72 CMT8, Quận 3, TP.HCM', ownerKey: 'moto' },
+      { id: 'v3', name: 'VinFast Evo200 Lite (2025)', type: 'moto', category: 'Xe máy', transmission: 'Số tự động', fuel: 'Điện', seats: '2 chỗ', price: 130000, rating: '4.9', trips: '98 chuyến', address: '120 Nguyễn Huệ, Quận 1, TP.HCM', ownerKey: 'moto' },
+      { id: 'v4', name: 'Dat Bike Weaver++ (2024)', type: 'moto', category: 'Xe máy', transmission: 'Xe côn tay', fuel: 'Điện', seats: '2 chỗ', price: 220000, rating: '4.9', trips: '87 chuyến', address: '18 Nguyễn Thị Minh Khai, Q.1, TP.HCM', ownerKey: 'moto' },
+      { id: 'v5', name: 'Yamaha Grande Hybrid (2024)', type: 'moto', category: 'Xe máy', transmission: 'Số tự động', fuel: 'Xăng/Điện', seats: '2 chỗ', price: 170000, rating: '4.8', trips: '120 chuyến', address: '55 Hai Bà Trưng, Quận 1, TP.HCM', ownerKey: 'moto' },
+      { id: 'v6', name: 'Honda Air Blade 160 (2025)', type: 'moto', category: 'Xe máy', transmission: 'Số tự động', fuel: 'Xăng', seats: '2 chỗ', price: 180000, rating: '4.9', trips: '164 chuyến', address: '102 Trần Hưng Đạo, Quận 5, TP.HCM', ownerKey: 'moto' },
+      { id: 'v7', name: 'VinFast Klara S (2024)', type: 'moto', category: 'Xe máy', transmission: 'Số tự động', fuel: 'Điện', seats: '2 chỗ', price: 150000, rating: '4.7', trips: '76 chuyến', address: '34 Lê Duẩn, Quận 1, TP.HCM', ownerKey: 'moto' },
+      { id: 'v8', name: 'Honda Wave Alpha (2024)', type: 'moto', category: 'Xe máy', transmission: 'Xe số', fuel: 'Xăng', seats: '2 chỗ', price: 100000, rating: '4.7', trips: '310 chuyến', address: '90 Hoàng Văn Thụ, Tân Bình, TP.HCM', ownerKey: 'moto' },
+      { id: 'v9', name: 'Yamaha Exciter 155 VVA', type: 'moto', category: 'Xe máy', transmission: 'Xe côn tay', fuel: 'Xăng', seats: '2 chỗ', price: 190000, rating: '4.8', trips: '135 chuyến', address: '205 Điện Biên Phủ, Bình Thạnh, TP.HCM', ownerKey: 'moto' },
+      { id: 'v10', name: 'VinFast Vento S (2025)', type: 'moto', category: 'Xe máy', transmission: 'Số tự động', fuel: 'Điện', seats: '2 chỗ', price: 210000, rating: '4.9', trips: '62 chuyến', address: '45 Lý Tự Trọng, Quận 1, TP.HCM', ownerKey: 'moto' },
+      { id: 'v11', name: 'Honda SH Mode 125 (2024)', type: 'moto', category: 'Xe máy', transmission: 'Số tự động', fuel: 'Xăng', seats: '2 chỗ', price: 240000, rating: '4.9', trips: '188 chuyến', address: '12 Nguyễn Trãi, Quận 1, TP.HCM', ownerKey: 'moto' },
+      { id: 'v12', name: 'Yamaha Sirius Fi (2024)', type: 'moto', category: 'Xe máy', transmission: 'Xe số', fuel: 'Xăng', seats: '2 chỗ', price: 110000, rating: '4.7', trips: '145 chuyến', address: '88 Quang Trung, Gò Vấp, TP.HCM', ownerKey: 'moto' },
+
+      // 12 ô tô
+      { id: 'v13', name: 'VinFast VF 5 Plus (2025)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Điện', seats: '5 chỗ', price: 750000, rating: '4.9', trips: '154 chuyến', address: '240 Võ Văn Ngân, Thủ Đức, TP.HCM', ownerKey: 'car' },
+      { id: 'v14', name: 'Mazda 3 Luxury Sedan (2024)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Xăng', seats: '5 chỗ', price: 850000, rating: '4.9', trips: '112 chuyến', address: '12 Tôn Đức Thắng, Quận 1, TP.HCM', ownerKey: 'car' },
+      { id: 'v15', name: 'VinFast VF e34 (2024)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Điện', seats: '5 chỗ', price: 800000, rating: '4.8', trips: '95 chuyến', address: '68 Mai Chí Thọ, TP. Thủ Đức, TP.HCM', ownerKey: 'car' },
+      { id: 'v16', name: 'Toyota Fortuner Legender (2024)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Dầu', seats: '7 chỗ', price: 1250000, rating: '4.9', trips: '88 chuyến', address: '240 Võ Văn Ngân, Thủ Đức, TP.HCM', ownerKey: 'car' },
+      { id: 'v17', name: 'Hyundai Accent AT (2024)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Xăng', seats: '5 chỗ', price: 650000, rating: '4.7', trips: '190 chuyến', address: '350 Cộng Hòa, Tân Bình, TP.HCM', ownerKey: 'car' },
+      { id: 'v18', name: 'Kia Carnival Signature (2024)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Dầu', seats: '7 chỗ', price: 1650000, rating: '5.0', trips: '72 chuyến', address: '15 Lê Duẩn, Quận 1, TP.HCM', ownerKey: 'car' },
+      { id: 'v19', name: 'VinFast VF 8 Plus (2025)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Điện', seats: '5 chỗ', price: 1150000, rating: '4.9', trips: '104 chuyến', address: 'Landmark 81, Bình Thạnh, TP.HCM', ownerKey: 'car' },
+      { id: 'v20', name: 'Honda City RS (2024)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Xăng', seats: '5 chỗ', price: 700000, rating: '4.8', trips: '140 chuyến', address: '180 Phan Đăng Lưu, Phú Nhuận, TP.HCM', ownerKey: 'car' },
+      { id: 'v21', name: 'Mitsubishi Xpander Premium (2024)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Xăng', seats: '7 chỗ', price: 850000, rating: '4.8', trips: '220 chuyến', address: '42 Nguyễn Thị Thập, Quận 7, TP.HCM', ownerKey: 'car' },
+      { id: 'v22', name: 'VinFast VF 6 Plus (2025)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Điện', seats: '5 chỗ', price: 890000, rating: '4.9', trips: '83 chuyến', address: '240 Võ Văn Ngân, Thủ Đức, TP.HCM', ownerKey: 'car' },
+      { id: 'v23', name: 'Toyota Corolla Cross Hybrid', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Xăng/Điện', seats: '5 chỗ', price: 950000, rating: '4.9', trips: '115 chuyến', address: '50 Bến Vân Đồn, Quận 4, TP.HCM', ownerKey: 'car' },
+      { id: 'v24', name: 'VinFast VF 9 Plus (2025)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Điện', seats: '7 chỗ', price: 1850000, rating: '5.0', trips: '46 chuyến', address: '45 Lý Tự Trọng, Quận 1, TP.HCM', ownerKey: 'car' }
+    ];
+
+    function getVehSvg(v) {
+      if (v.type === 'car') {
+        return `<svg viewBox="0 0 180 96" width="100%" height="110" fill="none"><rect width="180" height="96" rx="12" fill="#ecfdf5"/><circle cx="50" cy="68" r="14" fill="#14532d"/><circle cx="50" cy="68" r="7" fill="#bbf7d0"/><circle cx="130" cy="68" r="14" fill="#14532d"/><circle cx="130" cy="68" r="7" fill="#bbf7d0"/><path d="M28 66c0-12 8-22 20-24l22-18h50l24 16c14 4 20 14 20 26H28z" fill="#22c55e" opacity="0.85" stroke="#15803d" stroke-width="2.5"/><path d="M68 26l-14 16h40V26H68zm30 0v16h34l-14-16H98z" fill="#f0fdf4" stroke="#15803d" stroke-width="1.5"/></svg>`;
+      }
+      return `<svg viewBox="0 0 180 96" width="100%" height="110" fill="none"><rect width="180" height="96" rx="12" fill="#f0fdf4"/><circle cx="48" cy="68" r="14" fill="#14532d"/><circle cx="48" cy="68" r="6" fill="#bbf7d0"/><circle cx="132" cy="68" r="14" fill="#14532d"/><circle cx="132" cy="68" r="6" fill="#bbf7d0"/><path d="M48 68c0-8 6-16 16-16h24l16-24h20l-12 24h18" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M76 52l12-20h22" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/><path d="M78 48c10-14 26-14 36 0" fill="#22c55e" opacity="0.6"/></svg>`;
+    }
+
+    const FAV_KEY = 'ridehub_favorite_vehicles';
+    const getFavList = () => {
+      try {
+        const r = localStorage.getItem(FAV_KEY);
+        if (r) return JSON.parse(r);
+      } catch (_) {}
+      return [];
+    };
+    const saveFavList = (list) => localStorage.setItem(FAV_KEY, JSON.stringify(list));
+
+    const OWNERS_DATA = {
+      moto: {
+        initials: 'GR',
+        name: 'GreenRide Quận 1 (Anh Lê Hoàng Nam)',
+        rating: '4.9',
+        trips: '337 chuyến',
+        response: 'Phản hồi 99% trong 5 phút',
+        addr: '45 Lý Tự Trọng, Quận 1, TP.HCM',
+        fleet: [
+          { name: 'VinFast Feliz S (2025)', specs: 'Số tự động • Điện • 2 chỗ', price: '160.000đ/ngày' },
+          { name: 'Honda Vision (2024)', specs: 'Số tự động • Xăng • 2 chỗ', price: '140.000đ/ngày' },
+          { name: 'VinFast Evo200 (2025)', specs: 'Số tự động • Điện • 2 chỗ', price: '130.000đ/ngày' }
+        ]
+      },
+      car: {
+        initials: 'ED',
+        name: 'EcoDrive Thủ Đức (Chị Nguyễn Thu Thảo)',
+        rating: '4.8',
+        trips: '150 chuyến',
+        response: 'Phản hồi 98% trong 10 phút',
+        addr: '240 Võ Văn Ngân, Thủ Đức, TP.HCM',
+        fleet: [
+          { name: 'VinFast VF 5 Plus (2025)', specs: 'Số tự động • Điện • 5 chỗ', price: '750.000đ/ngày' },
+          { name: 'Toyota Fortuner Legender', specs: 'Số sàn • Dầu • 7 chỗ', price: '1.150.000đ/ngày' },
+          { name: 'Mazda 3 Luxury (2024)', specs: 'Số tự động • Xăng • 5 chỗ', price: '850.000đ/ngày' }
+        ]
+      }
+    };
+    let activeOwner = OWNERS_DATA.moto;
+
+    document.getElementById('detailOwnerCard')?.addEventListener('click', () => {
+      document.getElementById('ownerModalAvatar').textContent = activeOwner.initials;
+      document.getElementById('ownerModalName').textContent = activeOwner.name;
+      document.getElementById('ownerModalStats').textContent = `★ ${activeOwner.rating} • ${activeOwner.trips} • ${activeOwner.response}`;
+      document.getElementById('ownerModalAddr').textContent = activeOwner.addr;
+      document.getElementById('ownerFleetList').innerHTML = activeOwner.fleet.map((v) => `
+        <div style="padding:12px 14px;border-radius:12px;background:var(--bg-surface-soft);display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div>
+            <strong style="font-size:14px;display:block;">${v.name}</strong>
+            <span style="font-size:12px;color:var(--text-muted);">${v.specs}</span>
+          </div>
+          <strong style="color:var(--green-700);font-size:13px;">${v.price}</strong>
+        </div>
+      `).join('');
+      document.getElementById('ownerProfileModal').classList.add('is-open');
+    });
+
+    // Pagination State (9 cards per page, 3 cards per row)
+    const ITEMS_PER_PAGE = 9;
+    let currentPage = 1;
+    let currentFilterType = 'all';
+
+    function getFilteredVehicles() {
+      if (currentFilterType === 'all') return VEHICLES_DATA;
+      return VEHICLES_DATA.filter((v) => v.type === currentFilterType);
+    }
+
+    function renderVehicles() {
+      const grid = document.getElementById('vehiclesGrid');
+      const filtered = getFilteredVehicles();
+      const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE) || 1;
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const pageItems = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+      const favList = getFavList();
+      grid.innerHTML = pageItems.map((v) => {
+        const isFav = favList.some((f) => f.name === v.name);
+        return `
+          <article class="vehicle-card spotlight-card" tabindex="0" role="button" data-veh-id="${v.id}" data-type="${v.type}" data-price="${v.price}">
+            <div class="vehicle-card-media">
+              ${getVehSvg(v)}
+              <button type="button" class="fav-heart-btn ${isFav ? 'is-liked' : ''}" data-fav-btn="${v.id}" aria-label="Thêm vào xe yêu thích">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.5-9-9a5.5 5.5 0 0 1 9-5.5A5.5 5.5 0 0 1 21 12c-2 4.5-9 9-9 9z"/></svg>
+              </button>
+            </div>
+            <div class="badge-row">
+              <span class="status-badge status-badge--available">
+                <span class="status-dot status-dot-pulse"></span>
+                <span>Sẵn sàng</span>
+              </span>
+              <div class="vehicle-stats-row">
+                <span class="vehicle-rating">★ ${v.rating}</span>
+                <span class="vehicle-trips">${v.trips}</span>
+              </div>
+            </div>
+            <h3 style="margin:4px 0 6px;font-size:1.1rem;color:var(--text-primary);">${v.name}</h3>
+            <div class="vehicle-meta-chips">
+              <span class="meta-chip">${v.transmission}</span>
+              <span class="meta-chip">${v.fuel}</span>
+              <span class="meta-chip">${v.seats}</span>
+            </div>
+            <div class="vehicle-address">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 1 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>
+              <span>${v.address}</span>
+            </div>
+            <div class="vehicle-price-row" style="margin-top:auto;padding-top:10px;display:flex;align-items:baseline;justify-content:space-between;">
+              <div class="vehicle-price" style="font-size:1.15rem;font-weight:800;color:var(--green-800);">
+                <strong>${Number(v.price).toLocaleString('vi-VN')}đ</strong><span style="font-size:12px;color:var(--text-muted);font-weight:500;">/ngày</span>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      // Bind Click to open Vehicle Detail
+      grid.querySelectorAll('article.vehicle-card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.fav-heart-btn')) return;
+          const vehId = card.dataset.vehId;
+          const v = VEHICLES_DATA.find((x) => x.id === vehId);
+          if (!v) return;
+
+          activeBasePrice = v.price;
+          activeOwner = v.ownerKey === 'car' ? OWNERS_DATA.car : OWNERS_DATA.moto;
+
+          document.getElementById('detailTitle').textContent = v.name;
+          const imgBox = document.getElementById('detailImageBox');
+          imgBox.innerHTML = getVehSvg(v);
+          const svgEl = imgBox.querySelector('svg');
+          if (svgEl) {
+            svgEl.style.width = 'auto';
+            svgEl.style.height = '155px';
+            svgEl.style.maxWidth = '90%';
+          }
+          document.getElementById('detailChips').innerHTML = `
+            <span class="meta-chip">${v.category}</span>
+            <span class="meta-chip">${v.transmission}</span>
+            <span class="meta-chip">${v.fuel}</span>
+            <span class="meta-chip">${v.seats}</span>
+          `;
+          document.getElementById('detailOwnerAvatar').textContent = activeOwner.initials;
+          document.getElementById('detailOwnerInfo').textContent = activeOwner.name;
+          document.getElementById('detailOwnerStat').innerHTML = `<span class="vehicle-rating">★ ${v.rating}</span><span class="vehicle-trips">${v.trips}</span>`;
+          document.getElementById('pickupAddressNote').textContent = `Nhận tại: ${v.address}`;
+          document.getElementById('detailDesc').textContent = v.type === 'car'
+            ? 'Xe ô tô bảo dưỡng định kỳ chính hãng, nội thất sạch sẽ, vận hành êm ái phù hợp đi phố và đường dài.'
+            : 'Xe chạy êm, tiết kiệm năng lượng, đã kiểm tra phanh và lốp trước mỗi chuyến đi.';
+          document.getElementById('detailAmenities').innerHTML = v.type === 'car'
+            ? '<span class="meta-chip">Bluetooth</span><span class="meta-chip">Camera lùi</span><span class="meta-chip">GPS</span><span class="meta-chip">Cổng USB</span>'
+            : '<span class="meta-chip">Cốp rộng</span><span class="meta-chip">2 nón bảo hiểm</span><span class="meta-chip">Áo mưa</span><span class="meta-chip">Khóa Smartkey</span>';
+          document.getElementById('detailCollateral').textContent = v.type === 'car'
+            ? '3.000.000đ tiền mặt hoặc xe máy kèm cà vẹt gốc (miễn nếu eKYC Đạt).'
+            : '500.000đ tiền cọc giữ xe (hoặc miễn thế chấp khi eKYC Đạt).';
+
+          btnSelf.click();
+          document.getElementById('vehicleDetailModal').classList.add('is-open');
+        });
+      });
+
+      // Bind Favorite Hearts
+      grid.querySelectorAll('[data-fav-btn]').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const vehId = btn.dataset.favBtn;
+          const v = VEHICLES_DATA.find((x) => x.id === vehId);
+          if (!v) return;
+
+          let list = getFavList();
+          const exists = list.some((f) => f.name === v.name);
+          if (exists) {
+            list = list.filter((f) => f.name !== v.name);
+            btn.classList.remove('is-liked');
+            showRideHubToast(`Đã bỏ thích ${v.name}`);
+          } else {
+            list.push({
+              id: 'fav-' + Date.now(),
+              name: v.name,
+              specs: `${v.transmission} • ${v.fuel} • ${v.seats}`,
+              address: v.address,
+              price: Number(v.price).toLocaleString('vi-VN') + 'đ/ngày',
+              svg: getVehSvg(v)
+            });
+            btn.classList.add('is-liked');
+            showRideHubToast(`Đã thêm ${v.name} vào Xe yêu thích!`);
+          }
+          saveFavList(list);
+        });
+      });
+
+      // Update Pagination Controls
+      renderPaginationControls(totalPages, filtered.length);
+    }
+
+    function renderPaginationControls(totalPages, totalItems) {
+      const numsWrap = document.getElementById('paginationNumbers');
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+      const infoSpan = document.getElementById('paginationInfo');
+
+      if (infoSpan) {
+        infoSpan.textContent = `Trang ${currentPage} / ${totalPages} (${totalItems} xe)`;
+      }
+
+      if (prevBtn) {
+        prevBtn.disabled = currentPage <= 1;
+        prevBtn.onclick = () => {
+          if (currentPage > 1) {
+            currentPage--;
+            renderVehicles();
+            window.scrollTo({ top: 380, behavior: 'smooth' });
+          }
+        };
+      }
+
+      if (nextBtn) {
+        nextBtn.disabled = currentPage >= totalPages;
+        nextBtn.onclick = () => {
+          if (currentPage < totalPages) {
+            currentPage++;
+            renderVehicles();
+            window.scrollTo({ top: 380, behavior: 'smooth' });
+          }
+        };
+      }
+
+      if (numsWrap) {
+        let btns = '';
+        for (let p = 1; p <= totalPages; p++) {
+          const isAct = p === currentPage;
+          btns += `<button type="button" class="btn ${isAct ? 'btn-primary' : 'btn-soft'}" style="min-width:36px;min-height:36px;padding:6px 10px;font-size:13px;font-weight:700;" data-go-page="${p}">${p}</button>`;
+        }
+        numsWrap.innerHTML = btns;
+        numsWrap.querySelectorAll('[data-go-page]').forEach((b) => {
+          b.addEventListener('click', () => {
+            currentPage = Number(b.dataset.goPage);
+            renderVehicles();
+            window.scrollTo({ top: 380, behavior: 'smooth' });
+          });
+        });
+      }
+    }
+
+    // Filter by vehicle type (radio button)
+    document.querySelectorAll('input[name="vType"]').forEach((r) => {
+      r.addEventListener('change', () => {
+        currentFilterType = r.value;
+        currentPage = 1;
+        renderVehicles();
+      });
+    });
+
+    // Apply Filter Button
+    document.getElementById('applyFilterBtn')?.addEventListener('click', () => {
+      const loader = document.getElementById('filterLoader');
+      const grid = document.getElementById('vehiclesGrid');
+      const selType = document.querySelector('input[name="vType"]:checked')?.value || 'all';
+      currentFilterType = selType;
+      currentPage = 1;
+      loader.hidden = false;
+      grid.style.opacity = '0.4';
+      setTimeout(() => {
+        loader.hidden = true;
+        grid.style.opacity = '1';
+        renderVehicles();
+        showRideHubToast(`Tìm thấy ${getFilteredVehicles().length} phương tiện khả dụng!`);
+      }, 500);
+    });
+
+    // Initial render
+    renderVehicles();
+  </script>
+
+  <!-- ======================================================================
+       CHATBOT AI WIDGET (TÌM & THUÊ XE)
+       ====================================================================== -->
+  <button id="chatFab" class="chat-fab has-unread" aria-label="Mở trợ lý AI RideHub" type="button">
+    <span class="chat-fab-ring"></span>
+    <svg class="wheel-spin wheel-spin--slow" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/>
+    </svg>
+  </button>
+
+  <div id="chatWindow" class="chat-window" role="dialog" aria-label="Trợ lý AI RideHub">
+    <div style="padding:14px 16px;background:linear-gradient(135deg, var(--green-600), var(--green-700));color:#ffffff;display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:#86efac;display:inline-block;box-shadow:0 0 8px #86efac;"></span>
+        <strong>Trợ lý AI Tìm &amp; Thuê xe</strong>
+      </div>
+      <button id="chatCloseBtn" style="border:0;background:transparent;color:#ffffff;font-size:16px;font-weight:800;cursor:pointer;" type="button">✕</button>
+    </div>
+    <div id="chatMessages" class="chat-messages">
+      <div class="chat-msg chat-msg--bot">Xin chào! Tôi có thể giúp bạn tìm xe máy hoặc ô tô phù hợp, tư vấn chính sách cọc hay kiểm tra xe trống lịch hôm nay.</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="chat-quick-pill" data-reply="Gợi ý: VinFast Feliz S (160k/ngày) đang có sẵn gần bạn." type="button">Tìm xe máy giá rẻ</button>
+        <button class="chat-quick-pill" data-reply="VinFast VF 5 Plus (750k/ngày) và Mazda 3 (850k/ngày) đang có sẵn trống lịch." type="button">Tìm ô tô tự lái</button>
+        <button class="chat-quick-pill" data-reply="Bạn chỉ cần hoàn tất eKYC (CCCD + GPLX hợp lệ) là được Miễn thế chấp tiền cọc!" type="button">Miễn cọc eKYC?</button>
+        <button class="chat-quick-pill" data-handoff="true" data-reply="Đã chuyển yêu cầu hỗ trợ sang Nhân viên trực tiếp. Mã phiên: #RH-2026-889." type="button">Gặp nhân viên hỗ trợ</button>
+      </div>
+    </div>
+    <div style="padding:10px;display:flex;gap:8px;border-top:1px solid var(--green-100);">
+      <input id="chatInput" type="text" placeholder="Hỏi tìm xe, giá thuê, địa điểm..." style="flex:1;padding:8px 12px;border-radius:99px;border:1.5px solid var(--green-200);outline:none;font-size:13px;" />
+      <button id="chatSendBtn" class="btn btn-primary" style="min-height:36px;padding:6px 14px;" type="button">Gửi</button>
+    </div>
+  </div>
+</body>
+</html>
