@@ -7,7 +7,7 @@ from app.models.payment import PaymentTransaction, Refund, PaymentWebhookLog
 from .user import User
 from .identity_document import IdentityDocument
 from .driver_license import DriverLicense
-from .store import Store
+from .store import Store, StoreStaff
 from app.models.chat import ChatConversation, ChatMessage  
 from app.models.faq import FAQ  
 from app.models.handover import HandoverProtocol  
