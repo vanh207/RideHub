@@ -1,0 +1,103 @@
+/* ==========================================================================
+   RideHub Design Tokens & Motion Variables
+   Palette: Light Green + White + Soft Lime Yellow
+   ========================================================================== */
+
+:root {
+  /* Colors - Brand & Surface */
+  --bg-page: #f8fcf9;
+  --bg-surface: #ffffff;
+  --bg-surface-soft: #f1f9f3;
+  --bg-mint: #e6f7ec;
+  --bg-mint-strong: #d0f0dc;
+
+  /* Colors - Primary & Accent (Light Green + Soft Lime Yellow) */
+  --green-50: #f0fdf4;
+  --green-100: #dcfce7;
+  --green-200: #bbf7d0;
+  --green-300: #86efac;
+  --green-400: #4ade80;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --green-700: #15803d;
+  --green-800: #166534;
+  --green-900: #14532d;
+
+  --lime-100: #f7fee7;
+  --lime-200: #ecfccb;
+  --lime-300: #d9f99d;
+  --lime-400: #bef264;
+
+  --teal-200: #99f6e4;
+  --teal-300: #5eead4;
+
+  /* Semantic Status Colors */
+  --status-available: #22c55e;
+  --status-booked: #eab308;
+  --status-transit: #14b8a6;
+  --status-maintenance: #f97316;
+  --status-cleaning: #84cc16;
+  --coral-soft: #fb7185;
+  --coral-bg: #fff1f2;
+
+  /* Typography */
+  --text-primary: #132a1c;
+  --text-secondary: #3f5e4b;
+  --text-muted: #6b8a76;
+  --border-soft: transparent;
+  --border-strong: rgba(22, 163, 74, 0.22);
+
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+
+  /* Motion Easing (Mandatory) */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Motion Durations */
+  --dur-fast: 200ms;    /* Micro: 150-250ms */
+  --dur-med: 450ms;     /* Components: 350-600ms */
+  --dur-slow: 1000ms;   /* Large scenes: 800-1400ms */
+  --stagger-step: 75ms; /* Stagger: 60-90ms */
+
+  /* Radii & Shadows */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+
+  --shadow-soft: 0 8px 24px -10px rgba(19, 42, 28, 0.08);
+  --shadow-card: 0 14px 36px -14px rgba(19, 42, 28, 0.09);
+  --shadow-glow: 0 0 28px rgba(74, 222, 128, 0.32);
+
+  /* Z-index layers */
+  --z-bg: 0;
+  --z-base: 1;
+  --z-sticky: 20;
+  --z-navbar: 50;
+  --z-drawer: 80;
+  --z-modal: 100;
+  --z-toast: 120;
+  --z-loader: 200;
+  --z-cursor: 300;
+}
+
+/* Reduced Motion & User "Giảm hiệu ứng" Mode */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 1ms;
+    --dur-med: 1ms;
+    --dur-slow: 1ms;
+    --stagger-step: 0ms;
+  }
+}
+
+html.reduced-effects {
+  --dur-fast: 1ms;
+  --dur-med: 1ms;
+  --dur-slow: 1ms;
+  --stagger-step: 0ms;
+}
+
