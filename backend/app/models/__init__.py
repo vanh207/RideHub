@@ -1,7 +1,7 @@
 from app.db.session import Base
 from app.models.item import Item # noqa: F401
 from app.models.booking import Booking
-from app.models.vehicle import Vehicle
+from app.models.vehicle import Vehicle, VehicleImage
 from app.models.delivery import DeliveryFeeZone, DeliveryPoint
 from app.models.payment import PaymentTransaction, Refund, PaymentWebhookLog
 from .user import User

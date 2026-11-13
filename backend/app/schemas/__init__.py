@@ -28,3 +28,9 @@ from .vehicle_schedule import (
     VehicleScheduleCreate,
     VehicleScheduleResponse,
 )
+from .vehicle import (
+    PublicVehicleDetailResponse,
+    VehicleImageResponse,
+    StoreSummary,
+    DeliveryPointSummary,
+)

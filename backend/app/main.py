@@ -48,6 +48,7 @@ app.include_router(faq.router, prefix="/api")
 app.include_router(handover.router, prefix="/api")
 app.include_router(notifications.router, prefix="/api")
 app.include_router(vehicles.router, prefix="/api")
+app.include_router(vehicles.public_router, prefix="/api")
 
 @app.get("/")
 def root():

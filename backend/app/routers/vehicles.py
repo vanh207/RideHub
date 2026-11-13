@@ -1,17 +1,43 @@
-"""Router quản lý Phương tiện (Xe máy & Ô tô) thuộc cửa hàng
-Hỗ trợ: Thêm mới, xem danh sách, xem chi tiết, cập nhật thông tin xe.
-Validate: Định dạng biển số xe VN, trùng biển số, giá sàn theo loại xe.
+"""Router Phương tiện (Xe máy & Ô tô).
+
+- Nhóm quản lý cửa hàng: thêm mới, xem danh sách, xem chi tiết đầy đủ,
+  cập nhật thông tin xe. Validate biển số VN, trùng biển số, giá sàn.
+- Nhóm công khai: khách chưa đăng nhập xem chi tiết xe, giá thuê, ảnh,
+  điểm giao nhận và kiểm tra xe có trống theo khoảng thời gian.
 """
 import re
+from datetime import datetime
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.crud import vehicle as vehicle_crud
 from app.db.session import get_db
 from app.models.vehicle import Vehicle
-from app.schemas.vehicle import VehicleCreate, VehicleResponse, VehicleUpdate
+from app.schemas.vehicle import (
+    DeliveryPointSummary,
+    PublicVehicleDetailResponse,
+    StoreSummary,
+    VehicleCreate,
+    VehicleImageResponse,
+    VehicleResponse,
+    VehicleUpdate,
+)
 
 router = APIRouter(prefix="/vehicles", tags=["Vehicles Management"])
+public_router = APIRouter(prefix="/vehicles", tags=["Vehicles (Public)"])
+
+
+def _to_local_naive(value: datetime) -> datetime:
+    """Chuyển datetime có timezone về giờ địa phương dạng naive.
+
+    MySQL TIMESTAMP đang lưu giờ địa phương (Asia/Ho_Chi_Minh), nên cần bỏ
+    timezone trước khi so sánh.
+    """
+    if value.tzinfo is not None:
+        return value.astimezone().replace(tzinfo=None)
+    return value
 
 # thêm 
 @router.post("", response_model=VehicleResponse, status_code=status.HTTP_201_CREATED)
@@ -84,10 +110,10 @@ def list_vehicles(
     
     return query.order_by(Vehicle.id.desc()).all()
 
-# xem chi tiết xe
-@router.get("/{vehicle_id}", response_model=VehicleResponse)
-def get_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
-    """Xem chi tiết thông số một chiếc xe theo ID."""
+# xem chi tiết xe (dành cho quản lý cửa hàng)
+@router.get("/{vehicle_id}/management", response_model=VehicleResponse)
+def get_vehicle_management(vehicle_id: int, db: Session = Depends(get_db)):
+    """Xem chi tiết đầy đủ của xe, bao gồm biển số (dành cho quản lý)."""
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
     if not vehicle:
         raise HTTPException(
@@ -95,6 +121,94 @@ def get_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
             detail=f"Không tìm thấy phương tiện với ID={vehicle_id}!"
         )
     return vehicle
+
+
+@public_router.get(
+    "/{vehicle_id}",
+    response_model=PublicVehicleDetailResponse,
+    summary="Xem chi tiết phương tiện công khai",
+)
+def get_public_vehicle_detail(
+    vehicle_id: int,
+    start_time: Optional[datetime] = Query(
+        None,
+        description="Thời gian bắt đầu thuê (ISO 8601, VD: 2026-12-01T09:00:00)",
+    ),
+    end_time: Optional[datetime] = Query(
+        None,
+        description="Thời gian kết thúc thuê (ISO 8601, VD: 2026-12-03T09:00:00)",
+    ),
+    db: Session = Depends(get_db),
+):
+    """Xem chi tiết phương tiện công khai, không yêu cầu đăng nhập.
+
+    Nếu truyền đủ ``start_time`` và ``end_time``, API kiểm tra xe có trống
+    trong khoảng thời gian đó hay không (có đệm 60 phút theo BR-07).
+    Endpoint chỉ đọc, không tạo giữ chỗ và không ghi dữ liệu.
+    """
+    if (start_time is None) != (end_time is None):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Phải truyền đủ cả start_time và end_time.",
+        )
+
+    if start_time is not None and end_time is not None:
+        start_time = _to_local_naive(start_time)
+        end_time = _to_local_naive(end_time)
+        if end_time <= start_time:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="end_time phải lớn hơn start_time.",
+            )
+
+    data = vehicle_crud.get_public_vehicle_detail(db, vehicle_id)
+    if data is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Không tìm thấy phương tiện hoặc phương tiện không còn công khai.",
+        )
+
+    vehicle, store, images, delivery_points = data
+
+    is_available = None
+    unavailable_reason = None
+    if start_time is not None and end_time is not None:
+        is_available, unavailable_reason = vehicle_crud.check_vehicle_availability(
+            db, vehicle.id, start_time, end_time
+        )
+
+    return PublicVehicleDetailResponse(
+        id=vehicle.id,
+        store_id=vehicle.store_id,
+        store=StoreSummary.model_validate(store),
+        vehicle_type=vehicle.vehicle_type,
+        brand=vehicle.brand,
+        model=vehicle.model,
+        year_of_manufacture=vehicle.year_of_manufacture,
+        engine_capacity=vehicle.engine_capacity,
+        transmission_type=vehicle.transmission_type,
+        seats=vehicle.seats,
+        body_type=vehicle.body_type,
+        fuel_type=vehicle.fuel_type,
+        price_per_day=vehicle.price_per_day,
+        price_per_hour=vehicle.price_per_hour,
+        current_status=vehicle.current_status or "UNKNOWN",
+        is_available=is_available,
+        unavailable_reason=unavailable_reason,
+        description=vehicle.description,
+        images=[VehicleImageResponse.model_validate(image) for image in images],
+        delivery_points=[
+            DeliveryPointSummary(
+                id=point.id,
+                name=point.name,
+                address=point.address,
+                area=point.area,
+                delivery_fee=point.delivery_fee or 0,
+            )
+            for point in delivery_points
+        ],
+    )
+
 
 # cập nhật thông tin xe
 @router.put("/{vehicle_id}", response_model=VehicleResponse)

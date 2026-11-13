@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, Integer, Numeric, String, Text, Boolean, TIMESTAMP, UniqueConstraint
+from sqlalchemy import Column, Integer, Numeric, String, Text, Boolean, TIMESTAMP, UniqueConstraint, ForeignKey
 from sqlalchemy.sql import func
 from app.db.session import Base
 
@@ -39,3 +39,20 @@ class Vehicle(Base):
         server_default=func.current_timestamp(),
         onupdate=func.current_timestamp()
     )
+
+
+class VehicleImage(Base):
+    __tablename__ = "vehicle_images"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    vehicle_id = Column(
+        Integer,
+        ForeignKey("vehicles.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    image_url = Column(String(500), nullable=False)
+    is_primary = Column(Boolean, default=False)
+    sort_order = Column(Integer, nullable=True)
+
+    created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
