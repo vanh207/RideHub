@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     # Chuỗi các origin cách nhau bằng dấu phẩy, hoặc "*"
     CORS_ORIGINS: str = "*"
 
+    # Cổng thanh toán Sandbox (Mock Payment Gateway - TF19E3D)
+    PAYMENT_GATEWAY_SECRET: str = "ridehub_mock_secret_key_2026_tf19e3d"
+    PAYMENT_MOCK_BASE_URL: str = "https://sandbox.ridehub.vn"
+
     @property
     def database_url(self) -> str:
         # mysql+pymysql://user:password@host:port/database
