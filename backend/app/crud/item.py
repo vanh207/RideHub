@@ -1,4 +1,4 @@
-"""CRUD = các hàm đọc/ghi DB cho bảng items. Router gọi vào đây, không viết SQL trong router."""
+"""Hàm thao tác database (CRUD) cho bảng items."""
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -7,10 +7,11 @@ from app.schemas.item import ItemCreate, ItemUpdate
 
 
 def get_items(db: Session, keyword: str | None = None) -> list[Item]:
-    query = select(Item).order_by(Item.id.desc())
+    stmt = select(Item)
     if keyword:
-        query = query.where(Item.name.contains(keyword))
-    return list(db.scalars(query))
+        stmt = stmt.where(Item.name.ilike(f"%{keyword}%"))
+    stmt = stmt.order_by(Item.id.desc())
+    return list(db.scalars(stmt).all())
 
 
 def get_item(db: Session, item_id: int) -> Item | None:
@@ -18,17 +19,21 @@ def get_item(db: Session, item_id: int) -> Item | None:
 
 
 def create_item(db: Session, data: ItemCreate) -> Item:
-    item = Item(**data.model_dump())
+    item = Item(
+        name=data.name,
+        description=data.description,
+        price=data.price,
+    )
     db.add(item)
     db.commit()
-    db.refresh(item)  # lấy lại id, created_at... do MySQL sinh ra
+    db.refresh(item)
     return item
 
 
 def update_item(db: Session, item: Item, data: ItemUpdate) -> Item:
-    # exclude_unset: chỉ lấy các trường FE thực sự gửi lên
-    for field, value in data.model_dump(exclude_unset=True).items():
-        setattr(item, field, value)
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(item, key, value)
     db.commit()
     db.refresh(item)
     return item
