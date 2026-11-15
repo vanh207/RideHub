@@ -14,10 +14,14 @@ from app.core.config import settings
 from app.core.firebase import init_firebase
 from app.db.session import Base, engine
 <<<<<<< HEAD
+<<<<<<< HEAD
 from app.routers import health, items, payment, notifications, chat, faq, handover, vehicles, delivery, store_staff, login
 =======
 from app.routers import health, items, payment, notifications, chat, faq, handover, vehicles, delivery, store_staff
 >>>>>>> ac148bdaf8847b061ee1441559dec1ee163f1387
+=======
+from app.routers import health, items, payment, notifications, chat, faq, handover, vehicles, delivery, store_staff, login
+>>>>>>> backend
 
     
 @asynccontextmanager
@@ -61,9 +65,13 @@ app.include_router(vehicles.router, prefix="/api")
 app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
 <<<<<<< HEAD
+<<<<<<< HEAD
 app.include_router(login.router)
 =======
 >>>>>>> ac148bdaf8847b061ee1441559dec1ee163f1387
+=======
+app.include_router(login.router)
+>>>>>>> backend
 
 @app.get("/")
 def root():

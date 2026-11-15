@@ -6,7 +6,18 @@ PyMySQL==1.1.1
 cryptography==43.0.3
 pydantic[email]==2.10.2
 pydantic-settings==2.6.1
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+>>>>>>> backend
 python-dotenv==1.0.1
 PyJWT==2.10.1
 bcrypt==4.2.0
 firebase-admin>=6.5.0
+<<<<<<< HEAD
+=======
+=======
+payos>=1.1.0
+email-validator>=2.0.0
+>>>>>>> Stashed changes
+>>>>>>> backend

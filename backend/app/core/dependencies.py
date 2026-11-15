@@ -56,3 +56,7 @@ def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
             detail="Không có quyền admin",
         )
     return current_user
+<<<<<<< HEAD
+=======
+
+>>>>>>> backend

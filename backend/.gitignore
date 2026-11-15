@@ -8,6 +8,10 @@ env/
 # Cấu hình bí mật
 .env
 .env.example
+<<<<<<< HEAD
+=======
+serviceAccountKey.json
+>>>>>>> backend
 
 
 # IDE

@@ -11,10 +11,18 @@ class BookingBase(BaseModel):
     end_time: datetime
     rental_amount: float
 <<<<<<< HEAD
+<<<<<<< HEAD
     delivery_fee: float = 0 
 =======
     delivery_fee: float = 0
 >>>>>>> 669344b168c50c24afce84a94b85c301d964370e
+=======
+<<<<<<< Updated upstream
+    delivery_fee: float = 0 
+=======
+    delivery_fee: float = 0
+>>>>>>> Stashed changes
+>>>>>>> backend
     deposit_amount: float = 0
     total_amount: float
 
@@ -29,4 +37,8 @@ class BookingResponse(BookingBase):
     updated_at: datetime
 
     class Config:
+<<<<<<< HEAD
         from_attributes = True
+=======
+        from_attributes = True
+>>>>>>> backend
