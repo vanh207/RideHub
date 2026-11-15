@@ -150,7 +150,4 @@ def verify_firebase_id_token(id_token: str) -> dict:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Firebase ID Token không hợp lệ hoặc đã hết hạn: {fe}",
         )
-<<<<<<< HEAD
-=======
 
->>>>>>> backend

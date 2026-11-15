@@ -1,7 +1,7 @@
 from app.schemas.booking import (
     BookingBase,
     BookingCreate,
-    BookingResponse
+    BookingResponse,
 )
 
 from app.schemas.payment import (
@@ -11,32 +11,14 @@ from app.schemas.payment import (
     RefundBase,
     RefundCreate,
     RefundResponse,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> backend
     PaymentWebhookLogCreate,
     PaymentCreateRequest,
     PaymentCreateResponse,
     PaymentWebhookPayload,
     PaymentRefundRequest,
     PaymentSimulateRequest,
-<<<<<<< HEAD
-)
-=======
-    PaymentWebhookLogCreate,
-    PaymentCreateRequest,
-    PaymentCreateResponse,
-    PaymentWebhookPayload,
-    PaymentRefundRequest,
-    PaymentSimulateRequest,
-=======
-<<<<<<< Updated upstream
-=======
     PayOSPaymentCreateRequest,
     PayOSPaymentResponse,
->>>>>>> Stashed changes
->>>>>>> backend
 )
 
 from .user import UserBase, UserCreate, UserResponse
@@ -52,8 +34,4 @@ from .vehicle_schedule import (
     VehicleScheduleBase,
     VehicleScheduleCreate,
     VehicleScheduleResponse,
-<<<<<<< HEAD
 )
-=======
-)
->>>>>>> backend

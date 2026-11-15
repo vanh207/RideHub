@@ -7,18 +7,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-<<<<<<< Updated upstream
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
     
     APP_NAME: str = "RideHub API"
-<<<<<<< HEAD
-=======
-=======
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
-
-    APP_NAME: str = "KS25 Base API"
->>>>>>> Stashed changes
->>>>>>> backend
 
     DB_HOST: str = "127.0.0.1"
     DB_PORT: int = 3306
@@ -28,35 +19,11 @@ class Settings(BaseSettings):
 
     # Chuỗi các origin cách nhau bằng dấu phẩy, hoặc "*"
     CORS_ORIGINS: str = "*"
-    # Cổng thanh toán Sandbox (Mock Payment Gateway - TF19E3D)
-    PAYMENT_GATEWAY_SECRET: str = "ridehub_mock_secret_key_2026_tf19e3d"
-    PAYMENT_MOCK_BASE_URL: str = "https://sandbox.ridehub.vn"
-
-    # ---- Cấu hình Email (SMTP hoặc Mock) ----
-    EMAIL_BACKEND: str = "mock"
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    SMTP_FROM_EMAIL: str = "no-reply@ridehub.vn"
-    SMTP_FROM_NAME: str = "RideHub Notification"
-    SMTP_TLS: bool = True
-
-
-    # ---- JWT Cấu hình ----
-    JWT_SECRET_KEY: str = "CHANGE_ME_replace_with_a_strong_random_key"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-
-    # ---- Firebase Admin SDK ----
-    FIREBASE_CREDENTIALS_PATH: str = "serviceAccountKey.json"
 
     # Cổng thanh toán Sandbox (Mock Payment Gateway - TF19E3D)
     PAYMENT_GATEWAY_SECRET: str = "ridehub_mock_secret_key_2026_tf19e3d"
     PAYMENT_MOCK_BASE_URL: str = "https://sandbox.ridehub.vn"
 
-<<<<<<< Updated upstream
-=======
     # ---- Cổng thanh toán PayOS (Thanh toán tiền cọc - TF19EFA) ----
     PAYOS_CLIENT_ID: str = ""
     PAYOS_API_KEY: str = ""
@@ -64,7 +31,6 @@ class Settings(BaseSettings):
     PAYOS_RETURN_URL: str = "http://localhost:3000/payment/success"
     PAYOS_CANCEL_URL: str = "http://localhost:3000/payment/cancel"
 
->>>>>>> Stashed changes
     # ---- Cấu hình Email (SMTP hoặc Mock) ----
     EMAIL_BACKEND: str = "mock"
     SMTP_HOST: str = "smtp.gmail.com"
@@ -74,7 +40,6 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL: str = "no-reply@ridehub.vn"
     SMTP_FROM_NAME: str = "RideHub Notification"
     SMTP_TLS: bool = True
-<<<<<<< Updated upstream
 
     # ---- JWT Cấu hình ----
     JWT_SECRET_KEY: str = "CHANGE_ME_replace_with_a_strong_random_key"
@@ -83,13 +48,10 @@ class Settings(BaseSettings):
 
     # ---- Firebase Admin SDK ----
     FIREBASE_CREDENTIALS_PATH: str = "serviceAccountKey.json"
-=======
->>>>>>> Stashed changes
 
     @property
     def database_url(self) -> str:
         # mysql+pymysql://user:password@host:port/database
-        # quote_plus: để mật khẩu có ký tự đặc biệt (@, #, /...) không làm hỏng URL
         return (
             f"mysql+pymysql://{self.DB_USER}:{quote_plus(self.DB_PASSWORD)}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?charset=utf8mb4"
