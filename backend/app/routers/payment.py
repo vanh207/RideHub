@@ -1,14 +1,18 @@
-"""Router API Xử lý Thanh toán, Webhook & Hoàn tiền (Sandbox/Mock Payment Gateway).
+"""Router API Xử lý Thanh toán, Webhook & Hoàn tiền (Sandbox & PayOS).
 
-Mã task: TF19E3D
-Dự án: RideHub (Hệ thống đặt xe và cho thuê xe trực tuyến)
+Mã task:
+- TF19E3D: Lớp tích hợp cổng thanh toán Sandbox/Mock
+- TF19EFA: Thanh toán tiền cọc: tạo giao dịch và mã QR động qua PayOS
+
 Các tính năng cốt lõi:
-1. POST /api/payments/create: Khởi tạo giao dịch đặt cọc & sinh mã QR / URL thanh toán.
-2. POST /api/payments/webhook: Nhận Webhook từ cổng thanh toán, xác thực HMAC-SHA256, kiểm tra Idempotency & khóa lịch xe.
-3. POST /api/payments/refund: Xử lý hoàn tiền cho giao dịch thành công & giải phóng lịch xe.
-4. GET  /api/payments/{transaction_code}: Tra cứu chi tiết trạng thái giao dịch.
-5. GET  /api/payments/booking/{booking_id}: Tra cứu lịch sử thanh toán theo đơn đặt xe.
-6. POST /api/payments/simulate: Giả lập cổng thanh toán bắn Webhook trực tiếp từ Swagger UI.
+1. POST /api/payments/deposit/payos: Tạo link cọc xe & mã QR động qua PayOS (TF19EFA).
+2. GET  /api/payments/payos/order/{order_code}: Tra cứu trạng thái đơn hàng PayOS.
+3. POST /api/payments/create: Khởi tạo giao dịch cọc & sinh mã QR / URL sandbox (TF19E3D).
+4. POST /api/payments/webhook: Nhận Webhook từ cổng thanh toán, xác thực HMAC-SHA256 & Idempotency.
+5. POST /api/payments/refund: Xử lý hoàn tiền cho giao dịch thành công & giải phóng lịch xe.
+6. GET  /api/payments/{transaction_code}: Tra cứu chi tiết trạng thái giao dịch.
+7. GET  /api/payments/booking/{booking_id}: Tra cứu lịch sử thanh toán theo đơn đặt xe.
+8. POST /api/payments/simulate: Giả lập cổng thanh toán bắn Webhook trực tiếp từ Swagger UI.
 """
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -20,6 +24,8 @@ from app.db.session import get_db
 from app.models.booking import Booking
 from app.models.payment import PaymentTransaction, PaymentWebhookLog, Refund
 from app.schemas.payment import (
+    PayOSPaymentCreateRequest,
+    PayOSPaymentResponse,
     PaymentCreateRequest,
     PaymentCreateResponse,
     PaymentRefundRequest,
@@ -29,21 +35,177 @@ from app.schemas.payment import (
     RefundResponse,
 )
 from app.services.payment_gateway import payment_gateway_service
+from app.services.payos_service import payos_service
 
 router = APIRouter(
     prefix="/payments",
-    tags=["Payments - Thanh toán & Cổng Sandbox (TF19E3D)"],
+    tags=["Payments - Thanh toán & Cổng PayOS / Sandbox"],
 )
 
 
 # ==============================================================================
-# 1. API KHỞI TẠO GIAO DỊCH THANH TOÁN / ĐẶT CỌC (DEPOSIT)
+# 1. API THANH TOÁN TIỀN CỌC QUA CỔNG PAYOS (MÃ TASK: TF19EFA)
+# ==============================================================================
+@router.post(
+    "/deposit/payos",
+    response_model=PayOSPaymentResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Tạo giao dịch thanh toán tiền cọc & sinh mã QR động qua PayOS (TF19EFA)",
+    description="""
+    Khởi tạo giao dịch thanh toán cọc đơn đặt xe thông qua cổng thanh toán PayOS:
+    - Đọc thông tin xác thực an toàn từ `.env` (`PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`).
+    - Tự động sinh `orderCode` số nguyên duy nhất và chuẩn hóa nội dung VietQR (tối đa 25 ký tự).
+    - Gọi bất đồng bộ (`async/await`) sang SDK **AsyncPayOS**.
+    - Nhận đường dẫn thanh toán (`checkoutUrl`) và chuỗi mã QR động (`qrCode`).
+    - Lưu bản ghi `PaymentTransaction` vào MySQL ở trạng thái **PENDING**.
+    """,
+)
+async def create_payos_deposit_payment(
+    request: PayOSPaymentCreateRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+        # B1. Kiểm tra đơn đặt xe (Booking)
+        booking = db.query(Booking).filter(Booking.id == request.booking_id).first()
+        if not booking:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Không tìm thấy đơn đặt xe với ID {request.booking_id}",
+            )
+
+        if booking.status in ("BOOKED", "COMPLETED"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Đơn đặt xe này đã được xác nhận thanh toán thành công trước đó.",
+            )
+        elif booking.status == "CANCELLED":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Đơn đặt xe đã bị hủy, không thể tạo thanh toán cọc.",
+            )
+
+        # B2. Xác định số tiền cọc (VNĐ)
+        deposit_amount = request.amount
+        if deposit_amount is None:
+            deposit_amount = (
+                float(booking.deposit_amount)
+                if float(booking.deposit_amount) > 0
+                else float(booking.total_amount)
+            )
+
+        if deposit_amount <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Số tiền cọc thanh toán phải lớn hơn 0 VNĐ.",
+            )
+
+        # B3. Gọi PayOS Service tạo payment link & mã QR động (bất đồng bộ)
+        payos_data = await payos_service.create_deposit_payment_link(
+            booking_id=booking.id,
+            amount=deposit_amount,
+            description=request.description,
+            return_url=request.return_url,
+            cancel_url=request.cancel_url,
+        )
+
+        # B4. Lưu bản ghi PaymentTransaction vào MySQL qua SQLAlchemy ở trạng thái PENDING
+        order_code = payos_data["order_code"]
+        transaction_code = f"PAYOS_{order_code}"
+
+        new_transaction = PaymentTransaction(
+            booking_id=booking.id,
+            transaction_code=transaction_code,
+            provider="PAYOS",
+            provider_txn_id=str(payos_data["payment_link_id"]),
+            amount=deposit_amount,
+            status="PENDING",
+            payment_method="QR_CODE",
+            qr_code_url=payos_data["qr_code_url"],
+        )
+        db.add(new_transaction)
+        db.commit()
+        db.refresh(new_transaction)
+
+        # B5. Trả về thông tin đầy đủ cho Frontend hiển thị QR và chuyển hướng
+        return PayOSPaymentResponse(
+            transaction_id=new_transaction.id,
+            transaction_code=new_transaction.transaction_code,
+            order_code=order_code,
+            booking_id=booking.id,
+            amount=int(deposit_amount),
+            status=new_transaction.status,
+            checkout_url=payos_data["checkout_url"],
+            qr_code=payos_data["qr_code"],
+            qr_code_url=payos_data["qr_code_url"],
+            payment_link_id=payos_data["payment_link_id"],
+            account_number=payos_data.get("account_number"),
+            account_name=payos_data.get("account_name"),
+            bin=payos_data.get("bin"),
+            message="Khởi tạo giao dịch thanh toán cọc và sinh mã QR PayOS thành công.",
+        )
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi hệ thống khi tạo giao dịch PayOS: {str(exc)}",
+        )
+
+
+@router.get(
+    "/payos/order/{order_code}",
+    summary="Tra cứu thông tin trạng thái đơn hàng từ PayOS (TF19EFA)",
+    description="Tra cứu trực tiếp trạng thái link thanh toán từ PayOS và tự động đồng bộ vào CSDL nếu đơn đã thanh toán.",
+)
+async def get_payos_order_status(
+    order_code: int,
+    db: Session = Depends(get_db),
+):
+    try:
+        # Gọi SDK tra cứu đơn hàng từ PayOS
+        order_info = await payos_service.get_payment_link_information(order_code=order_code)
+
+        # Kiểm tra và đồng bộ trạng thái giao dịch trong CSDL
+        transaction_code = f"PAYOS_{order_code}"
+        txn = (
+            db.query(PaymentTransaction)
+            .filter(PaymentTransaction.transaction_code == transaction_code)
+            .first()
+        )
+
+        status_str = getattr(order_info, "status", None)
+        if txn and status_str == "PAID" and txn.status != "SUCCESS":
+            txn.status = "SUCCESS"
+            txn.paid_at = datetime.now()
+
+            # Khóa lịch xe khi thanh toán thành công
+            booking = db.query(Booking).filter(Booking.id == txn.booking_id).first()
+            if booking:
+                booking.status = "BOOKED"
+
+            db.commit()
+
+        return order_info
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi khi tra cứu đơn hàng PayOS #{order_code}: {str(exc)}",
+        )
+
+
+# ==============================================================================
+# 2. API KHỞI TẠO GIAO DỊCH THANH TOÁN / ĐẶT CỌC SANDBOX (TF19E3D)
 # ==============================================================================
 @router.post(
     "/create",
     response_model=PaymentCreateResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Khởi tạo giao dịch đặt cọc & sinh mã QR/URL thanh toán",
+    summary="Khởi tạo giao dịch đặt cọc & sinh mã QR/URL thanh toán Sandbox (TF19E3D)",
     description="""
     Khởi tạo giao dịch thanh toán ở trạng thái **PENDING** và gọi sang cổng Sandbox
     để sinh `transaction_code` độc lập, `payment_url` và `qr_code_url` động.
@@ -71,7 +233,6 @@ def create_payment_transaction(
             )
 
         # B2. Xác định số tiền thanh toán (amount)
-        # Nếu client không truyền amount -> lấy deposit_amount hoặc total_amount từ Booking
         payment_amount = request.amount
         if payment_amount is None:
             payment_amount = float(booking.deposit_amount) if float(booking.deposit_amount) > 0 else float(booking.total_amount)
@@ -84,7 +245,6 @@ def create_payment_transaction(
             )
 
         # B3. Gọi Lớp tích hợp cổng thanh toán Sandbox (MockPaymentGatewayService)
-        # Sinh mã transaction_code độc lập, payment_url và qr_code_url
         session_data = payment_gateway_service.create_payment_session(
             booking_id=booking.id,
             amount=payment_amount,
@@ -133,7 +293,7 @@ def create_payment_transaction(
 
 
 # ==============================================================================
-# 2. API TIẾP NHẬN WEBHOOK TỪ CỔNG THANH TOÁN (WEBHOOK PROCESSING)
+# 3. API TIẾP NHẬN WEBHOOK TỪ CỔNG THANH TOÁN (WEBHOOK PROCESSING)
 # ==============================================================================
 @router.post(
     "/webhook",
@@ -209,7 +369,6 @@ def process_payment_webhook(
             )
 
         # B3. Cơ chế chống lặp Webhook - Idempotency (TF1B039-TC007)
-        # Nếu giao dịch đã hoàn tất (SUCCESS) hoặc đã hoàn tiền (REFUNDED)
         if transaction.status in ("SUCCESS", "REFUNDED"):
             idempotent_log = PaymentWebhookLog(
                 provider_txn_id=payload.provider_txn_id,
@@ -317,7 +476,7 @@ def process_payment_webhook(
 
 
 # ==============================================================================
-# 3. API HOÀN TIỀN (REFUND FLOW)
+# 4. API HOÀN TIỀN (REFUND FLOW)
 # ==============================================================================
 @router.post(
     "/refund",
@@ -438,7 +597,7 @@ def process_payment_refund(
 
 
 # ==============================================================================
-# 4. API TRA CỨU THÔNG TIN GIAO DỊCH (QUERY APIs)
+# 5. API TRA CỨU THÔNG TIN GIAO DỊCH (QUERY APIs)
 # ==============================================================================
 @router.get(
     "/{transaction_code}",
@@ -483,7 +642,7 @@ def get_payments_by_booking(
 
 
 # ==============================================================================
-# 5. API MÔ PHỎNG TEST NHANH TRÊN SWAGGER UI (SANDBOX SIMULATOR)
+# 6. API MÔ PHỎNG TEST NHANH TRÊN SWAGGER UI (SANDBOX SIMULATOR)
 # ==============================================================================
 @router.post(
     "/simulate",
@@ -528,4 +687,3 @@ def simulate_payment_webhook(
         "simulated_payload": mock_payload_dict,
         "webhook_result": webhook_result,
     }
-
