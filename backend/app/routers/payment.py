@@ -3,16 +3,18 @@
 Mã task:
 - TF19E3D: Lớp tích hợp cổng thanh toán Sandbox/Mock
 - TF19EFA: Thanh toán tiền cọc: tạo giao dịch và mã QR động qua PayOS
+- TF1A032: Webhook thanh toán PayOS: xác nhận, cập nhật đơn
 
 Các tính năng cốt lõi:
 1. POST /api/payments/deposit/payos: Tạo link cọc xe & mã QR động qua PayOS (TF19EFA).
 2. GET  /api/payments/payos/order/{order_code}: Tra cứu trạng thái đơn hàng PayOS.
-3. POST /api/payments/create: Khởi tạo giao dịch cọc & sinh mã QR / URL sandbox (TF19E3D).
-4. POST /api/payments/webhook: Nhận Webhook từ cổng thanh toán, xác thực HMAC-SHA256 & Idempotency.
-5. POST /api/payments/refund: Xử lý hoàn tiền cho giao dịch thành công & giải phóng lịch xe.
-6. GET  /api/payments/{transaction_code}: Tra cứu chi tiết trạng thái giao dịch.
-7. GET  /api/payments/booking/{booking_id}: Tra cứu lịch sử thanh toán theo đơn đặt xe.
-8. POST /api/payments/simulate: Giả lập cổng thanh toán bắn Webhook trực tiếp từ Swagger UI.
+3. POST /api/payments/webhook/payos: Tiếp nhận Webhook từ PayOS, xác thực chữ ký SDK + Idempotency (TF1A032).
+4. POST /api/payments/create: Khởi tạo giao dịch cọc & sinh mã QR / URL sandbox (TF19E3D).
+5. POST /api/payments/webhook: Nhận Webhook từ cổng thanh toán, xác thực HMAC-SHA256 & Idempotency.
+6. POST /api/payments/refund: Xử lý hoàn tiền cho giao dịch thành công & giải phóng lịch xe.
+7. GET  /api/payments/{transaction_code}: Tra cứu chi tiết trạng thái giao dịch.
+8. GET  /api/payments/booking/{booking_id}: Tra cứu lịch sử thanh toán theo đơn đặt xe.
+9. POST /api/payments/simulate: Giả lập cổng thanh toán bắn Webhook trực tiếp từ Swagger UI.
 """
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -26,6 +28,7 @@ from app.models.payment import PaymentTransaction, PaymentWebhookLog, Refund
 from app.schemas.payment import (
     PayOSPaymentCreateRequest,
     PayOSPaymentResponse,
+    PayOSWebhookPayload,
     PaymentCreateRequest,
     PaymentCreateResponse,
     PaymentRefundRequest,
@@ -199,7 +202,65 @@ async def get_payos_order_status(
 
 
 # ==============================================================================
-# 2. API KHỞI TẠO GIAO DỊCH THANH TOÁN / ĐẶT CỌC SANDBOX (TF19E3D)
+# 2. WEBHOOK THANH TOÁN TỪ PAYOS (MÃ TASK: TF1A032)
+# ==============================================================================
+@router.post(
+    "/webhook/payos",
+    status_code=status.HTTP_200_OK,
+    summary="Tiếp nhận Webhook kết quả thanh toán từ PayOS (TF1A032)",
+    description="""
+    Endpoint nhận thông báo kết quả thanh toán tự động từ PayOS sau khi người dùng hoàn tất giao dịch.
+
+    **Luồng xử lý (TF1A032):**
+    1. **Xác thực chữ ký (Signature Verification):** Dùng PayOS SDK + `PAYOS_CHECKSUM_KEY` để kiểm tra
+       tính toàn vẹn và tính xác thực của payload. Từ chối ngay nếu chữ ký sai (HTTP 401).
+    2. **Ghi log Webhook:** Mọi request vào endpoint này đều được ghi vào bảng `payment_webhook_logs`
+       để kiểm tra/debug sau, dù hợp lệ hay không.
+    3. **Idempotency (chống gọi lặp):** Nếu giao dịch đã ở trạng thái `SUCCESS` hoặc `REFUNDED`,
+       bỏ qua mà vẫn trả về `200 OK` cho PayOS (tránh PayOS retry vô hạn).
+    4. **Cập nhật trạng thái:** Nếu `success=true` và `code='00'`:
+       - `PaymentTransaction.status` → **SUCCESS** + ghi `paid_at`.
+       - `Booking.status` → **BOOKED** (khóa xe, không cho đặt trùng lịch).
+    5. **Trả về HTTP 200** cho PayOS biết đã nhận webhook thành công.
+
+    > **Lưu ý bảo mật:** `PAYOS_CHECKSUM_KEY` chỉ được đọc từ biến môi trường `.env`,
+    > không bao giờ hard-code trong code Python.
+    """,
+    response_description="PayOS yêu cầu trả về HTTP 200 để không retry webhook.",
+)
+async def process_payos_webhook(
+    payload: PayOSWebhookPayload,
+    db: Session = Depends(get_db),
+):
+    """Nhận và xử lý Webhook kết quả thanh toán từ PayOS (TF1A032).
+
+    PayOS gửi POST JSON với cấu trúc:
+    ```json
+    {
+        "code": "00",
+        "desc": "success",
+        "success": true,
+        "data": {
+            "orderCode": 26111322150001,
+            "amount": 500000,
+            "description": "Coc xe don 1",
+            "reference": "TXN_REF_ABC123",
+            "paymentLinkId": "abc123",
+            ...
+        },
+        "signature": "hmac_sha256_signature_here"
+    }
+    ```
+    """
+    # Chuyển Pydantic model -> Dict để truyền vào service (PayOS SDK cần raw dict)
+    webhook_body = payload.model_dump()
+    return await payos_service.process_payos_webhook(
+        webhook_body=webhook_body,
+        db=db,
+    )
+
+
+
 # ==============================================================================
 @router.post(
     "/create",

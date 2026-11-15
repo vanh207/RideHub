@@ -195,6 +195,191 @@ class PayOSService:
         client = self._get_client()
         return client.verifyPaymentWebhookData(webhook_body)
 
+    async def process_payos_webhook(
+        self,
+        webhook_body: Dict[str, Any],
+        db,
+    ) -> Dict[str, Any]:
+        """Xử lý toàn bộ luồng Webhook từ PayOS (TF1A032).
+
+        Luồng:
+        1. Xác thực chữ ký (Signature Verification) bằng PayOS SDK + PAYOS_CHECKSUM_KEY.
+        2. Ghi log vào bảng payment_webhook_logs.
+        3. Idempotency - bỏ qua nếu giao dịch đã được xử lý.
+        4. Cập nhật PaymentTransaction: PENDING -> SUCCESS (hoặc FAILED/CANCELLED).
+        5. Nếu SUCCESS: cập nhật Booking -> BOOKED (khóa xe).
+
+        Args:
+            webhook_body: Dict raw payload do PayOS gửi về.
+            db: SQLAlchemy Session.
+
+        Returns:
+            Dict chứa thông tin kết quả xử lý.
+
+        Raises:
+            HTTPException 401 nếu chữ ký không hợp lệ.
+            HTTPException 404 nếu không tìm thấy giao dịch.
+        """
+        from datetime import datetime
+        from app.models.payment import PaymentTransaction, PaymentWebhookLog
+        from app.models.booking import Booking
+
+        order_code = None
+        transaction_code = None
+
+        try:
+            # B1. Xác thực chữ ký từ PayOS SDK (sử dụng PAYOS_CHECKSUM_KEY)
+            try:
+                verified_data = self.verify_payment_webhook_data(webhook_body)
+                is_valid = True
+            except Exception:
+                is_valid = False
+                verified_data = None
+
+            # Trích xuất thông tin cơ bản từ payload để ghi log
+            data_block = webhook_body.get("data", {})
+            order_code = data_block.get("orderCode")
+            if order_code:
+                transaction_code = f"PAYOS_{order_code}"
+
+            # B2. Ghi log webhook vào CSDL (luôn ghi kể cả chữ ký sai)
+            webhook_log = PaymentWebhookLog(
+                provider_txn_id=data_block.get("reference") or data_block.get("paymentLinkId"),
+                transaction_code=transaction_code,
+                payload=webhook_body,
+                signature_valid="VALID" if is_valid else "INVALID",
+                process_result="PENDING",
+                queue_reason=None,
+                processed_at=datetime.now(),
+            )
+            db.add(webhook_log)
+            db.flush()  # flush để có id nhưng chưa commit
+
+            # B3. Từ chối nếu chữ ký sai
+            if not is_valid:
+                webhook_log.process_result = "REJECTED_INVALID_SIGNATURE"
+                webhook_log.queue_reason = (
+                    "Chữ ký PayOS không hợp lệ. "
+                    "Kiểm tra PAYOS_CHECKSUM_KEY và dữ liệu payload (TF1A032)."
+                )
+                db.commit()
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Xác thực chữ ký Webhook PayOS thất bại. Yêu cầu không hợp lệ.",
+                )
+
+            # B4. Tra cứu giao dịch trong CSDL
+            if not transaction_code:
+                webhook_log.process_result = "REJECTED_NO_ORDER_CODE"
+                webhook_log.queue_reason = "Payload thiếu orderCode không thể tra cứu giao dịch."
+                db.commit()
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Payload Webhook không chứa orderCode hợp lệ.",
+                )
+
+            transaction = (
+                db.query(PaymentTransaction)
+                .filter(PaymentTransaction.transaction_code == transaction_code)
+                .first()
+            )
+
+            if not transaction:
+                webhook_log.process_result = "NOT_FOUND"
+                webhook_log.queue_reason = f"Không tìm thấy giao dịch: {transaction_code}"
+                db.commit()
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Không tìm thấy giao dịch PayOS với mã {transaction_code}",
+                )
+
+            # B5. Idempotency - bỏ qua nếu đã xử lý xong
+            if transaction.status in ("SUCCESS", "REFUNDED"):
+                webhook_log.process_result = "IDEMPOTENT_IGNORED"
+                webhook_log.queue_reason = (
+                    f"Giao dịch {transaction_code} đã ở trạng thái {transaction.status}. "
+                    "Bỏ qua cập nhật trùng lặp (Idempotency - TF1A032)."
+                )
+                db.commit()
+                return {
+                    "status": "OK",
+                    "message": "Giao dịch đã được xử lý thành công trước đó (Idempotent).",
+                    "transaction_code": transaction_code,
+                    "current_status": transaction.status,
+                }
+
+            # B6. Phân tích kết quả PayOS
+            is_success = (
+                webhook_body.get("success") is True
+                and webhook_body.get("code") == "00"
+            )
+
+            if is_success:
+                # === Thanh toán THÀNH CÔNG ===
+                transaction.status = "SUCCESS"
+                transaction.paid_at = datetime.now()
+                transaction.provider_txn_id = (
+                    data_block.get("reference")
+                    or data_block.get("paymentLinkId")
+                )
+
+                # Cập nhật đơn đặt xe sang BOOKED (khóa xe)
+                booking = (
+                    db.query(Booking)
+                    .filter(Booking.id == transaction.booking_id)
+                    .first()
+                )
+                if booking:
+                    booking.status = "BOOKED"
+
+                webhook_log.process_result = "SUCCESS"
+                webhook_log.queue_reason = (
+                    "Xác thực hợp lệ. Đã cập nhật giao dịch SUCCESS và "
+                    "chuyển đơn đặt xe sang BOOKED (TF1A032)."
+                )
+                db.commit()
+
+                return {
+                    "status": "OK",
+                    "message": "Webhook PayOS xử lý thành công: giao dịch PAID, xe đã được khóa lịch.",
+                    "transaction_code": transaction_code,
+                    "booking_id": transaction.booking_id,
+                    "booking_status": booking.status if booking else None,
+                    "order_code": order_code,
+                }
+
+            else:
+                # === Thanh toán THẤT BẠI / HỦY ===
+                transaction.status = "FAILED"
+                transaction.provider_txn_id = (
+                    data_block.get("reference")
+                    or data_block.get("paymentLinkId")
+                )
+
+                webhook_log.process_result = "FAILED"
+                webhook_log.queue_reason = (
+                    webhook_body.get("desc")
+                    or "Cổng thanh toán PayOS báo giao dịch thất bại hoặc bị hủy."
+                )
+                db.commit()
+
+                return {
+                    "status": "OK",
+                    "message": "Đã ghi nhận giao dịch PayOS thất bại (FAILED).",
+                    "transaction_code": transaction_code,
+                    "order_code": order_code,
+                    "reason": webhook_body.get("desc"),
+                }
+
+        except HTTPException:
+            raise
+        except Exception as exc:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Lỗi hệ thống khi xử lý PayOS Webhook: {str(exc)}",
+            )
+
 
 # Khởi tạo singleton instance dùng chung trong toàn bộ dự án
 payos_service = PayOSService()

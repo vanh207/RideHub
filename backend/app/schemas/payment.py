@@ -134,3 +134,33 @@ class PayOSPaymentResponse(BaseModel):
     account_name: Optional[str] = Field(None, description="Tên chủ tài khoản ngân hàng thụ hưởng")
     bin: Optional[str] = Field(None, description="Mã định danh ngân hàng (BIN)")
     message: str = Field(default="Tạo link thanh toán cọc và mã QR động PayOS thành công")
+
+
+# --- 6. Schema Webhook từ PayOS (TF1A032) ---
+class PayOSWebhookData(BaseModel):
+    """Dữ liệu giao dịch bên trong payload webhook PayOS."""
+    orderCode: int = Field(..., description="Mã đơn hàng PayOS (order_code)")
+    amount: int = Field(..., description="Số tiền giao dịch (VNĐ)")
+    description: Optional[str] = Field(None, description="Nội dung chuyển khoản")
+    accountNumber: Optional[str] = Field(None, description="Số tài khoản thụ hưởng")
+    reference: Optional[str] = Field(None, description="Mã tham chiếu giao dịch ngân hàng")
+    transactionDateTime: Optional[str] = Field(None, description="Thời gian giao dịch")
+    paymentLinkId: Optional[str] = Field(None, description="ID link thanh toán PayOS")
+    code: Optional[str] = Field(None, description="Mã kết quả: 00 = thành công")
+    desc: Optional[str] = Field(None, description="Mô tả kết quả từ PayOS")
+    counterAccountBankId: Optional[str] = None
+    counterAccountBankName: Optional[str] = None
+    counterAccountName: Optional[str] = None
+    counterAccountNumber: Optional[str] = None
+    virtualAccountName: Optional[str] = None
+    virtualAccountNumber: Optional[str] = None
+    currency: Optional[str] = Field(None, description="Đơn vị tiền tệ, mặc định VND")
+
+
+class PayOSWebhookPayload(BaseModel):
+    """Payload đầy đủ PayOS gửi về webhook endpoint (TF1A032)."""
+    code: str = Field(..., description="Mã kết quả: '00' = thành công")
+    desc: str = Field(..., description="Mô tả kết quả: 'success' hoặc lý do lỗi")
+    success: bool = Field(..., description="True nếu giao dịch thành công")
+    data: PayOSWebhookData = Field(..., description="Chi tiết giao dịch")
+    signature: str = Field(..., description="Chữ ký HMAC-SHA256 xác thực từ PayOS")
