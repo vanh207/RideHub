@@ -57,3 +57,36 @@ def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
         )
     return current_user
 
+
+def get_current_store_owner(current_user: User = Depends(get_current_user)) -> User:
+    """Chỉ user có role 'store_owner' hoặc 'admin' mới được đi tiếp."""
+    if current_user.role not in ["store_owner", "admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Không có quyền chủ cửa hàng (Store Owner)",
+        )
+    return current_user
+
+
+def get_current_staff(current_user: User = Depends(get_current_user)) -> User:
+    """Chỉ user có role 'store_staff', 'store_owner', hoặc 'admin' mới được đi tiếp."""
+    if current_user.role not in ["store_staff", "store_owner", "admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Không có quyền nhân viên cửa hàng (Store Staff)",
+        )
+    return current_user
+
+
+def require_roles(*allowed_roles: str):
+    """Dependency factory kiểm tra người dùng phải thuộc một trong các vai trò được cấp phép."""
+    def role_checker(current_user: User = Depends(get_current_user)) -> User:
+        user_role = (current_user.role or "").lower()
+        normalized_allowed = [r.lower() for r in allowed_roles]
+        if user_role not in normalized_allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Truy cập bị từ chối. Yêu cầu một trong các vai trò: {', '.join(allowed_roles)}",
+            )
+        return current_user
+    return role_checker

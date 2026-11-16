@@ -10,7 +10,7 @@ class BookingBase(BaseModel):
     start_time: datetime
     end_time: datetime
     rental_amount: float
-    delivery_fee: float = 0
+    delivery_fee: float = 0 
     deposit_amount: float = 0
     total_amount: float
 

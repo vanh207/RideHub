@@ -57,6 +57,7 @@ app.include_router(vehicles.router, prefix="/api")
 app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
 app.include_router(login.router)
+app.include_router(login.router, prefix="/api")
 
 @app.get("/")
 def root():

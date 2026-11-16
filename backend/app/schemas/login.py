@@ -27,6 +27,11 @@ class UserLogin(BaseModel):
     password: str
 
 
+class FirebaseLoginRequest(BaseModel):
+    """Đăng nhập bằng Firebase ID Token (từ Google Login hoặc Phone OTP)."""
+    id_token: str = Field(..., description="Firebase ID Token nhận được từ Firebase Client SDK")
+
+
 # ── Response ──────────────────────────────────────────────────────────────────
 
 class RegisterResponse(BaseModel):
