@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng nhập &amp; Đăng ký — RideHub</title>
+  <link rel="icon" type="image/png" href="../assets/images/logo-rh.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+</head>
+<body>
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <div class="blob-layer" aria-hidden="true" data-pause-offscreen>
+    <div class="morph-blob morph-blob--1"></div>
+    <div class="morph-blob morph-blob--2"></div>
+  </div>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <header id="mainNavbar" class="navbar is-scrolled">
+    <div class="container navbar-inner">
+      <a href="index.html" class="brand-logo">
+        <img src="../assets/images/logo-rh.png" alt="RideHub" style="height:34px;width:auto;object-fit:contain;" />
+        <span>RideHub</span>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">Trang chủ</a>
+        <a href="vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+        <a href="trips.html" class="nav-link">Chuyến đi</a>
+        <a href="index.html#storySection" class="nav-link">Hướng dẫn thuê xe</a>
+        <a href="store-portal.html" class="nav-link">Cửa hàng</a>
+        <a href="admin-ops.html" class="nav-link">Vận hành &amp; Admin</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <aside id="mobileDrawer" class="mobile-drawer">
+    <a href="index.html">Trang chủ</a>
+    <a href="vehicles.html">Tìm &amp; Thuê xe</a>
+    <a href="trips.html">Chuyến đi</a>
+    <a href="index.html#storySection">Hướng dẫn thuê xe</a>
+    <a href="store-portal.html">Cổng Cửa hàng</a>
+    <a href="admin-ops.html">Vận hành &amp; Admin</a>
+  </aside>
+
+  <!-- Cảnh xe chạy toàn màn hình làm nền phía sau -->
+  <section id="heroScene" class="hero-scene" data-time="morning" style="position:fixed;inset:0;z-index:0;min-height:100vh;padding-top:0;display:flex;flex-direction:column;justify-content:flex-end;opacity:0.45;pointer-events:none;">
+    <div class="aurora-bg" aria-hidden="true"></div>
+    <div class="hero-sun" style="top:96px;right:12%;width:72px;height:72px;" aria-hidden="true"></div>
+    <svg class="hero-cloud hero-cloud--1" style="top:92px;" width="120" height="50" viewBox="0 0 130 54" fill="none" aria-hidden="true">
+      <path d="M24 44 H104 C115 44 122 36 122 27 C122 18 114 12 104 13 C99 4 86 0 74 4 C64 0 50 4 44 14 C31 12 18 20 18 32 C18 39 20 44 24 44 Z" fill="#ffffff" fill-opacity="0.9"/>
+    </svg>
+    <div class="hero-road-stage" style="height:260px;">
+      <svg class="parallax-layer" data-parallax="0.15" viewBox="0 0 1440 220" preserveAspectRatio="none" style="opacity:0.5;" aria-hidden="true">
+        <path d="M0 160 Q220 80 460 145 T960 130 T1440 150 L1440 220 L0 220 Z" fill="#86efac"/>
+      </svg>
+      <svg class="parallax-layer" data-parallax="0.32" viewBox="0 0 1440 220" preserveAspectRatio="none" style="opacity:0.7;" aria-hidden="true">
+        <path d="M0 175 L80 175 L80 125 L130 125 L130 175 L190 175 L190 105 L250 105 L250 175 L340 175 Q370 120 400 175 L520 175 L520 115 L585 115 L585 175 L720 175 Q755 110 790 175 L920 175 L920 120 L990 120 L990 175 L1140 175 Q1180 118 1220 175 L1440 175 L1440 220 L0 220 Z" fill="#4ade80"/>
+      </svg>
+      <svg class="hero-bird" width="26" height="14" viewBox="0 0 26 14" fill="none" aria-hidden="true">
+        <path d="M1 10 Q7 2 13 8 Q19 2 25 10" stroke="#15803d" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div class="road-asphalt"><div class="road-dashes"></div></div>
+      <div id="heroVehiclesTrack" class="hero-vehicles-track"></div>
+      <div class="fg-rush-layer" aria-hidden="true">
+        <svg class="fg-rush-item" width="44" height="54" viewBox="0 0 44 54"><rect x="20" y="6" width="4" height="48" fill="#15803d"/><circle cx="22" cy="8" r="6" fill="#fef08a"/></svg>
+        <svg class="fg-rush-item" width="60" height="36" viewBox="0 0 60 36"><path d="M4 36 Q18 6 30 36 Q42 8 56 36 Z" fill="#22c55e"/></svg>
+      </div>
+    </div>
+  </section>
+
+  <main style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:96px 16px 40px;position:relative;z-index:2;">
+    <div style="width:min(440px,100%);">
+      <div data-tab-panel="login">
+        <div class="panel-card spotlight-card" data-reveal style="box-shadow:0 24px 60px -16px rgba(19,42,28,0.22);background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);">
+          <div style="width:76px;height:76px;border-radius:50%;background:var(--green-100);display:grid;place-items:center;margin:0 auto 12px;box-shadow:var(--shadow-soft);">
+            <img src="../assets/images/logo-rh.png" alt="RideHub" style="height:44px;width:44px;object-fit:contain;" />
+          </div>
+
+          <h2 id="authCardTitle" style="text-align:center;margin:0 0 18px;font-family:var(--font-display);font-size:1.35rem;">Đăng nhập</h2>
+
+          <!-- Login Form (Chỉ đăng nhập bằng Email) -->
+          <form id="loginForm" novalidate>
+            <div class="filter-group">
+              <label class="filter-label" for="loginEmailInput">Email đăng nhập</label>
+              <input id="loginEmailInput" class="form-input" type="email" placeholder="Nhập email của bạn..." value="an.nguyen@ridehub.vn" required />
+            </div>
+            <div class="filter-group">
+              <label class="filter-label" for="loginPassInput">Mật khẩu (mặc định: 123456)</label>
+              <div style="position:relative;">
+                <input id="loginPassInput" class="form-input" type="password" placeholder="Nhập mật khẩu..." value="123456" required style="padding-right:76px;" />
+                <button type="button" class="btn btn-soft toggle-pass-btn" data-target="loginPassInput" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);min-height:30px;padding:4px 10px;font-size:11px;">Hiện</button>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 14px;font-size:13px;">
+              <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-secondary);">
+                <input id="rememberLoginCheck" type="checkbox" style="accent-color:var(--green-600);" />
+                <span>Ghi nhớ đăng nhập</span>
+              </label>
+              <button id="goToForgotLink" type="button" style="border:0;background:none;padding:0;color:var(--green-700);font-weight:700;text-decoration:underline;">Quên mật khẩu?</button>
+            </div>
+            <button class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="submit">Đăng nhập ngay</button>
+            <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-secondary);">
+              Chưa có tài khoản?
+              <button id="goToRegisterLink" type="button" style="border:0;background:none;padding:0;color:var(--green-700);font-weight:800;text-decoration:underline;">Đăng ký</button>
+            </div>
+          </form>
+
+          <!-- Register Form -->
+          <form id="registerForm" hidden novalidate>
+            <div class="filter-group">
+              <label class="filter-label" for="regNameInput">Họ và tên</label>
+              <input id="regNameInput" class="form-input" type="text" placeholder="Nhập họ và tên..." required />
+            </div>
+            <div class="filter-group">
+              <label class="filter-label" for="regEmailInput">Email</label>
+              <input id="regEmailInput" class="form-input" type="email" placeholder="Nhập địa chỉ email..." required />
+            </div>
+            <div class="filter-group">
+              <label class="filter-label" for="regPhoneInput">Số điện thoại</label>
+              <input id="regPhoneInput" class="form-input" type="tel" placeholder="Nhập số điện thoại (10 số)..." required />
+            </div>
+            <div class="filter-group" style="margin-bottom:8px;">
+              <label class="filter-label" for="regPassInput">Mật khẩu</label>
+              <div style="position:relative;">
+                <input id="regPassInput" class="form-input" type="password" placeholder="Tạo mật khẩu..." required style="padding-right:76px;" />
+                <button type="button" class="btn btn-soft toggle-pass-btn" data-target="regPassInput" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);min-height:30px;padding:4px 10px;font-size:11px;">Hiện</button>
+              </div>
+            </div>
+
+            <!-- Thanh kiểm tra độ mạnh yếu mật khẩu -->
+            <div style="margin-bottom:12px;">
+              <div style="height:6px;border-radius:99px;background:var(--green-100);overflow:hidden;margin-bottom:6px;">
+                <div id="regStrengthBar" style="height:100%;width:0%;background:#fb7185;transition:width 0.3s var(--ease-out),background-color 0.3s var(--ease-out);"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+                <span style="color:var(--text-muted);">Độ mạnh mật khẩu:</span>
+                <strong id="regStrengthLabel" style="color:var(--text-muted);">Chưa nhập</strong>
+              </div>
+            </div>
+
+            <div class="filter-group" style="margin-bottom:6px;">
+              <label class="filter-label" for="regPassConfirmInput">Nhập lại mật khẩu</label>
+              <div style="position:relative;">
+                <input id="regPassConfirmInput" class="form-input" type="password" placeholder="Nhập lại mật khẩu..." required style="padding-right:76px;" />
+                <button type="button" class="btn btn-soft toggle-pass-btn" data-target="regPassConfirmInput" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);min-height:30px;padding:4px 10px;font-size:11px;">Hiện</button>
+              </div>
+            </div>
+            <div id="regPassMatchMsg" style="font-size:12px;font-weight:700;min-height:18px;margin-bottom:10px;"></div>
+
+            <label id="regTermsWrap" style="display:flex;align-items:flex-start;gap:8px;font-size:13px;margin-bottom:14px;cursor:pointer;">
+              <input id="regAgreeTerms" type="checkbox" style="margin-top:3px;accent-color:var(--green-600);" />
+              <span>Tôi đồng ý với <strong>Điều khoản dịch vụ</strong> và <strong>Chính sách bảo mật</strong> của RideHub.</span>
+            </label>
+
+            <button class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="submit">Hoàn tất đăng ký</button>
+            <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-secondary);">
+              Đã có tài khoản?
+              <button id="goToLoginLink" type="button" style="border:0;background:none;padding:0;color:var(--green-700);font-weight:800;text-decoration:underline;">Đăng nhập</button>
+            </div>
+          </form>
+
+          <!-- Forgot / Reset Password by Email Form -->
+          <form id="forgotForm" hidden novalidate>
+            <!-- Bước 1: Nhập Email -->
+            <div id="forgotStep1">
+              <div class="filter-group">
+                <label class="filter-label" for="forgotEmailInput">Email tài khoản</label>
+                <input id="forgotEmailInput" class="form-input" type="email" placeholder="Nhập email đã đăng ký..." required />
+              </div>
+              <div id="forgotErr1" style="font-size:12px;font-weight:700;color:#e11d48;min-height:18px;margin-bottom:8px;"></div>
+              <button id="forgotSendOtpBtn" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button">Gửi mã OTP qua Email</button>
+            </div>
+
+            <!-- Bước 2: Xác thực OTP Email -->
+            <div id="forgotStep2" hidden>
+              <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">
+                Nhập mã OTP 6 số đã gửi tới <strong id="forgotEmailDisplay"></strong>
+              </div>
+              <div class="otp-row" style="justify-content:center;">
+                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 1" />
+                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 2" />
+                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 3" />
+                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 4" />
+                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 5" />
+                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 6" />
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin:8px 0;">
+                <span id="forgotOtpStatus" style="color:var(--text-muted);">Hết hạn sau 05:00</span>
+                <button id="forgotResendBtn" type="button" class="btn btn-soft" style="min-height:28px;padding:2px 10px;font-size:11px;" disabled>Gửi lại (60s)</button>
+              </div>
+              <div id="forgotErr2" style="font-size:12px;font-weight:700;color:#e11d48;min-height:18px;margin-bottom:8px;"></div>
+              <button id="forgotBackEmailBtn" type="button" class="btn btn-soft" style="width:100%;">Đổi email khác</button>
+            </div>
+
+            <!-- Bước 3: Đặt lại mật khẩu mới -->
+            <div id="forgotStep3" hidden>
+              <div class="filter-group" style="margin-bottom:8px;">
+                <label class="filter-label" for="forgotNewPassInput">Mật khẩu mới</label>
+                <div style="position:relative;">
+                  <input id="forgotNewPassInput" class="form-input" type="password" placeholder="Nhập mật khẩu mới..." required style="padding-right:76px;" />
+                  <button type="button" class="btn btn-soft toggle-pass-btn" data-target="forgotNewPassInput" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);min-height:30px;padding:4px 10px;font-size:11px;">Hiện</button>
+                </div>
+              </div>
+              <div style="margin-bottom:12px;">
+                <div style="height:6px;border-radius:99px;background:var(--green-100);overflow:hidden;margin-bottom:6px;">
+                  <div id="forgotStrengthBar" style="height:100%;width:0%;background:#fb7185;transition:width 0.3s var(--ease-out),background-color 0.3s var(--ease-out);"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+                  <span style="color:var(--text-muted);">Độ mạnh mật khẩu:</span>
+                  <strong id="forgotStrengthLabel" style="color:var(--text-muted);">Chưa nhập</strong>
+                </div>
+              </div>
+              <div class="filter-group" style="margin-bottom:6px;">
+                <label class="filter-label" for="forgotNewPassConfirm">Nhập lại mật khẩu mới</label>
+                <div style="position:relative;">
+                  <input id="forgotNewPassConfirm" class="form-input" type="password" placeholder="Nhập lại mật khẩu mới..." required style="padding-right:76px;" />
+                  <button type="button" class="btn btn-soft toggle-pass-btn" data-target="forgotNewPassConfirm" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);min-height:30px;padding:4px 10px;font-size:11px;">Hiện</button>
+                </div>
+              </div>
+              <div id="forgotMatchMsg" style="font-size:12px;font-weight:700;min-height:18px;margin-bottom:10px;"></div>
+              <button id="forgotSaveBtn" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="submit">Xác nhận tạo lại mật khẩu</button>
+            </div>
+
+            <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-secondary);">
+              Nhớ mật khẩu rồi?
+              <button id="forgotToLoginLink" type="button" style="border:0;background:none;padding:0;color:var(--green-700);font-weight:800;text-decoration:underline;">Quay lại đăng nhập</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- TAB 2: Hồ sơ & eKYC (FR-04, FR-05, FR-08 → FR-13) -->
+      <div data-tab-panel="ekyc" hidden>
+        <div class="panel-card" style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text-muted);">TRẠNG THÁI HỒ SƠ eKYC (FR-04)</div>
+            <div style="font-weight:800;font-size:1.15rem;margin-top:4px;">Đủ điều kiện thuê: Xe máy &amp; Ô tô tự lái (BR-25)</div>
+          </div>
+          <span class="status-badge status-badge--available" data-flip-badge title="Click để xem các trạng thái hồ sơ">
+            <span class="status-dot status-dot-pulse"></span>
+            <span class="badge-text">Đạt (Đã duyệt)</span>
+          </span>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="panel-card">
+            <h3 style="margin:0 0 8px;font-size:1rem;">1. CCCD Mặt trước (FR-08)</h3>
+            <div id="licenseDropzone" class="dropzone" style="padding:22px;border:2px dashed var(--green-400);border-radius:var(--radius-md);text-align:center;cursor:pointer;">
+              <div style="font-weight:700;color:var(--green-700);">Kéo thả hoặc chọn ảnh CCCD</div>
+              <div id="dropzonePreview" style="margin-top:8px;font-size:12px;color:var(--text-muted);">Kiểm tra độ rõ &amp; định dạng (FR-09)</div>
+            </div>
+          </div>
+          <div class="panel-card">
+            <h3 style="margin:0 0 8px;font-size:1rem;">2. CCCD Mặt sau</h3>
+            <div class="dropzone" style="padding:22px;border:2px dashed var(--green-400);border-radius:var(--radius-md);text-align:center;cursor:pointer;" onclick="this.querySelector('.dz-msg').innerHTML='<span class=dropped-thumb style=color:var(--green-700);font-weight:700>Đã tải: CCCD_sau.jpg</span>'">
+              <div style="font-weight:700;color:var(--green-700);">Tải ảnh CCCD mặt sau</div>
+              <div class="dz-msg" style="margin-top:8px;font-size:12px;color:var(--text-muted);">Tối đa 5MB • JPG/PNG</div>
+            </div>
+          </div>
+          <div class="panel-card">
+            <h3 style="margin:0 0 8px;font-size:1rem;">3. Giấy phép lái xe (GPLX)</h3>
+            <div class="dropzone" style="padding:22px;border:2px dashed var(--green-400);border-radius:var(--radius-md);text-align:center;cursor:pointer;" onclick="this.querySelector('.dz-msg').innerHTML='<span class=dropped-thumb style=color:var(--green-700);font-weight:700>Đã tải: GPLX_B2.jpg</span>'">
+              <div style="font-weight:700;color:var(--green-700);">Tải ảnh GPLX còn hạn</div>
+              <div class="dz-msg" style="margin-top:8px;font-size:12px;color:var(--text-muted);">Cảnh báo tự động khi sắp hết hạn (FR-13)</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-premium btn-shine" type="button" onclick="showRideHubToast('Đã gửi hồ sơ eKYC cho Vận hành viên kiểm tra!')">Gửi duyệt hồ sơ</button>
+          <button class="btn btn-outline btn-premium" type="button" onclick="showRideHubToast('Lý do từ chối mẫu: Ảnh GPLX bị lóa sáng góc phải. Vui lòng chụp lại.', true)">Xem mẫu Từ chối (FR-12)</button>
+        </div>
+      </div>
+
+      <!-- TAB 3: Đăng ký gian hàng Cửa hàng (FR-06) -->
+      <div data-tab-panel="store-reg" hidden>
+        <div class="panel-card" style="max-width:720px;">
+          <h2 style="margin:0 0 14px;font-size:1.2rem;">Đăng ký gian hàng đối tác cho thuê xe (FR-06)</h2>
+          <div class="split-layout" style="gap:14px;">
+            <div class="float-field">
+              <input id="storeNameIn" class="float-input" type="text" placeholder=" " value="GreenRide Quận 1" />
+              <label class="float-label" for="storeNameIn">Tên cửa hàng / Đơn vị</label>
+            </div>
+            <div class="float-field">
+              <input id="taxCodeIn" class="float-input" type="text" placeholder=" " value="0316889900" />
+              <label class="float-label" for="taxCodeIn">Mã số thuế / Giấy phép KD</label>
+            </div>
+          </div>
+          <div class="float-field">
+            <input id="storeAddrIn" class="float-input" type="text" placeholder=" " value="45 Lý Tự Trọng, Bến Nghé, Quận 1, TP.HCM" />
+            <label class="float-label" for="storeAddrIn">Địa chỉ bãi xe / Giao nhận chính</label>
+          </div>
+          <div class="split-layout" style="gap:14px;">
+            <div class="float-field">
+              <input id="bankNameIn" class="float-input" type="text" placeholder=" " value="Vietcombank - CN Sài Gòn" />
+              <label class="float-label" for="bankNameIn">Ngân hàng nhận tiền</label>
+            </div>
+            <div class="float-field">
+              <input id="bankAccIn" class="float-input" type="text" placeholder=" " value="1029384756" />
+              <label class="float-label" for="bankAccIn">Số tài khoản nhận đối soát</label>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-premium btn-shine" type="button" onclick="showRideHubToast('Đã gửi hồ sơ đăng ký cửa hàng cho Vận hành viên duyệt (FR-07)!')">Gửi hồ sơ đăng ký gian hàng</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/pages/vehicle-anim.js"></script>
+  <script src="../js/pages/effects.js"></script>
+  <script src="../js/pages/auth-rbac.js"></script>
+  <script src="../js/pages/auth.js"></script>
+</body>
+</html>
+
