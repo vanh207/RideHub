@@ -32,6 +32,11 @@ class FirebaseLoginRequest(BaseModel):
     id_token: str = Field(..., description="Firebase ID Token nhận được từ Firebase Client SDK")
 
 
+class EmailOnlyRequest(BaseModel):
+    """Yêu cầu chỉ có trường email (quên mật khẩu / gửi lại xác thực)."""
+    email: EmailStr
+
+
 # ── Response ──────────────────────────────────────────────────────────────────
 
 class RegisterResponse(BaseModel):
@@ -41,6 +46,7 @@ class RegisterResponse(BaseModel):
     email: str
     phone: Optional[str] = None
     firebase_uid: Optional[str] = None
+    verification_link: Optional[str] = None
     access_token: Optional[str] = None
     refresh_token: Optional[str] = None
     token_type: str = "bearer"

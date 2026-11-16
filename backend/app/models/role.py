@@ -25,5 +25,5 @@ class UserRole(Base):
 
     # Relationships
     user = relationship("User", back_populates="user_roles")
-    role = relationship("Role", back_populates="user_roles")
+    role = relationship("Role", back_populates="user_roles", lazy="joined")
 
