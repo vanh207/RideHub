@@ -2,7 +2,8 @@
 
 Chỉ giữ lại các API thực sự được sử dụng trên giao diện web RideHub.
 """
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -14,11 +15,51 @@ from app.core.dependencies import (
     require_roles,
 )
 from app.models.user import User
-from app.schemas.login import UserCreate, UserLogin, FirebaseLoginRequest
+from app.schemas.login import (
+    UserCreate,
+    UserLogin,
+    FirebaseLoginRequest,
+    EmailOnlyRequest,
+)
 from app.services.login import register_user, login_user, login_with_firebase
+from app.core.firebase import (
+    send_firebase_verification_email,
+    send_firebase_password_reset_email,
+    generate_verification_link,
+    init_firebase,
+    fb_auth,
+)
 from app.utils.response import create_response
 
 router = APIRouter(prefix="/auth", tags=["Authentication & Login"])
+
+
+def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: str):
+    """Thiết lập Cookie cho JWT token trên trình duyệt."""
+    response.set_cookie(
+        key="ridehub_token",
+        value=access_token,
+        max_age=7 * 24 * 3600,
+        httponly=False,
+        samesite="lax",
+        path="/",
+    )
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        max_age=7 * 24 * 3600,
+        httponly=False,
+        samesite="lax",
+        path="/",
+    )
+    response.set_cookie(
+        key="ridehub_refresh_token",
+        value=refresh_token,
+        max_age=30 * 24 * 3600,
+        httponly=False,
+        samesite="lax",
+        path="/",
+    )
 
 
 @router.post("/register", status_code=201, summary="Đăng ký tài khoản (kết hợp Firebase)")
@@ -33,13 +74,14 @@ async def register(body: UserCreate, db: Session = Depends(get_db)):
 
     Hệ thống sẽ:
     1. Xác thực thông tin và tạo tài khoản trên Firebase Auth.
-    2. Lưu bản ghi người dùng vào MySQL (bảng `users`).
-    3. Cấp ngay cặp JWT Access + Refresh token để người dùng đăng nhập ngay.
+    2. Gửi email xác thực chính thức từ Firebase tới hòm thư người dùng.
+    3. Lưu bản ghi người dùng vào MySQL (bảng `users`).
+    4. Cấp ngay cặp JWT Access + Refresh token để người dùng đăng nhập ngay.
     """
     new_user, access_token, refresh_token = register_user(db, body)
-    return create_response(
+    response = create_response(
         status_code=201,
-        message="Đăng ký tài khoản thành công.",
+        message="Đăng ký tài khoản thành công. Email xác thực đã được gửi tới hộp thư của bạn.",
         data={
             "user_id": new_user.id,
             "firebase_uid": new_user.firebase_uid,
@@ -47,11 +89,14 @@ async def register(body: UserCreate, db: Session = Depends(get_db)):
             "email": new_user.email,
             "phone": new_user.phone,
             "role": new_user.role,
+            "verification_link": getattr(new_user, "verification_link", None),
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer",
         },
     )
+    _set_auth_cookies(response, access_token, refresh_token)
+    return response
 
 
 @router.post("/login", summary="Đăng nhập bằng Email & Mật khẩu")
@@ -62,7 +107,7 @@ async def login(body: UserLogin, db: Session = Depends(get_db)):
     - `password`: Mật khẩu
     """
     user, access_token, refresh_token = login_user(db, body)
-    return create_response(
+    response = create_response(
         status_code=200,
         message="Đăng nhập thành công.",
         data={
@@ -77,6 +122,8 @@ async def login(body: UserLogin, db: Session = Depends(get_db)):
             "token_type": "bearer",
         },
     )
+    _set_auth_cookies(response, access_token, refresh_token)
+    return response
 
 
 @router.post("/firebase-login", summary="Đăng nhập bằng Firebase ID Token (Google / Phone OTP)")
@@ -86,7 +133,7 @@ async def firebase_login(body: FirebaseLoginRequest, db: Session = Depends(get_d
     - `id_token`: Token do Firebase cấp sau khi đăng nhập Google hoặc OTP
     """
     user, access_token, refresh_token = login_with_firebase(db, body.id_token)
-    return create_response(
+    response = create_response(
         status_code=200,
         message="Đăng nhập qua Firebase thành công.",
         data={
@@ -101,6 +148,76 @@ async def firebase_login(body: FirebaseLoginRequest, db: Session = Depends(get_d
             "token_type": "bearer",
         },
     )
+    _set_auth_cookies(response, access_token, refresh_token)
+    return response
+
+
+@router.post("/logout", summary="Đăng xuất và xoá Cookie phiên đăng nhập")
+async def logout_cookie():
+    response = create_response(status_code=200, message="Đăng xuất thành công.")
+    response.delete_cookie(key="ridehub_token", path="/")
+    response.delete_cookie(key="access_token", path="/")
+    response.delete_cookie(key="ridehub_refresh_token", path="/")
+    return response
+
+
+@router.post("/resend-verification", summary="Gửi lại email xác thực tài khoản qua Firebase")
+async def resend_verification(body: EmailOnlyRequest, db: Session = Depends(get_db)):
+    """Gửi lại email xác thực chính thức từ Firebase Authentication."""
+    user = db.query(User).filter(User.email == body.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy tài khoản với email này.")
+
+    if user.firebase_uid:
+        sent = send_firebase_verification_email(user.firebase_uid, user.email)
+        if sent:
+            return create_response(
+                status_code=200,
+                message=f"Đã gửi email xác thực Firebase tới {user.email}. Vui lòng kiểm tra hộp thư!",
+            )
+
+    link = generate_verification_link(user.email)
+    return create_response(
+        status_code=200,
+        message="Đã tạo liên kết xác thực.",
+        data={"verification_link": link},
+    )
+
+
+@router.get("/check-verification", summary="Kiểm tra trạng thái xác thực email từ Firebase")
+async def check_verification(email: str):
+    """Kiểm tra xem người dùng đã nhấp vào link kích hoạt trong email của Firebase chưa."""
+    init_firebase()
+    try:
+        fb_user = fb_auth.get_user_by_email(email.strip())
+        return create_response(
+            status_code=200,
+            message="Kiểm tra trạng thái email thành công.",
+            data={"verified": bool(fb_user.email_verified), "email": email.strip()},
+        )
+    except Exception as exc:
+        return create_response(
+            status_code=200,
+            message="Chưa thể lấy thông tin Firebase.",
+            data={"verified": False, "detail": str(exc), "email": email.strip()},
+        )
+
+
+@router.post("/forgot-password", summary="Gửi email đặt lại mật khẩu từ Firebase")
+async def forgot_password_api(body: EmailOnlyRequest, db: Session = Depends(get_db)):
+    """Gửi email đặt lại mật khẩu thật từ Firebase tới hòm thư người dùng."""
+    user = db.query(User).filter(User.email == body.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Email này chưa đăng ký tài khoản trên RideHub.")
+
+    sent = send_firebase_password_reset_email(body.email)
+    if sent:
+        return create_response(
+            status_code=200,
+            message=f"Đã gửi email đặt lại mật khẩu tới {body.email}. Vui lòng kiểm tra hộp thư!",
+        )
+
+    raise HTTPException(status_code=500, detail="Không thể gửi email đặt lại mật khẩu vào lúc này.")
 
 
 @router.get("/me", summary="Lấy thông tin người dùng hiện tại (yêu cầu đăng nhập)")
