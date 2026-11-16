@@ -8,8 +8,10 @@ env/
 # Cấu hình bí mật
 .env
 .env.example
-
+serviceAccountKey.json
+backend/serviceAccountKey.json
 
 # IDE
 .vscode/
 .idea/
+serviceAccountKey.json

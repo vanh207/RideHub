@@ -1,0 +1,304 @@
+/* ==========================================================================
+   RideHub Auth Pages Layout & Components (css/pages/auth.css)
+   Split-screen: Animated Road Scene (left) + Glassmorphism Card (right)
+   ========================================================================== */
+
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  background: var(--bg-page);
+}
+
+/* Left: Animated Mint Road Scene */
+.auth-visual {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(165deg, var(--green-100) 0%, var(--green-50) 52%, var(--lime-100) 100%);
+  padding: 36px 40px 210px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.auth-visual--admin {
+  background: linear-gradient(165deg, var(--green-900) 0%, var(--green-800) 58%, var(--green-700) 100%);
+  color: var(--green-50);
+}
+
+.auth-visual-top {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auth-slogan-box {
+  position: relative;
+  z-index: 6;
+  max-width: 480px;
+  margin-top: 28px;
+}
+
+.auth-slogan-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 2.8vw, 2.35rem);
+  line-height: 1.18;
+  margin: 12px 0 10px;
+  transition: opacity 0.35s var(--ease-out), transform 0.35s var(--ease-out);
+}
+
+.auth-slogan-sub {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+.auth-road-stage {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 195px;
+  overflow: hidden;
+  z-index: 3;
+}
+
+.auth-road-stage.is-accelerating .road-vehicle {
+  transition: transform 0.65s var(--ease-out);
+  transform: translate3d(110vw, 0, 0) scale(1.04) !important;
+}
+
+/* Right: Glassmorphism Form Card */
+.auth-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  position: relative;
+  z-index: 5;
+}
+
+.auth-card {
+  width: min(500px, 100%);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+  border-radius: 26px;
+  padding: 30px 28px;
+  box-shadow: 0 24px 56px -18px rgba(20, 83, 45, 0.14);
+}
+
+/* Role Selector Pill Bar */
+.role-pill-bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--green-50);
+  border-radius: var(--radius-pill);
+  padding: 4px;
+  margin-bottom: 22px;
+}
+
+.role-pill-indicator {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 3);
+  height: calc(100% - 8px);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--green-500), var(--green-600));
+  box-shadow: 0 6px 16px -4px rgba(22, 163, 74, 0.35);
+  transition: transform 0.38s var(--ease-spring);
+}
+
+.role-pill-btn {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  background: transparent;
+  padding: 9px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  transition: color 0.25s var(--ease-out);
+}
+
+.role-pill-btn.is-active {
+  color: #ffffff;
+}
+
+/* Form Switch Fade+Slide */
+.auth-view-pane {
+  animation: paneSlideIn 0.35s var(--ease-out);
+}
+
+@keyframes paneSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Phone Prefix +84 & Password Eye */
+.phone-prefix-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.phone-prefix {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--green-700);
+  background: var(--green-100);
+  padding: 3px 8px;
+  border-radius: 8px;
+  z-index: 2;
+}
+
+.phone-prefix-wrap .float-input {
+  padding-left: 62px;
+}
+
+.phone-prefix-wrap .float-label {
+  left: 62px;
+}
+
+.pass-eye-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.pass-eye-btn:hover {
+  color: var(--green-700);
+  background: var(--green-50);
+}
+
+.field-error-msg {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e11d48;
+  margin: 4px 0 0 4px;
+  min-height: 16px;
+}
+
+/* Floating Demo Accounts Panel */
+.demo-drawer-fab {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 95;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--green-300);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  color: var(--green-800);
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: var(--shadow-card);
+}
+
+.demo-drawer-panel {
+  position: fixed;
+  left: 18px;
+  bottom: 70px;
+  width: min(360px, 92vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid var(--green-200);
+  box-shadow: 0 24px 50px -12px rgba(20, 83, 45, 0.24);
+  padding: 16px;
+  z-index: 95;
+  display: none;
+}
+
+.demo-drawer-panel.is-open {
+  display: block;
+  animation: paneSlideIn 0.28s var(--ease-spring);
+}
+
+.demo-acc-item {
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--green-100);
+  background: var(--green-50);
+  margin-bottom: 6px;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  transition: border-color 0.2s var(--ease-out), background-color 0.2s var(--ease-out);
+}
+
+.demo-acc-item:hover {
+  border-color: var(--green-400);
+  background: var(--green-100);
+}
+
+/* Duotone SVG icon utility */
+.rh-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.rh-icon--lg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Focus visible ring */
+:focus-visible {
+  outline: 2.5px solid var(--green-500);
+  outline-offset: 2px;
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+  .auth-visual {
+    padding: 20px 20px 128px;
+    min-height: 230px;
+  }
+  .auth-road-stage {
+    height: 118px;
+  }
+  .auth-slogan-box {
+    margin-top: 12px;
+  }
+  .auth-panel {
+    padding: 20px 14px 72px;
+  }
+  .auth-card {
+    padding: 22px 18px;
+    border-radius: 20px;
+  }
+}
+

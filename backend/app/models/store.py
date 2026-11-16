@@ -24,3 +24,13 @@ class Store(Base):
 
     # Relationships
     owner = relationship("User", back_populates="stores")
+
+
+# quản lý nhân viên cửa hàng
+class StoreStaff(Base):
+    __tablename__ = "store_staff"
+    id = Column(Integer, primary_key=True, index=True)
+    store_id = Column(Integer, nullable=False)
+    user_id = Column(Integer, nullable=False)
+    staff_role = Column(String(30), default="STAFF")
+    status = Column(String(30), default="ACTIVE")
