@@ -15,6 +15,8 @@ class User(Base):
     date_of_birth = Column(Date)
     address = Column(Text)
     avatar_url = Column(String(500))
+    hashed_password = Column(String(255), nullable=True)
+    role = Column(String(30), default="customer")
     status = Column(String(30), default="active")
     last_login_at = Column(DateTime)
     

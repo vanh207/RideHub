@@ -1,7 +1,7 @@
 from app.schemas.booking import (
     BookingBase,
     BookingCreate,
-    BookingResponse
+    BookingResponse,
 )
 
 from app.schemas.payment import (
@@ -17,6 +17,8 @@ from app.schemas.payment import (
     PaymentWebhookPayload,
     PaymentRefundRequest,
     PaymentSimulateRequest,
+    PayOSPaymentCreateRequest,
+    PayOSPaymentResponse,
 )
 
 

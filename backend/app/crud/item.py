@@ -42,3 +42,4 @@ def update_item(db: Session, item: Item, data: ItemUpdate) -> Item:
 def delete_item(db: Session, item: Item) -> None:
     db.delete(item)
     db.commit()
+

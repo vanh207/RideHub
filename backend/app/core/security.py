@@ -73,3 +73,4 @@ def decode_access_token(token: str) -> dict | None:
 
 def decode_refresh_token(token: str) -> dict | None:
     return decode_token(token, "refresh")
+
