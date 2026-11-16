@@ -48,6 +48,7 @@ class Settings(BaseSettings):
 
     # ---- Firebase Admin SDK ----
     FIREBASE_CREDENTIALS_PATH: str = "serviceAccountKey.json"
+    FIREBASE_WEB_API_KEY: str = "AIzaSyAeC9Ln5LN9IIlHhuwGoAcwKYp-8HDDyKU"
 
     @property
     def database_url(self) -> str:
@@ -59,7 +60,17 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        raw = [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        if "*" in raw or not raw:
+            return [
+                "http://localhost:5500",
+                "http://127.0.0.1:5500",
+                "http://localhost:3000",
+                "http://localhost:8000",
+                "http://127.0.0.1:8000",
+                "http://localhost:5173",
+            ]
+        return raw
 
 
 settings = Settings()
