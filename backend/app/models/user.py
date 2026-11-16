@@ -9,6 +9,8 @@ class User(Base):
     firebase_uid = Column(String(128), unique=True, index=True)
     phone = Column(String(15), unique=True, index=True)
     email = Column(String(150), unique=True, index=True)
+    hashed_password = Column(String(255), nullable=True)
+    role = Column(String(30), default="customer")
     full_name = Column(String(150))
     date_of_birth = Column(Date)
     address = Column(Text)
@@ -20,6 +22,7 @@ class User(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     # Relationships
+    user_roles = relationship("UserRole", back_populates="user", cascade="all, delete-orphan")
     identity_documents = relationship("IdentityDocument", back_populates="user")
     driver_licenses = relationship("DriverLicense", back_populates="user")
     stores = relationship("Store", back_populates="owner")

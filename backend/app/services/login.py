@@ -104,3 +104,53 @@ def login_user(db: Session, body: UserLogin):
 
     token_data = {"sub": str(user.id), "email": user.email, "role": user.role}
     return user, create_access_token(token_data), create_refresh_token(token_data)
+
+
+# ── Đăng nhập bằng Firebase ID Token ──────────────────────────────────────────
+
+def login_with_firebase(db: Session, id_token: str):
+    """Xác thực Firebase ID Token (từ Google Login hoặc Phone OTP), cấp JWT nội bộ."""
+    decoded_token = verify_firebase_id_token(id_token)
+    firebase_uid = decoded_token.get("uid")
+    email = decoded_token.get("email")
+    phone = decoded_token.get("phone_number")
+    name = decoded_token.get("name") or "Người dùng RideHub"
+
+    if not firebase_uid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Firebase Token không hợp lệ.",
+        )
+
+    # Tìm user theo firebase_uid hoặc email
+    user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
+    if not user and email:
+        user = db.query(User).filter(User.email == email).first()
+        if user:
+            user.firebase_uid = firebase_uid
+
+    # Nếu chưa có user -> tự động đăng ký mới (Auto-provisioning)
+    if not user:
+        user = User(
+            firebase_uid=firebase_uid,
+            email=email,
+            phone=phone,
+            full_name=name,
+            role="customer",
+            status="active",
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    if user.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tài khoản đã bị vô hiệu hóa.",
+        )
+
+    user.last_login_at = datetime.now(timezone.utc)
+    db.commit()
+
+    token_data = {"sub": str(user.id), "email": user.email, "role": user.role}
+    return user, create_access_token(token_data), create_refresh_token(token_data)
