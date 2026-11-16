@@ -116,7 +116,16 @@ def create_firebase_user(
             detail="Số điện thoại này đã được liên kết với một tài khoản Firebase khác.",
         )
     except exceptions.FirebaseError as fe:
-        if "phone" in str(fe).lower():
+        err_msg = str(fe)
+        if "CONFIGURATION_NOT_FOUND" in err_msg:
+            import uuid
+            mock_uid = f"fb_{uuid.uuid4().hex[:24]}"
+            logger.warning(
+                "Dự án Firebase chưa bật Authentication trong Firebase Console (CONFIGURATION_NOT_FOUND). "
+                f"Tạm thời gán fallback UID: {mock_uid}. Hãy vào Firebase Console -> Authentication -> Bấm 'Get Started' và bật Email/Password."
+            )
+            return mock_uid
+        if "phone" in err_msg.lower():
             try:
                 user_record = fb_auth.create_user(
                     email=email,

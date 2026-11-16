@@ -13,4 +13,4 @@ env/
 # IDE
 .vscode/
 .idea/
-backend/serviceAccountKey.json
+serviceAccountKey.json
