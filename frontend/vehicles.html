@@ -22,7 +22,8 @@
   <header id="mainNavbar" class="navbar is-scrolled">
     <div class="container navbar-inner">
       <a href="index.html" class="brand-logo">
-        <img src="assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;" />
+        <img src="assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;object-fit:contain;" />
+        <span>RideHub</span>
       </a>
       <nav class="nav-links">
         <a href="index.html" class="nav-link">Trang chủ</a>
@@ -61,11 +62,41 @@
   </section>
 
   <main class="subpage-main">
+    <!-- Banner Thông báo Yêu cầu Thêm CCCD & Bằng lái xe sau khi Xác thực tài khoản -->
+    <div id="requireDocsBanner" class="container" style="margin-bottom:18px;display:none;">
+      <div class="panel-card spotlight-card" style="padding:16px 20px;background:#fffbeb;border:1.5px solid #facc15;border-radius:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;box-shadow:0 10px 25px -5px rgba(234,179,8,0.18);">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:46px;height:46px;border-radius:12px;background:#fef08a;display:grid;place-items:center;color:#854d0e;flex-shrink:0;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M15 8h2M15 12h2M7 16h10"/>
+            </svg>
+          </div>
+          <div>
+            <div style="font-size:14.5px;font-weight:800;color:#713f12;display:flex;align-items:center;gap:8px;">
+              <span>Yêu cầu bổ sung CCCD &amp; Bằng lái xe</span>
+              <span class="status-badge" style="background:#fef08a;color:#854d0e;font-size:11px;font-weight:700;">Chờ bổ sung</span>
+            </div>
+            <div style="font-size:12.5px;color:#854d0e;margin-top:3px;line-height:1.5;">
+              Tài khoản của bạn đã được xác thực thành công! Vui lòng tải lên ảnh <strong>Căn cước công dân (CCCD)</strong> và <strong>Giấy phép lái xe (GPLX)</strong> để hoàn tất hồ sơ, mở khóa quyền nhận xe tự lái và miễn cọc.
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="openDocsModalBtn" class="btn btn-primary btn-premium btn-shine" style="min-height:38px;padding:6px 18px;font-size:12.5px;" type="button">
+            Bổ sung hồ sơ ngay ›
+          </button>
+          <button id="dismissDocsBanner" class="btn btn-soft" style="min-height:38px;padding:6px 14px;font-size:12.5px;" type="button">
+            Để sau
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div id="guestInviteBanner" class="container" style="margin-bottom:18px;" hidden>
       <div class="panel-card" style="padding:14px 20px;background:var(--green-50);border-color:var(--green-300);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <div style="font-size:14px;font-weight:600;color:var(--green-800);">Đăng ký 1 phút để giữ chỗ xe này và nhận ưu đãi chuyến đầu tiên.</div>
         <div style="display:flex;gap:8px;">
-          <a href="auth.html" class="btn btn-primary" style="min-height:34px;padding:4px 14px;font-size:12px;">Đăng ký ngay</a>
+          <a href="pages/auth.html" class="btn btn-primary" style="min-height:34px;padding:4px 14px;font-size:12px;">Đăng ký ngay</a>
           <button id="dismissGuestBanner" class="btn btn-soft" style="min-height:34px;padding:4px 12px;font-size:12px;" type="button">Ẩn</button>
         </div>
       </div>
@@ -202,7 +233,7 @@
             <li class="footer-link-item"><a href="store-portal.html">Cổng Quản lý Cửa hàng</a></li>
             <li class="footer-link-item"><a href="admin-ops.html">Trung tâm Quản trị Admin</a></li>
             <li class="footer-link-item"><a href="chat.html">Kênh Hỗ trợ &amp; Tin nhắn trực tuyến</a></li>
-            <li class="footer-link-item"><a href="auth.html">Đăng ký làm Chủ xe / Đối tác</a></li>
+            <li class="footer-link-item"><a href="pages/auth.html">Đăng ký làm Chủ xe / Đối tác</a></li>
             <li class="footer-link-item"><a href="index.html#featuresSection">Hệ thống đối soát tự động PayOS</a></li>
           </ul>
         </div>
@@ -237,7 +268,7 @@
           <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Bảo mật PayOS VietQR</span>
           <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Chuẩn an toàn eKYC Chip</span>
           <a href="index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Điều khoản sử dụng</a>
-          <a href="index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+          <a href="privacy-policy.html" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
         </div>
       </div>
     </div>
@@ -1050,5 +1081,153 @@
       <button id="chatSendBtn" class="btn btn-primary" style="min-height:36px;padding:6px 14px;" type="button">Gửi</button>
     </div>
   </div>
+  <!-- Modal: Bổ sung CCCD và Bằng lái xe (GPLX) -->
+  <div id="docsRequirementModal" class="modal-backdrop" role="dialog" aria-modal="true" style="display:none;">
+    <div class="modal-dialog" style="max-width:560px;position:relative;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+        <div>
+          <span class="status-badge status-badge--transit">Hồ sơ thuê xe</span>
+          <h3 style="margin:6px 0 2px;font-family:var(--font-display);font-size:1.25rem;">Bổ sung CCCD &amp; Bằng lái xe</h3>
+          <div style="font-size:12px;color:var(--text-muted);">Cập nhật thông tin để được duyệt hồ sơ tự lái &amp; miễn cọc trên toàn hệ thống RideHub</div>
+        </div>
+        <button id="closeDocsModalBtn" style="border:0;background:transparent;font-size:22px;cursor:pointer;color:var(--text-muted);padding:4px;" type="button">&times;</button>
+      </div>
+
+      <!-- Phần CCCD -->
+      <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft, #f8fafc);border:1px solid #e2e8f0;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <strong style="font-size:13px;color:var(--text-primary);">1. Căn cước công dân (CCCD gắn chip)</strong>
+          <button id="btnAutoDocsSample" type="button" class="btn btn-soft" style="min-height:26px;padding:2px 10px;font-size:11px;color:var(--green-800);background:#fff;border:1px solid var(--green-300);">⚡ Điền mẫu tự động</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <label id="cccdFrontBox" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:105px;border:1.5px dashed var(--green-400);border-radius:12px;background:#fff;cursor:pointer;text-align:center;padding:8px;">
+            <input id="inCccdFront" type="file" accept="image/*" hidden />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green-700)" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h2M15 12h2"/></svg>
+            <span style="font-size:12px;font-weight:700;color:var(--green-800);">Mặt trước CCCD</span>
+            <small style="font-size:10px;color:var(--text-muted);">Bấm để chụp/tải ảnh</small>
+          </label>
+          <label id="cccdBackBox" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:105px;border:1.5px dashed var(--green-400);border-radius:12px;background:#fff;cursor:pointer;text-align:center;padding:8px;">
+            <input id="inCccdBack" type="file" accept="image/*" hidden />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green-700)" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="15" cy="10" r="2"/><path d="M7 8h2M7 12h2"/></svg>
+            <span style="font-size:12px;font-weight:700;color:var(--green-800);">Mặt sau (Có Chip)</span>
+            <small style="font-size:10px;color:var(--text-muted);">Bấm để chụp/tải ảnh</small>
+          </label>
+        </div>
+      </div>
+
+      <!-- Phần Bằng lái xe (GPLX) -->
+      <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft, #f8fafc);border:1px solid #e2e8f0;margin-bottom:18px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">
+          2. Giấy phép lái xe (GPLX Xe máy / Ô tô)
+        </div>
+        <label id="gplxBox" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:95px;border:1.5px dashed var(--green-400);border-radius:12px;background:#fff;cursor:pointer;text-align:center;padding:8px;">
+          <input id="inGplx" type="file" accept="image/*" hidden />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green-700)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+          <span style="font-size:12px;font-weight:700;color:var(--green-800);">Tải ảnh Giấy phép lái xe (A1, A2, B1, B2)</span>
+          <small style="font-size:10px;color:var(--text-muted);">Ảnh chụp rõ nét 2 mặt hoặc thẻ PET</small>
+        </label>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button id="btnSubmitDocs" class="btn btn-primary btn-premium btn-shine" style="flex:1;" type="button">Xác nhận nộp hồ sơ ›</button>
+        <button id="btnDismissDocsModal" class="btn btn-soft" style="min-width:90px;" type="button">Để sau</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Quản lý thông báo & modal Yêu cầu thêm CCCD và Bằng lái xe
+    (function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const requireDocs = urlParams.get('require_docs') === '1' || localStorage.getItem('ridehub_require_docs') === 'true';
+      const banner = document.getElementById('requireDocsBanner');
+      const modal = document.getElementById('docsRequirementModal');
+
+      if (requireDocs && banner) {
+        banner.style.display = 'block';
+        setTimeout(() => {
+          if (typeof showRideHubToast === 'function') {
+            showRideHubToast('🎉 Xác thực tài khoản thành công! Vui lòng bổ sung CCCD và Bằng lái xe.');
+          }
+        }, 500);
+      }
+
+      const openModal = () => {
+        if (modal) {
+          modal.classList.add('is-open');
+          modal.style.display = 'flex';
+        }
+      };
+
+      const closeModal = () => {
+        if (modal) {
+          modal.classList.remove('is-open');
+          modal.style.display = 'none';
+        }
+      };
+
+      document.getElementById('openDocsModalBtn')?.addEventListener('click', openModal);
+      document.getElementById('closeDocsModalBtn')?.addEventListener('click', closeModal);
+      document.getElementById('btnDismissDocsModal')?.addEventListener('click', closeModal);
+      document.getElementById('dismissDocsBanner')?.addEventListener('click', () => {
+        if (banner) banner.style.display = 'none';
+        localStorage.removeItem('ridehub_require_docs');
+      });
+
+      // Mẫu tự động
+      document.getElementById('btnAutoDocsSample')?.addEventListener('click', () => {
+        const front = document.getElementById('cccdFrontBox');
+        const back = document.getElementById('cccdBackBox');
+        const gplx = document.getElementById('gplxBox');
+        if (front) {
+          front.style.borderColor = '#16a34a';
+          front.style.background = '#f0fdf4';
+          const s = front.querySelector('span');
+          if (s) s.textContent = '✓ CCCD Mặt trước hợp lệ';
+        }
+        if (back) {
+          back.style.borderColor = '#16a34a';
+          back.style.background = '#f0fdf4';
+          const s = back.querySelector('span');
+          if (s) s.textContent = '✓ CCCD Mặt sau hợp lệ';
+        }
+        if (gplx) {
+          gplx.style.borderColor = '#16a34a';
+          gplx.style.background = '#f0fdf4';
+          const s = gplx.querySelector('span');
+          if (s) s.textContent = '✓ GPLX Hạng B2 hợp lệ';
+        }
+        if (typeof showRideHubToast === 'function') {
+          showRideHubToast('✓ Đã điền ảnh mẫu CCCD & Bằng lái xe hợp lệ.');
+        }
+      });
+
+      const bindFileInput = (inputId, boxId, labelText) => {
+        const inp = document.getElementById(inputId);
+        const box = document.getElementById(boxId);
+        inp?.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files[0] && box) {
+            box.style.borderColor = '#16a34a';
+            box.style.background = '#f0fdf4';
+            const span = box.querySelector('span');
+            if (span) span.textContent = `✓ Đã chọn: ${labelText}`;
+          }
+        });
+      };
+      bindFileInput('inCccdFront', 'cccdFrontBox', 'Mặt trước CCCD');
+      bindFileInput('inCccdBack', 'cccdBackBox', 'Mặt sau CCCD');
+      bindFileInput('inGplx', 'gplxBox', 'Bằng lái xe (GPLX)');
+
+      document.getElementById('btnSubmitDocs')?.addEventListener('click', () => {
+        localStorage.removeItem('ridehub_require_docs');
+        localStorage.setItem('ridehub_docs_submitted', 'true');
+        closeModal();
+        if (banner) banner.style.display = 'none';
+        if (typeof showRideHubToast === 'function') {
+          showRideHubToast('🎉 Bổ sung hồ sơ CCCD & Bằng lái xe thành công! Bạn đã đủ điều kiện thuê mọi phương tiện.');
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

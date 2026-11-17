@@ -84,11 +84,14 @@ button {
    -------------------------------------------------------------------------- */
 .navbar {
   position: fixed;
-  top: 4px;
+  top: 0;
   left: 0;
   right: 0;
   z-index: var(--z-navbar);
-  padding: 14px 0;
+  padding: 12px 0;
+  background: #ffffff !important;
+  box-shadow: 0 2px 14px rgba(15, 23, 42, 0.06);
+  border-bottom: 1px solid rgba(22, 163, 74, 0.12);
   transition:
     transform 0.35s var(--ease-out),
     padding 0.35s var(--ease-out),
@@ -97,11 +100,10 @@ button {
 }
 
 .navbar.is-scrolled {
-  padding: 8px 0;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 8px 24px -12px rgba(19, 42, 28, 0.14);
-  border-bottom: 1px solid rgba(34, 197, 94, 0.14);
+  padding: 10px 0;
+  background: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid rgba(22, 163, 74, 0.16);
 }
 
 .navbar.is-hidden {
@@ -126,6 +128,14 @@ button {
   color: var(--text-primary);
   transition: opacity var(--dur-fast) var(--ease-out);
 }
+.brand-logo img {
+  height: 36px !important;
+  max-height: 36px !important;
+  width: auto !important;
+  object-fit: contain;
+  display: block;
+}
+
 
 .brand-logo svg {
   transition: transform 0.3s var(--ease-spring), filter 0.3s var(--ease-out);
