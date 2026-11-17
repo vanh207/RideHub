@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 
@@ -50,3 +50,44 @@ class VehicleResponse(VehicleBase):
 
     class Config:
         from_attributes = True
+
+
+class VehicleSearchStore(BaseModel):
+    """Tóm tắt cửa hàng được phép trả ra ở API công khai."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: Optional[str] = None
+    city: Optional[str] = None
+
+
+class VehicleSearchItem(BaseModel):
+    """Một phương tiện trong kết quả tìm kiếm công khai.
+
+    Không chứa biển số xe hoặc các trường nội bộ của cửa hàng.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    store: VehicleSearchStore
+    vehicle_type: str
+    brand: str
+    model: str
+    seats: Optional[int] = None
+    transmission_type: Optional[str] = None
+    fuel_type: Optional[str] = None
+    price_per_day: float
+    price_per_hour: Optional[float] = None
+    primary_image_url: Optional[str] = None
+    is_available: Optional[bool] = None
+
+
+class VehicleSearchResponse(BaseModel):
+    """Kết quả tìm kiếm xe có phân trang."""
+
+    items: list[VehicleSearchItem]
+    page: int
+    page_size: int
+    total: int
