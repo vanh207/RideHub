@@ -8,8 +8,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.models.vehicle import Vehicle
-from app.schemas.vehicle import VehicleCreate, VehicleResponse, VehicleUpdate
+from app.models.vehicle import Vehicle, VehicleStatusHistory
+from app.schemas.vehicle import VehicleCreate, VehicleResponse, VehicleUpdate, VehicleStatusChangeRequest, VehicleStatusHistoryResponse
+from app.services.vehicle_state_machine import validate_and_transition_status, TRANSITION_RULES
 
 router = APIRouter(prefix="/vehicles", tags=["Vehicles Management"])
 
@@ -119,3 +120,61 @@ def update_vehicle(vehicle_id: int, payload: VehicleUpdate, db: Session = Depend
     db.commit()
     db.refresh(vehicle)
     return vehicle
+
+# chuyển đổi trạng thái xe kèm ghi Audit Log
+@router.post("/{vehicle_id}/status", response_model=VehicleResponse)
+def change_vehicle_status(
+    vehicle_id: int,
+    payload: VehicleStatusChangeRequest,
+    db: Session = Depends(get_db)
+):
+    """Đổi trạng thái xe qua máy trạng thái (State Machine) và lưu Audit Log."""
+    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+    if not vehicle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy phương tiện với ID={vehicle_id}!"
+        )
+
+    validate_and_transition_status(
+        vehicle=vehicle,
+        new_status=payload.new_status,
+        changed_by=payload.changed_by,
+        reason=payload.reason,
+        note=payload.note,
+        db=db
+    )
+
+    db.commit()
+    db.refresh(vehicle)
+    return vehicle
+
+
+# xem lịch sử đổi trạng thái và audit log của một chiếc xe
+@router.get("/{vehicle_id}/history", response_model=List[VehicleStatusHistoryResponse])
+def get_vehicle_status_history(vehicle_id: int, db: Session = Depends(get_db)):
+    """Lấy toàn bộ lịch sử thay đổi trạng thái (Audit Log) của một phương tiện."""
+    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+    if not vehicle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy phương tiện với ID={vehicle_id}!"
+        )
+
+    logs = (
+        db.query(VehicleStatusHistory)
+        .filter(VehicleStatusHistory.vehicle_id == vehicle_id)
+        .order_by(VehicleStatusHistory.created_at.desc(), VehicleStatusHistory.id.desc())
+        .all()
+    )
+    return logs
+
+
+# lấy danh sách quy tắc chuyển trạng thái (để Frontend hiển thị nút)
+@router.get("/state-machine/transitions")
+def get_state_machine_rules():
+    """Trả về ma trận trạng thái hợp lệ của hệ thống."""
+    return {
+        "status_rules": TRANSITION_RULES,
+        "description": "Danh sách các trạng thái và các bước chuyển tiếp hợp lệ"
+    }

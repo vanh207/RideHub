@@ -1,7 +1,6 @@
-
 from pydantic import BaseModel
 from typing import Optional
-
+from datetime import datetime
 
 class VehicleBase(BaseModel):
     store_id: int
@@ -48,5 +47,24 @@ class VehicleUpdate(BaseModel):
 class VehicleResponse(VehicleBase):
     id: int
 
+    class Config:
+        from_attributes = True
+
+class VehicleStatusChangeRequest(BaseModel):
+    """Dữ liệu gửi lên khi muốn đổi trạng thái xe."""
+    new_status: str
+    changed_by: str
+    reason: Optional[str] = None
+    note: Optional[str] = None
+class VehicleStatusHistoryResponse(BaseModel):
+    """Dữ liệu trả về khi xem lịch sử audit log."""
+    id: int
+    vehicle_id: int
+    from_status: Optional[str] = None
+    to_status: str
+    changed_by: str
+    reason: Optional[str] = None
+    note: Optional[str] = None
+    created_at: Optional[datetime] = None
     class Config:
         from_attributes = True

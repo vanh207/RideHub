@@ -2,7 +2,8 @@
 from sqlalchemy import Column, Integer, Numeric, String, Text, Boolean, TIMESTAMP, UniqueConstraint
 from sqlalchemy.sql import func
 from app.db.session import Base
-
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
@@ -39,3 +40,19 @@ class Vehicle(Base):
         server_default=func.current_timestamp(),
         onupdate=func.current_timestamp()
     )
+
+class VehicleStatusHistory(Base):
+    """Bảng Audit Log lưu vết lịch sử mọi lần đổi trạng thái của xe."""
+    __tablename__ = "vehicle_status_history"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id", ondelete="CASCADE"), nullable=False, index=True)
+    from_status = Column(String(40), nullable=True)       # Trạng thái trước đó
+    to_status = Column(String(40), nullable=False)        # Trạng thái mới
+    changed_by = Column(String(100), nullable=False)      # Tên nhân viên / Mã NV / SYSTEM
+    reason = Column(String(255), nullable=True)           # Lý do chuyển trạng thái
+    note = Column(Text, nullable=True)                    # Ghi chú chi tiết
+    created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
+    # Khai báo quan hệ liên kết ngược với bảng xe
+    vehicle = relationship("Vehicle", back_populates="status_histories")
+    
+Vehicle.status_histories = relationship("VehicleStatusHistory", back_populates="vehicle", cascade="all, delete-orphan")
