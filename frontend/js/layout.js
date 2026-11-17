@@ -210,7 +210,7 @@
 
       // Avatar & user actions
       let userActionHtml = '';
-      if (user) {
+      if (user && currentPage !== 'auth.html' && !window.location.pathname.includes('auth.html')) {
         const initials = (user.name || 'U').trim().split(/\s+/).slice(-1)[0].slice(0, 1).toUpperCase();
         userActionHtml = `
           <!-- Notification Bell -->
@@ -270,36 +270,22 @@
       } else {
         userActionHtml = `
           <a href="${this._resolvePath('auth.html')}" class="btn btn-soft btn-sm">Đăng nhập</a>
-          <a href="${this._resolvePath('pages/xac-thuc/dang-ky-khach.html')}" class="btn btn-primary btn-sm">Đăng ký</a>
+          <a href="${this._resolvePath('auth.html')}#register" class="btn btn-primary btn-sm">Đăng ký</a>
         `;
       }
 
-      // Quick Role Switcher để thử nghiệm nhanh giữa 4 vai trò
-      const roleSwitcherHtml = `
-        <div class="role-quick-switcher" title="Chuyển đổi giao diện nhanh giữa các vai trò">
-          <span>Vai trò:</span>
-          <select id="rhRoleSelect">
-            <option value="guest" ${this.currentRole === 'guest' ? 'selected' : ''}>Khách vãng lai</option>
-            <option value="customer" ${this.currentRole === 'customer' ? 'selected' : ''}>Khách thuê (Customer)</option>
-            <option value="store_owner" ${this.currentRole === 'store_owner' ? 'selected' : ''}>Chủ cửa hàng (Store Owner)</option>
-            <option value="admin" ${this.currentRole === 'admin' ? 'selected' : ''}>Quản trị (Admin)</option>
-          </select>
-        </div>
-      `;
-
       nav.innerHTML = `
         <div class="container navbar-inner">
-          <a href="${this._resolvePath(roleInfo.home)}" class="brand-logo">
-            <img src="${this._resolvePath('assets/logo-rh.png')}" alt="RideHub Logo" onerror="this.style.display='none'" />
+          <a href="${this._resolvePath('index.html')}" class="brand-logo">
+            <img src="${this._resolvePath('assets/logo-rh.png')}" alt="RideHub Logo" style="height:36px;max-height:36px;width:auto;object-fit:contain;" onerror="this.style.display='none'" />
             <span>RideHub</span>
           </a>
 
-          <nav class="nav-links" aria-label="Điều hướng theo vai trò">
+          <nav class="nav-links" aria-label="Điều hướng">
             ${linksHtml}
           </nav>
 
           <div class="nav-actions">
-            ${roleSwitcherHtml}
             ${userActionHtml}
             <button id="rhHamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
               ${ICONS.hamburger}
@@ -553,7 +539,7 @@
                 <span class="status-dot-pulse"></span>
                 <span>Hệ thống trực tuyến 99.98%</span>
               </span>
-              <a href="#privacy">Quyền riêng tư</a>
+              <a href="privacy-policy.html">Quyền riêng tư &amp; Chính sách</a>
               <a href="#terms">Điều khoản sử dụng</a>
               <a href="#sitemap">Sitemap</a>
             </div>
@@ -621,15 +607,7 @@
        GẮN SỰ KIỆN TƯƠNG TÁC (DROPDOWNS, OUTSIDE CLICK, HAMBURGER)
        ------------------------------------------------------------------------ */
     _bindEvents() {
-      // 1. Role switcher dropdown
-      const roleSelect = document.getElementById('rhRoleSelect');
-      if (roleSelect) {
-        roleSelect.addEventListener('change', (e) => {
-          this.setRole(e.target.value);
-        });
-      }
-
-      // 2. Avatar dropdown toggle
+      // 1. Avatar dropdown toggle
       const avatarBtn = document.getElementById('rhAvatarBtn');
       const avatarDrop = document.getElementById('rhAvatarDropdown');
       const notifBtn = document.getElementById('rhNotifBtn');

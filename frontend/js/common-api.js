@@ -71,7 +71,12 @@
     // Token Auth
     getToken() {
       try {
-        return localStorage.getItem(this.config.storageTokenKey) || '';
+        const fromCookie = (document.cookie.match(/(^| )ridehub_token=([^;]+)/) || [])[2] 
+                        || (document.cookie.match(/(^| )access_token=([^;]+)/) || [])[2]
+                        || (document.cookie.match(/(^| )token=([^;]+)/) || [])[2]
+                        || (document.cookie.match(/(^| )ridehub_auth_token=([^;]+)/) || [])[2];
+        if (fromCookie) return decodeURIComponent(fromCookie);
+        return localStorage.getItem(this.config.storageTokenKey) || localStorage.getItem('ridehub_token') || '';
       } catch (_) {
         return '';
       }
@@ -79,8 +84,19 @@
 
     setToken(token) {
       try {
-        if (token) localStorage.setItem(this.config.storageTokenKey, token);
-        else localStorage.removeItem(this.config.storageTokenKey);
+        if (token) {
+          document.cookie = `ridehub_token=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `access_token=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `${this.config.storageTokenKey}=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+          localStorage.setItem(this.config.storageTokenKey, token);
+          localStorage.setItem('ridehub_token', token);
+        } else {
+          document.cookie = 'ridehub_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+          document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+          document.cookie = `${this.config.storageTokenKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax`;
+          localStorage.removeItem(this.config.storageTokenKey);
+          localStorage.removeItem('ridehub_token');
+        }
       } catch (_) {}
     }
 
