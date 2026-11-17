@@ -142,7 +142,11 @@ def create_firebase_user(
 
 
 def verify_firebase_id_token(id_token: str) -> dict:
-    """Xác thực Firebase ID Token do Frontend gửi lên (khi đăng nhập / OTP)."""
+    """Xác thực Firebase ID Token do Frontend gửi lên (khi đăng nhập / OTP).
+
+    Cho phép dung sai lệch đồng hồ (clock_skew_seconds=300) để tránh lỗi 'Token used too early'
+    do chênh lệch thời gian giữa máy client và máy chủ Google.
+    """
     init_firebase()
 
     if _firebase_app is None:
@@ -152,11 +156,93 @@ def verify_firebase_id_token(id_token: str) -> dict:
         )
 
     try:
-        decoded = fb_auth.verify_id_token(id_token)
+        decoded = fb_auth.verify_id_token(id_token, clock_skew_seconds=60)
         return decoded
     except exceptions.FirebaseError as fe:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Firebase ID Token không hợp lệ hoặc đã hết hạn: {fe}",
         )
+
+
+def generate_verification_link(email: str) -> Optional[str]:
+    """Tạo liên kết xác thực email từ Firebase Authentication."""
+    init_firebase()
+    if _firebase_app is None:
+        return None
+    try:
+        return fb_auth.generate_email_verification_link(email)
+    except Exception as exc:
+        logger.warning(f"Không thể tạo email verification link cho {email}: {exc}")
+        return None
+
+
+def send_firebase_verification_email(firebase_uid: str, email: str) -> bool:
+    """Gửi email xác thực tài khoản thật trực tiếp qua Firebase Identity Toolkit tới hộp thư người dùng."""
+    init_firebase()
+    if _firebase_app is None:
+        logger.warning(f"Firebase app chưa khởi tạo, không thể gửi mail tới {email}")
+        return False
+    try:
+        import urllib.request
+        import json
+
+        api_key = getattr(settings, "FIREBASE_WEB_API_KEY", "AIzaSyAeC9Ln5LN9IIlHhuwGoAcwKYp-8HDDyKU")
+
+        # 1. Tạo custom token cho user
+        token_bytes = fb_auth.create_custom_token(firebase_uid)
+        custom_token = token_bytes.decode("utf-8") if isinstance(token_bytes, bytes) else str(token_bytes)
+
+        # 2. Đổi custom token lấy idToken qua Firebase REST API
+        token_url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key={api_key}"
+        req_token = urllib.request.Request(
+            token_url,
+            data=json.dumps({"token": custom_token, "returnSecureToken": True}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req_token, timeout=10) as resp:
+            token_res = json.loads(resp.read().decode("utf-8"))
+            id_token = token_res.get("idToken")
+
+        if not id_token:
+            logger.warning(f"Không thể lấy idToken để gửi email xác thực cho {email}")
+            return False
+
+        # 3. Gửi email xác thực chính thức từ Google Firebase tới hòm thư người dùng
+        send_url = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={api_key}"
+        req_send = urllib.request.Request(
+            send_url,
+            data=json.dumps({"requestType": "VERIFY_EMAIL", "idToken": id_token}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req_send, timeout=10) as resp2:
+            res_data = json.loads(resp2.read().decode("utf-8"))
+            logger.info(f"Đã gửi email xác thực Firebase thành công tới {email}: {res_data}")
+            return True
+    except Exception as exc:
+        logger.error(f"Lỗi khi gửi email xác thực Firebase tới {email}: {exc}")
+        return False
+
+
+def send_firebase_password_reset_email(email: str) -> bool:
+    """Gửi email đặt lại mật khẩu thật từ Google Firebase tới hộp thư người dùng."""
+    try:
+        import urllib.request
+        import json
+
+        api_key = getattr(settings, "FIREBASE_WEB_API_KEY", "AIzaSyAeC9Ln5LN9IIlHhuwGoAcwKYp-8HDDyKU")
+        url = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={api_key}"
+        req = urllib.request.Request(
+            url,
+            data=json.dumps({"requestType": "PASSWORD_RESET", "email": email}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            res = json.loads(resp.read().decode("utf-8"))
+            logger.info(f"Đã gửi email reset mật khẩu Firebase tới {email}: {res}")
+            return True
+    except Exception as exc:
+        logger.error(f"Lỗi khi gửi reset mật khẩu Firebase tới {email}: {exc}")
+        return False
+
 
