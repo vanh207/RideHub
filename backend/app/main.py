@@ -3,17 +3,24 @@
 Chạy:  uvicorn app.main:app --reload
 Tài liệu API tự sinh: http://127.0.0.1:8000/docs
 """
+import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import OperationalError
 
 from app import models  # noqa: F401 - import để SQLAlchemy biết các bảng
 from app.core.config import settings
+from app.core.store_errors import (
+    StoreAPIError,
+    store_api_error_handler,
+    store_http_exception_handler,
+)
 from app.core.firebase import init_firebase
 from app.db.session import Base, engine
-from app.routers import health, items, payment, notifications, chat, faq, handover, vehicles, delivery, store_staff, login
+from app.routers import health, items, payment, notifications, chat, faq, handover, vehicles, delivery, store_staff, login, stores
 
     
 @asynccontextmanager
@@ -35,11 +42,15 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
+app.add_exception_handler(StoreAPIError, store_api_error_handler)
+app.add_exception_handler(HTTPException, store_http_exception_handler)
 
-# CORS: cho phép trang FE (khác cổng/khác domain) gọi được API này
+
+# CORS: cho phép trang FE (khác cổng/khác domain) gọi được API này kèm Cookie
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -56,7 +67,14 @@ app.include_router(notifications.router, prefix="/api")
 app.include_router(vehicles.router, prefix="/api")
 app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
+app.include_router(stores.router, prefix="/api")
 app.include_router(login.router)
+app.include_router(login.router, prefix="/api")
+
+# Phục vụ toàn bộ giao diện Frontend tĩnh qua HTTP (hỗ trợ Google OAuth & tránh lỗi file:///)
+frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))
+if os.path.exists(frontend_dir):
+    app.mount("/frontend", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 
 @app.get("/")
 def root():
