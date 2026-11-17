@@ -4,17 +4,199 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hồ sơ &amp; Đổi mật khẩu — RideHub</title>
-    <link rel="icon" type="image/png" href="assets/logo-rh.png" />
+    <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/variables.css" />
-    <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="css/animations.css" />
-    <link rel="stylesheet" href="css/pages/kyc.css" />
+    <link rel="stylesheet" href="../css/variables.css" />
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <style id="kycCustomStyles">
+      /* ── Modern eKYC Identity Verification Styles ── */
+      .kyc-tips-banner {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+      }
+      .kyc-tips-icon {
+        font-size: 20px;
+        line-height: 1.2;
+      }
+      .kyc-tips-content {
+        font-size: 13px;
+        color: #166534;
+        line-height: 1.5;
+      }
+      .kyc-section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .kyc-step-num {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #16a34a;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13.5px;
+        flex-shrink: 0;
+      }
+      .kyc-section-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+      .kyc-section-desc {
+        margin: 2px 0 0;
+        font-size: 12.5px;
+        color: #64748b;
+      }
+      .kyc-upload-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      @media (max-width: 640px) {
+        .kyc-upload-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .kyc-upload-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        transition: all 0.2s ease;
+      }
+      .kyc-upload-box:hover {
+        border-color: #16a34a;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.08);
+      }
+      .kyc-upload-box.is-input-error {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+      }
+      .kyc-box-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+      .kyc-file-state {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #f1f5f9;
+        color: #64748b;
+        transition: all 0.2s;
+      }
+      .kyc-file-state.has-file {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .kyc-dropzone-label {
+        display: block;
+        cursor: pointer;
+        position: relative;
+      }
+      .kyc-dropzone-label input[type="file"] {
+        display: none !important;
+      }
+      .kyc-preview-container {
+        min-height: 155px;
+        border: 2px dashed #cbd5e1;
+        border-radius: 10px;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s ease;
+      }
+      .kyc-upload-box:hover .kyc-preview-container {
+        border-color: #22c55e;
+        background: #f0fdf4;
+      }
+      .kyc-dropzone-content {
+        text-align: center;
+        padding: 16px;
+      }
+      .kyc-icon-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin: 0 auto 8px;
+      }
+      .kyc-dropzone-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 3px;
+      }
+      .kyc-dropzone-sub {
+        font-size: 11.5px;
+        color: #64748b;
+      }
+      .kyc-preview-container img {
+        width: 100%;
+        height: 155px;
+        object-fit: cover;
+        border-radius: 8px;
+        display: block;
+      }
+      .kyc-image-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      .kyc-preview-container:hover .kyc-image-overlay {
+        opacity: 1;
+      }
+      .kyc-overlay-btn {
+        background: #ffffff;
+        color: #0f172a;
+        border: none;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      }
+    </style>
   </head>
 
   <body>
@@ -22,18 +204,19 @@
 
     <header id="mainNavbar" class="navbar is-scrolled">
       <div class="container navbar-inner">
-        <a href="index.html" class="brand-logo">
+        <a href="../index.html" class="brand-logo">
           <img
-            src="assets/logo-ridehub.svg"
+            src="../assets/logo-rh.png"
             alt="RideHub"
-            style="height: 36px; width: auto"
+            style="height: 36px; width: auto; object-fit: contain;"
           />
+          <span>RideHub</span>
         </a>
         <nav class="nav-links">
-          <a href="index.html" class="nav-link">Trang chủ</a>
-          <a href="vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+          <a href="../index.html" class="nav-link">Trang chủ</a>
+          <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
           <a href="trips.html" class="nav-link">Chuyến đi</a>
-          <a href="index.html#storySection" class="nav-link"
+          <a href="../index.html#storySection" class="nav-link"
             >Hướng dẫn thuê xe</a
           >
         </nav>
@@ -237,60 +420,107 @@
             </form>
           </div>
 
-          <!-- Giấy phép lái xe -->
+          <!-- Giấy phép lái xe / eKYC -->
           <div
             id="driver-license"
             class="panel-card"
             data-prof-panel="license"
             hidden
           >
+            <!-- Header Xác minh danh tính -->
             <div
               style="
                 display: flex;
                 justify-content: space-between;
-                align-items: center;
+                align-items: flex-start;
                 flex-wrap: wrap;
-                gap: 10px;
-                margin-bottom: 14px;
+                gap: 12px;
+                margin-bottom: 20px;
+                padding-bottom: 16px;
+                border-bottom: 1px solid var(--border-soft, #e2e8f0);
               "
             >
               <div>
-                <h2
-                  style="
-                    margin: 0;
-                    font-size: 1.25rem;
-                    font-family: var(--font-display);
-                  "
-                >
-                  Xác minh danh tính
-                </h2>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                  <h2
+                    style="
+                      margin: 0;
+                      font-size: 1.35rem;
+                      font-family: var(--font-display);
+                      font-weight: 700;
+                      color: #0f172a;
+                    "
+                  >
+                    Xác minh danh tính (eKYC)
+                  </h2>
+                  <span
+                    id="licStatusBadge"
+                    class="status-badge status-badge--booked"
+                    aria-live="polite"
+                    >Chưa nộp</span
+                  >
+                </div>
                 <p
                   style="
-                    margin: 4px 0 0;
-                    font-size: 13px;
-                    color: var(--text-muted);
+                    margin: 6px 0 0;
+                    font-size: 13.5px;
+                    color: #64748b;
                   "
                 >
-                  Cập nhật CCCD và GPLX để hoàn tất hồ sơ thuê xe.
+                  Tải ảnh CCCD và Giấy phép lái xe để hoàn tất hồ sơ thuê xe tự lái.
                 </p>
               </div>
-              <span
-                id="licStatusBadge"
-                class="status-badge status-badge--booked"
-                aria-live="polite"
-                >Chưa nộp</span
+              <button
+                type="button"
+                id="btnKycQuickFill"
+                class="btn btn-soft"
+                style="
+                  font-size: 12.5px;
+                  padding: 7px 16px;
+                  border-radius: 999px;
+                  background: #ecfdf5;
+                  color: #059669;
+                  border: 1px solid #a7f3d0;
+                  font-weight: 700;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  transition: all 0.2s;
+                "
               >
+                ⚡ Điền mẫu tự động
+              </button>
             </div>
+
             <div
               id="kycStatusNotice"
               class="kyc-status-notice"
               aria-live="polite"
               hidden
             ></div>
+
+            <!-- Banner Hướng dẫn chụp ảnh -->
+            <div class="kyc-tips-banner">
+              <div class="kyc-tips-icon">💡</div>
+              <div class="kyc-tips-content">
+                <strong>Yêu cầu chất lượng hình ảnh:</strong>
+                Chụp ảnh rõ nét 4 góc, đủ ánh sáng, không bị lóa đèn flash hay che khuất thông tin. Chấp nhận định dạng ảnh JPG, PNG tối đa 5MB mỗi ảnh.
+              </div>
+            </div>
+
             <form id="licenseForm" novalidate>
-              <h3 class="kyc-section-title">Căn cước công dân</h3>
-              <div class="filter-group">
-                <label class="filter-label" for="profCccdNum">Số CCCD</label>
+              <!-- Phần 1: CCCD -->
+              <div class="kyc-section-header">
+                <span class="kyc-step-num">1</span>
+                <div>
+                  <h3 class="kyc-section-title">Căn cước công dân (CCCD gắn chip)</h3>
+                  <p class="kyc-section-desc">Cung cấp số CCCD và tải ảnh chụp 2 mặt</p>
+                </div>
+              </div>
+
+              <div class="filter-group" style="margin-bottom: 18px;">
+                <label class="filter-label" for="profCccdNum">SỐ CCCD (12 CHỮ SỐ) <strong style="color: #ef4444;">*</strong></label>
                 <input
                   id="profCccdNum"
                   class="form-input"
@@ -301,110 +531,148 @@
                   autocomplete="off"
                 />
               </div>
+
+              <!-- Upload Grid CCCD -->
               <div class="kyc-upload-grid">
-                <label class="kyc-upload-card" for="profCccdFront">
-                  <span class="kyc-upload-caption"
-                    >Mặt trước CCCD <strong>*</strong></span
-                  >
-                  <span class="kyc-upload-preview" id="profCccdFrontPreview">
-                    <span class="kyc-upload-placeholder"
-                      >＋<small>Tải ảnh mặt trước</small></span
-                    >
-                  </span>
-                  <input
-                    id="profCccdFront"
-                    type="file"
-                    accept="image/jpeg,image/png"
-                    aria-label="Ảnh mặt trước CCCD"
-                  />
-                </label>
-                <label class="kyc-upload-card" for="profCccdBack">
-                  <span class="kyc-upload-caption"
-                    >Mặt sau CCCD <strong>*</strong></span
-                  >
-                  <span class="kyc-upload-preview" id="profCccdBackPreview">
-                    <span class="kyc-upload-placeholder"
-                      >＋<small>Tải ảnh mặt sau</small></span
-                    >
-                  </span>
-                  <input
-                    id="profCccdBack"
-                    type="file"
-                    accept="image/jpeg,image/png"
-                    aria-label="Ảnh mặt sau CCCD"
-                  />
-                </label>
+                <!-- Mặt trước CCCD -->
+                <div class="kyc-upload-box" id="boxCccdFront">
+                  <div class="kyc-box-label">
+                    <span>Mặt trước CCCD <strong style="color: #ef4444;">*</strong></span>
+                    <span class="kyc-file-state" id="stateCccdFront">Chưa chọn ảnh</span>
+                  </div>
+                  <label class="kyc-dropzone-label" for="profCccdFront">
+                    <div class="kyc-preview-container" id="profCccdFrontPreview">
+                      <div class="kyc-dropzone-content">
+                        <div class="kyc-icon-circle">📷</div>
+                        <div class="kyc-dropzone-title">Tải lên mặt trước CCCD</div>
+                        <div class="kyc-dropzone-sub">Bấm vào đây để chọn ảnh</div>
+                      </div>
+                    </div>
+                    <input
+                      id="profCccdFront"
+                      type="file"
+                      accept="image/jpeg,image/png"
+                      aria-label="Ảnh mặt trước CCCD"
+                    />
+                  </label>
+                </div>
+
+                <!-- Mặt sau CCCD -->
+                <div class="kyc-upload-box" id="boxCccdBack">
+                  <div class="kyc-box-label">
+                    <span>Mặt sau CCCD <strong style="color: #ef4444;">*</strong></span>
+                    <span class="kyc-file-state" id="stateCccdBack">Chưa chọn ảnh</span>
+                  </div>
+                  <label class="kyc-dropzone-label" for="profCccdBack">
+                    <div class="kyc-preview-container" id="profCccdBackPreview">
+                      <div class="kyc-dropzone-content">
+                        <div class="kyc-icon-circle">📷</div>
+                        <div class="kyc-dropzone-title">Tải lên mặt sau CCCD</div>
+                        <div class="kyc-dropzone-sub">Bấm vào đây để chọn ảnh</div>
+                      </div>
+                    </div>
+                    <input
+                      id="profCccdBack"
+                      type="file"
+                      accept="image/jpeg,image/png"
+                      aria-label="Ảnh mặt sau CCCD"
+                    />
+                  </label>
+                </div>
               </div>
 
-              <h3 class="kyc-section-title">Giấy phép lái xe (GPLX)</h3>
-              <div class="filter-group">
-                <label class="filter-label" for="profLicNum"
-                  >Số giấy phép lái xe</label
-                >
-                <input
-                  id="profLicNum"
-                  class="form-input"
-                  type="text"
-                  placeholder="Nhập số giấy phép lái xe..."
-                />
+              <!-- Phần 2: Giấy phép lái xe -->
+              <div class="kyc-section-header" style="margin-top: 28px;">
+                <span class="kyc-step-num">2</span>
+                <div>
+                  <h3 class="kyc-section-title">Giấy phép lái xe (GPLX)</h3>
+                  <p class="kyc-section-desc">Thông tin bằng lái xe ô tô hoặc xe máy còn hiệu lực</p>
+                </div>
               </div>
-              <div class="filter-group">
-                <label class="filter-label" for="profLicName">Họ và tên</label>
-                <input
-                  id="profLicName"
-                  class="form-input"
-                  type="text"
-                  placeholder="Nhập họ và tên trên GPLX..."
-                />
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 18px;">
+                <div class="filter-group">
+                  <label class="filter-label" for="profLicNum">SỐ GIẤY PHÉP LÁI XE <strong style="color: #ef4444;">*</strong></label>
+                  <input
+                    id="profLicNum"
+                    class="form-input"
+                    type="text"
+                    placeholder="Nhập số GPLX..."
+                  />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="profLicName">HỌ VÀ TÊN <strong style="color: #ef4444;">*</strong></label>
+                  <input
+                    id="profLicName"
+                    class="form-input"
+                    type="text"
+                    placeholder="Họ tên trên GPLX..."
+                  />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="profLicDob">NGÀY SINH <strong style="color: #ef4444;">*</strong></label>
+                  <input id="profLicDob" class="form-input" type="date" />
+                </div>
               </div>
-              <div class="filter-group">
-                <label class="filter-label" for="profLicDob">Ngày sinh</label>
-                <input id="profLicDob" class="form-input" type="date" />
-              </div>
+
+              <!-- Upload Grid GPLX -->
               <div class="kyc-upload-grid">
-                <label class="kyc-upload-card" for="profLicFront">
-                  <span class="kyc-upload-caption"
-                    >Mặt trước GPLX <strong>*</strong></span
-                  >
-                  <span class="kyc-upload-preview" id="profLicFrontPreview">
-                    <span class="kyc-upload-placeholder"
-                      >＋<small>Tải ảnh mặt trước</small></span
-                    >
-                  </span>
-                  <input
-                    id="profLicFront"
-                    type="file"
-                    accept="image/jpeg,image/png"
-                    aria-label="Ảnh mặt trước GPLX"
-                  />
-                </label>
-                <label class="kyc-upload-card" for="profLicBack">
-                  <span class="kyc-upload-caption"
-                    >Mặt sau GPLX <strong>*</strong></span
-                  >
-                  <span class="kyc-upload-preview" id="profLicBackPreview">
-                    <span class="kyc-upload-placeholder"
-                      >＋<small>Tải ảnh mặt sau</small></span
-                    >
-                  </span>
-                  <input
-                    id="profLicBack"
-                    type="file"
-                    accept="image/jpeg,image/png"
-                    aria-label="Ảnh mặt sau GPLX"
-                  />
-                </label>
+                <!-- Mặt trước GPLX -->
+                <div class="kyc-upload-box" id="boxLicFront">
+                  <div class="kyc-box-label">
+                    <span>Mặt trước GPLX <strong style="color: #ef4444;">*</strong></span>
+                    <span class="kyc-file-state" id="stateLicFront">Chưa chọn ảnh</span>
+                  </div>
+                  <label class="kyc-dropzone-label" for="profLicFront">
+                    <div class="kyc-preview-container" id="profLicFrontPreview">
+                      <div class="kyc-dropzone-content">
+                        <div class="kyc-icon-circle">🚗</div>
+                        <div class="kyc-dropzone-title">Tải lên mặt trước GPLX</div>
+                        <div class="kyc-dropzone-sub">Bấm vào đây để chọn ảnh</div>
+                      </div>
+                    </div>
+                    <input
+                      id="profLicFront"
+                      type="file"
+                      accept="image/jpeg,image/png"
+                      aria-label="Ảnh mặt trước GPLX"
+                    />
+                  </label>
+                </div>
+
+                <!-- Mặt sau GPLX -->
+                <div class="kyc-upload-box" id="boxLicBack">
+                  <div class="kyc-box-label">
+                    <span>Mặt sau GPLX <strong style="color: #ef4444;">*</strong></span>
+                    <span class="kyc-file-state" id="stateLicBack">Chưa chọn ảnh</span>
+                  </div>
+                  <label class="kyc-dropzone-label" for="profLicBack">
+                    <div class="kyc-preview-container" id="profLicBackPreview">
+                      <div class="kyc-dropzone-content">
+                        <div class="kyc-icon-circle">🚗</div>
+                        <div class="kyc-dropzone-title">Tải lên mặt sau GPLX</div>
+                        <div class="kyc-dropzone-sub">Bấm vào đây để chọn ảnh</div>
+                      </div>
+                    </div>
+                    <input
+                      id="profLicBack"
+                      type="file"
+                      accept="image/jpeg,image/png"
+                      aria-label="Ảnh mặt sau GPLX"
+                    />
+                  </label>
+                </div>
               </div>
-              <p class="kyc-upload-help">
-                Ảnh JPG hoặc PNG, tối đa 5MB mỗi ảnh. Đảm bảo thông tin rõ nét,
-                không bị lóa.
-              </p>
-              <button
-                class="btn btn-primary btn-premium btn-shine"
-                type="submit"
-              >
-                Gửi hồ sơ xác minh
-              </button>
+
+              <div style="margin-top: 24px; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
+                <button
+                  class="btn btn-primary btn-premium btn-shine"
+                  type="submit"
+                  style="min-width: 190px; height: 46px; font-size: 15px; font-weight: 700; border-radius: 12px;"
+                >
+                  Gửi hồ sơ xác minh
+                </button>
+              </div>
             </form>
           </div>
 
@@ -546,8 +814,57 @@
       </div>
     </main>
 
-    <script src="js/effects.js"></script>
-    <script src="js/auth-rbac.js"></script>
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <img src="../assets/logo-rh.png" alt="RideHub Logo" style="height:34px;width:auto;filter:brightness(0) invert(1);" />
+              <span style="font-family:var(--font-display);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">RideHub</span>
+            </div>
+            <p style="font-size:13px;line-height:1.65;color:#d1fae5;margin:0 0 14px;">
+              Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+            </p>
+          </div>
+          <div>
+            <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
+            <ul class="footer-links-list">
+              <li class="footer-link-item"><a href="../index.html">Trang chủ</a></li>
+              <li class="footer-link-item"><a href="../vehicles.html">Tìm &amp; Thuê xe máy, Ô tô</a></li>
+              <li class="footer-link-item"><a href="trips.html">Hành trình &amp; Chuyến đi</a></li>
+            </ul>
+          </div>
+          <div>
+            <div class="footer-col-title">Quy chế &amp; Bảo vệ</div>
+            <ul class="footer-links-list">
+              <li class="footer-link-item"><a href="privacy-policy.html">Chính sách bảo mật eKYC</a></li>
+              <li class="footer-link-item"><a href="../index.html#storySection">Quy trình bàn giao 4 bước</a></li>
+              <li class="footer-link-item"><a href="auth.html">Đăng ký thành viên</a></li>
+            </ul>
+          </div>
+          <div>
+            <div class="footer-col-title">Liên hệ RideHub</div>
+            <div style="font-size:13px;color:#d1fae5;line-height:1.6;">
+              <div><strong>Hotline:</strong> 1900 6868</div>
+              <div><strong>Email:</strong> support@ridehub.vn</div>
+              <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+            </div>
+          </div>
+        </div>
+        <div class="footer-divider"></div>
+        <div class="footer-bottom-row">
+          <div>© 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+            <a href="privacy-policy.html" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+            <a href="../index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Điều khoản dịch vụ</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="../js/effects.js"></script>
+    <script src="../js/auth-rbac.js"></script>
     <script>
       const switchProfileTab = (tabName) => {
         document.querySelectorAll(".prof-nav-btn").forEach((btn) => {
@@ -582,40 +899,70 @@
         {
           inputId: "profCccdFront",
           previewId: "profCccdFrontPreview",
+          stateId: "stateCccdFront",
           userKey: "cccdFrontPhotoUrl",
         },
         {
           inputId: "profCccdBack",
           previewId: "profCccdBackPreview",
+          stateId: "stateCccdBack",
           userKey: "cccdBackPhotoUrl",
         },
         {
           inputId: "profLicFront",
           previewId: "profLicFrontPreview",
+          stateId: "stateLicFront",
           userKey: "licenseFrontPhotoUrl",
           legacyKey: "licensePhotoUrl",
         },
         {
           inputId: "profLicBack",
           previewId: "profLicBackPreview",
+          stateId: "stateLicBack",
           userKey: "licenseBackPhotoUrl",
         },
       ];
       const kycImages = {};
-      const renderKycImage = (previewId, url) => {
+      const renderKycImage = (previewId, url, stateId) => {
         const preview = document.getElementById(previewId);
+        if (!preview) return;
         preview.replaceChildren();
+        const stateEl = stateId ? document.getElementById(stateId) : null;
+
         if (!url) {
-          const placeholder = document.createElement("span");
-          placeholder.className = "kyc-upload-placeholder";
-          placeholder.innerHTML = "＋<small>Tải ảnh</small>";
-          preview.append(placeholder);
+          if (stateEl) {
+            stateEl.textContent = "Chưa chọn ảnh";
+            stateEl.classList.remove("has-file");
+          }
+          const isLic = previewId.includes("Lic");
+          const isFront = previewId.includes("Front");
+          const icon = isLic ? "🚗" : "📷";
+          const title = `Tải lên mặt ${isFront ? "trước" : "sau"} ${isLic ? "GPLX" : "CCCD"}`;
+          const content = document.createElement("div");
+          content.className = "kyc-dropzone-content";
+          content.innerHTML = `
+            <div class="kyc-icon-circle">${icon}</div>
+            <div class="kyc-dropzone-title">${title}</div>
+            <div class="kyc-dropzone-sub">Bấm vào đây để chọn ảnh</div>
+          `;
+          preview.append(content);
           return;
         }
+
+        if (stateEl) {
+          stateEl.textContent = "✓ Đã tải ảnh";
+          stateEl.classList.add("has-file");
+        }
+
         const image = document.createElement("img");
         image.src = url;
         image.alt = "Ảnh giấy tờ đã tải lên";
-        preview.append(image);
+
+        const overlay = document.createElement("div");
+        overlay.className = "kyc-image-overlay";
+        overlay.innerHTML = `<button type="button" class="kyc-overlay-btn">Đổi ảnh khác</button>`;
+
+        preview.append(image, overlay);
       };
       const renderKycStatus = (user) => {
         const status = user.kycStatus || "not_submitted";
@@ -681,13 +1028,41 @@
         document.getElementById("profLicDob").value =
           u.licenseDob || u.dob || "";
         renderKycStatus(u);
-        kycImageFields.forEach(({ previewId, userKey, legacyKey }) => {
+        kycImageFields.forEach(({ previewId, stateId, userKey, legacyKey }) => {
           const url = u[userKey] || (legacyKey ? u[legacyKey] : "") || "";
           kycImages[userKey] = url;
-          renderKycImage(previewId, url);
+          renderKycImage(previewId, url, stateId);
         });
       };
       document.addEventListener("DOMContentLoaded", renderUser);
+
+      // Điền mẫu nhanh KYC
+      document.getElementById("btnKycQuickFill")?.addEventListener("click", () => {
+        document.getElementById("profCccdNum").value = "079098765432";
+        document.getElementById("profLicNum").value = "790123456789";
+        document.getElementById("profLicName").value = "NGUYỄN VĂN AN";
+        document.getElementById("profLicDob").value = "1995-08-20";
+
+        const mockSvg = (title, subtitle) => `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="380" viewBox="0 0 600 380"><rect width="600" height="380" rx="20" fill="%23f0fdf4" stroke="%2322c55e" stroke-width="4"/><circle cx="90" cy="190" r="50" fill="%23bbf7d0"/><text x="170" y="160" font-family="Arial" font-size="24" font-weight="bold" fill="%2315803d">${encodeURIComponent(title)}</text><text x="170" y="200" font-family="Arial" font-size="16" fill="%23166534">SO: 079098765432</text><text x="170" y="235" font-family="Arial" font-size="14" fill="%2364748b">${encodeURIComponent(subtitle)}</text></svg>`;
+
+        const frontCccdMock = mockSvg("CAN CUOC CONG DAN", "Mat truoc - Chip dien tu");
+        const backCccdMock = mockSvg("CAN CUOC CONG DAN", "Mat sau - Dac diem nhan dang");
+        const frontLicMock = mockSvg("GIAY PHEP LAI XE", "Hang B2 - So 790123456789");
+        const backLicMock = mockSvg("GIAY PHEP LAI XE", "Mat sau - Gia tri su dung");
+
+        kycImages["cccdFrontPhotoUrl"] = frontCccdMock;
+        kycImages["cccdBackPhotoUrl"] = backCccdMock;
+        kycImages["licenseFrontPhotoUrl"] = frontLicMock;
+        kycImages["licenseBackPhotoUrl"] = backLicMock;
+
+        renderKycImage("profCccdFrontPreview", frontCccdMock, "stateCccdFront");
+        renderKycImage("profCccdBackPreview", backCccdMock, "stateCccdBack");
+        renderKycImage("profLicFrontPreview", frontLicMock, "stateLicFront");
+        renderKycImage("profLicBackPreview", backLicMock, "stateLicBack");
+
+        document.querySelectorAll(".kyc-upload-box").forEach(b => b.classList.remove("is-input-error"));
+        showRideHubToast("⚡ Đã điền thông tin và ảnh giấy tờ mẫu thử nghiệm!");
+      });
 
       const imageToDataUrl = (file) =>
         new Promise((resolve, reject) => {
@@ -725,10 +1100,10 @@
           reader.readAsDataURL(file);
         });
 
-      kycImageFields.forEach(({ inputId, previewId, userKey }) => {
+      kycImageFields.forEach(({ inputId, previewId, stateId, userKey }) => {
         document
           .getElementById(inputId)
-          .addEventListener("change", async (event) => {
+          ?.addEventListener("change", async (event) => {
             const input = event.currentTarget;
             const file = input.files?.[0];
             if (!file) return;
@@ -747,9 +1122,9 @@
               const dataUrl = await imageToDataUrl(file);
               kycImages[userKey] = dataUrl;
               input
-                .closest(".kyc-upload-card")
-                .classList.remove("is-input-error");
-              renderKycImage(previewId, dataUrl);
+                .closest(".kyc-upload-box")
+                ?.classList.remove("is-input-error");
+              renderKycImage(previewId, dataUrl, stateId);
             } catch (error) {
               input.value = "";
               showRideHubToast(
@@ -779,11 +1154,11 @@
           });
           let missingImages = false;
           kycImageFields.forEach(({ inputId, userKey }) => {
-            const card = document
+            const box = document
               .getElementById(inputId)
-              .closest(".kyc-upload-card");
+              ?.closest(".kyc-upload-box");
             const missing = !kycImages[userKey];
-            card.classList.toggle("is-input-error", missing);
+            box?.classList.toggle("is-input-error", missing);
             missingImages = missingImages || missing;
           });
           if (invalid || missingImages) {

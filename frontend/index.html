@@ -4,105 +4,757 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RideHub — Demo Layout Chung, Menu Theo Vai Trò & API Dùng Chung</title>
-  <link rel="icon" type="image/png" href="../assets/images/logo-rh.png" />
+  <title>RideHub — Thuê xe thông minh & Hệ thống hiệu ứng cao cấp</title>
+  <link rel="icon" type="image/png" href="assets/logo-rh.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
-
-  <!-- CSS DÙNG CHUNG ĐƯỢC TÁCH RA -->
-  <link rel="stylesheet" href="./css/global.css" />
-  <link rel="stylesheet" href="./css/customer.css" />
-  <link rel="stylesheet" href="./css/styles.css" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/animations.css" />
 </head>
 
 <body>
 
-  <!-- ======================================================================
-       1. HEADER LAYOUT DÙNG CHUNG (TỰ ĐỘNG SINH QUA js/layout.js)
-       ====================================================================== -->
-  <header id="mainNavbar"></header>
+  <!-- Page Loader with Motorbike & Clip-path Reveal -->
+  <div id="pageLoader" class="page-loader" aria-hidden="true">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <img src="assets/logo-rh.png" alt="RideHub" style="height:42px;width:auto;object-fit:contain;" />
+      <span
+        style="font-family:var(--font-display);font-weight:800;font-size:1.5rem;color:var(--green-700);">RideHub</span>
+    </div>
+    <div class="loader-road-track">
+      <div class="loader-moto">
+        <svg viewBox="0 0 110 64" width="72" height="46">
+          <path d="M22 36 C28 22, 46 20, 60 25 L76 17 L85 20 L75 36 Z" fill="#22c55e" />
+          <path d="M32 25 C40 20, 52 20, 58 25 L48 29 L30 29 Z" fill="#132a1c" />
+          <g transform="translate(27,45)">
+            <g class="wheel-spin">
+              <circle r="11" fill="#132a1c" />
+              <circle r="5" fill="#dcfce7" />
+              <line x1="-5" y1="0" x2="5" y2="0" stroke="#22c55e" stroke-width="1.6" />
+            </g>
+          </g>
+          <g transform="translate(81,45)">
+            <g class="wheel-spin">
+              <circle r="11" fill="#132a1c" />
+              <circle r="5" fill="#dcfce7" />
+              <line x1="-5" y1="0" x2="5" y2="0" stroke="#22c55e" stroke-width="1.6" />
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <span style="font-size:13px;font-weight:600;color:var(--text-muted);">Đang khởi động hành trình xanh...</span>
+  </div>
+
+  <!-- Atmospheric Noise, Morphing Blobs & Ambient Particles -->
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <div class="blob-layer" aria-hidden="true" data-pause-offscreen>
+    <div class="morph-blob morph-blob--1"></div>
+    <div class="morph-blob morph-blob--2"></div>
+    <div class="morph-blob morph-blob--3"></div>
+  </div>
+  <canvas id="ambientParticles" class="ambient-particles-canvas" aria-hidden="true"></canvas>
+
+  <!-- Scroll Progress Bar with Mini Vehicle -->
+  <div class="scroll-progress-wrap" aria-hidden="true">
+    <div id="scrollProgressBar" class="scroll-progress-bar">
+      <svg class="scroll-progress-car" viewBox="0 0 36 20" fill="none">
+        <path d="M3 14 C3 9, 6 7, 11 7 L15 2 L24 2 L28 7 L33 9 L33 14 Z" fill="#16a34a" />
+        <circle cx="9" cy="15" r="3.2" fill="#132a1c" />
+        <circle cx="27" cy="15" r="3.2" fill="#132a1c" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Smart Navbar -->
+  <header id="mainNavbar" class="navbar">
+    <div class="container navbar-inner">
+      <a href="index.html" class="brand-logo" data-vt-link>
+        <img src="assets/logo-rh.png" alt="RideHub" style="height:34px;width:auto;object-fit:contain;" />
+        <span>RideHub</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Điều hướng chính">
+        <a href="index.html" class="nav-link is-active">Trang chủ</a>
+        <a href="vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+        <a href="trips.html" class="nav-link">Chuyến đi</a>
+        <a href="index.html#storySection" class="nav-link" data-vt-link>Hướng dẫn thuê xe</a>
+        <a href="store-portal.html" class="nav-link">Cửa hàng</a>
+        <a href="admin-ops.html" class="nav-link">Vận hành &amp; Admin</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round">
+            <line x1="4" y1="7" x2="20" y2="7"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="17" x2="20" y2="17"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer -->
+  <aside id="mobileDrawer" class="mobile-drawer" aria-label="Menu di động">
+    <a href="index.html">Trang chủ</a>
+    <a href="vehicles.html">Tìm &amp; Thuê xe</a>
+    <a href="trips.html">Chuyến đi</a>
+    <a href="index.html#storySection" data-vt-link>Hướng dẫn thuê xe</a>
+    <a href="store-portal.html">Cổng Cửa hàng</a>
+    <a href="admin-ops.html">Vận hành &amp; Admin</a>
+  </aside>
 
   <!-- ======================================================================
-       2. DEMO HERO & ROLE SELECTOR
+       1. HERO SECTION — 5-Layer Parallax Road Scene
        ====================================================================== -->
-  <section class="demo-hero">
+  <section id="heroScene" class="hero-scene" data-time="morning">
+    <div class="aurora-bg" aria-hidden="true"></div>
+    <div class="hero-sun" aria-hidden="true"></div>
+
+    <!-- Clouds (Layer 1) -->
+    <svg class="hero-cloud hero-cloud--1" width="130" height="54" viewBox="0 0 130 54" fill="none" aria-hidden="true">
+      <path
+        d="M24 44 H104 C115 44 122 36 122 27 C122 18 114 12 104 13 C99 4 86 0 74 4 C64 0 50 4 44 14 C31 12 18 20 18 32 C18 39 20 44 24 44 Z"
+        fill="#ffffff" fill-opacity="0.86" />
+    </svg>
+    <svg class="hero-cloud hero-cloud--2" width="110" height="46" viewBox="0 0 130 54" fill="none" aria-hidden="true">
+      <path
+        d="M24 44 H104 C115 44 122 36 122 27 C122 18 114 12 104 13 C99 4 86 0 74 4 C64 0 50 4 44 14 C31 12 18 20 18 32 C18 39 20 44 24 44 Z"
+        fill="#ffffff" fill-opacity="0.72" />
+    </svg>
+
+    <div class="container hero-content">
+      <div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+          <span class="eyebrow" style="margin-bottom:0;">Di chuyển xanh • Phản hồi 60fps</span>
+          <div class="time-switcher" role="group" aria-label="Thời gian trong ngày">
+            <button class="time-btn is-active" data-time="morning" type="button">Sáng</button>
+            <button class="time-btn" data-time="afternoon" type="button">Chiều</button>
+            <button class="time-btn" data-time="night" type="button">Tối</button>
+          </div>
+        </div>
+
+        <h1 class="hero-title" data-reveal="text-mask">Thuê xe mượt mà như lướt trên phố xanh</h1>
+        <p class="hero-desc" data-reveal style="--stagger:1;">
+          Đặt xe máy và ô tô trong 30 giây, giao xe tận nơi trong 15 phút. Rê chuột vào xe bên dưới để bấm còi, hoặc
+          click để xem xe nhấc bánh!
+        </p>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;" data-reveal style="--stagger:2;">
+          <a href="vehicles.html" class="btn btn-primary btn-premium btn-shine" data-magnetic>Bắt đầu đặt xe</a>
+        </div>
+      </div>
+
+      <!-- Quick Search + Vehicle Morph Toggle -->
+      <div class="hero-search-card spotlight-card" data-reveal style="--stagger:2;">
+        <div id="vehicleTypeToggle" class="vehicle-toggle" data-mode="moto">
+          <span class="vehicle-toggle-pill"></span>
+          <button class="vehicle-toggle-btn" data-mode="moto" type="button">Xe máy</button>
+          <button class="vehicle-toggle-btn" data-mode="car" type="button">Ô tô</button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <svg width="48" height="32" viewBox="0 0 46 30" fill="none" aria-hidden="true">
+            <path id="morphVehiclePath" d="M8 22 C11 14, 18 14, 24 16 L30 11 L35 13 L31 22 Z" fill="#22c55e"
+              style="transition:d 0.42s var(--ease-spring);" />
+            <circle cx="13" cy="23" r="4" fill="#132a1c" />
+            <circle cx="33" cy="23" r="4" fill="#132a1c" />
+          </svg>
+          <div style="font-size:13px;color:var(--text-secondary);">Chuyển đổi mượt mà giữa xe máy điện và ô tô đô thị
+          </div>
+        </div>
+
+        <div class="float-field">
+          <input id="heroLocationInput" class="float-input" type="text" placeholder=" "
+            value="Quận 1, TP. Hồ Chí Minh" />
+          <label class="float-label" for="heroLocationInput">Điểm nhận xe</label>
+        </div>
+
+        <button id="heroSearchBtn" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button"
+          onclick="document.getElementById('searchLoaderDemo').hidden=false;setTimeout(()=>{document.getElementById('searchLoaderDemo').hidden=true;showRideHubToast('Tìm thấy 18 xe gần bạn!');},1500)">
+          Tìm xe khả dụng ngay
+        </button>
+
+        <!-- Search Results Vehicle Loader (replaces spinner) -->
+        <div id="searchLoaderDemo" hidden
+          style="margin-top:14px;padding:10px 14px;border-radius:12px;background:var(--green-50);overflow:hidden;position:relative;">
+          <div style="font-size:12px;font-weight:700;color:var(--green-700);margin-bottom:6px;">Đang quét xe quanh
+            bạn...</div>
+          <div style="height:26px;position:relative;overflow:hidden;border-bottom:2px dashed var(--green-300);">
+            <div
+              style="position:absolute;left:0;bottom:2px;width:44px;animation:loaderMotoZoom 1.4s var(--ease-in-out) infinite;">
+              <svg viewBox="0 0 110 64" width="44" height="26">
+                <path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#22c55e" />
+                <circle cx="27" cy="45" r="10" fill="#132a1c" />
+                <circle cx="81" cy="45" r="10" fill="#132a1c" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5-Layer Parallax Road Stage -->
+    <div class="hero-road-stage">
+      <!-- Layer 2: Distant Hills -->
+      <svg class="parallax-layer" data-parallax="0.15" viewBox="0 0 1440 220" preserveAspectRatio="none"
+        style="opacity:0.45;" aria-hidden="true">
+        <path d="M0 160 Q220 80 460 145 T960 130 T1440 150 L1440 220 L0 220 Z" fill="#86efac" />
+      </svg>
+      <!-- Layer 3: City / Trees + Bird -->
+      <svg class="parallax-layer" data-parallax="0.32" viewBox="0 0 1440 220" preserveAspectRatio="none"
+        style="opacity:0.65;" aria-hidden="true">
+        <path
+          d="M0 175 L80 175 L80 125 L130 125 L130 175 L190 175 L190 105 L250 105 L250 175 L340 175 Q370 120 400 175 L520 175 L520 115 L585 115 L585 175 L720 175 Q755 110 790 175 L920 175 L920 120 L990 120 L990 175 L1140 175 Q1180 118 1220 175 L1440 175 L1440 220 L0 220 Z"
+          fill="#4ade80" />
+      </svg>
+      <svg class="hero-bird" width="26" height="14" viewBox="0 0 26 14" fill="none" aria-hidden="true">
+        <path d="M1 10 Q7 2 13 8 Q19 2 25 10" stroke="#15803d" stroke-width="2" stroke-linecap="round" />
+      </svg>
+
+      <!-- Layer 4: Asphalt Road with Endless Dashed Line -->
+      <div class="road-asphalt">
+        <div class="road-dashes"></div>
+      </div>
+
+      <!-- Vehicles Track -->
+      <div id="heroVehiclesTrack" class="hero-vehicles-track"></div>
+
+      <!-- Layer 5: Blurred Foreground Rush -->
+      <div class="fg-rush-layer" aria-hidden="true">
+        <svg class="fg-rush-item" width="44" height="54" viewBox="0 0 44 54">
+          <rect x="20" y="6" width="4" height="48" fill="#15803d" />
+          <circle cx="22" cy="8" r="6" fill="#fef08a" />
+        </svg>
+        <svg class="fg-rush-item" width="60" height="36" viewBox="0 0 60 36">
+          <path d="M4 36 Q18 6 30 36 Q42 8 56 36 Z" fill="#22c55e" />
+        </svg>
+        <svg class="fg-rush-item" width="44" height="54" viewBox="0 0 44 54">
+          <rect x="20" y="10" width="4" height="44" fill="#15803d" />
+          <rect x="10" y="6" width="24" height="14" rx="4" fill="#d9f99d" />
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Strip (Count-up easeOutExpo) -->
+  <div class="container" style="margin-top:-24px;position:relative;z-index:10;">
+    <div class="stats-strip">
+      <div class="stat-card" data-reveal style="--stagger:0;">
+        <div class="stat-value" data-countup="1250" data-suffix="+">0</div>
+        <div class="stat-label">Xe xanh sẵn sàng</div>
+      </div>
+      <div class="stat-card" data-reveal style="--stagger:1;">
+        <div class="stat-value" data-countup="48900" data-suffix="+">0</div>
+        <div class="stat-label">Chuyến đi an toàn</div>
+      </div>
+      <div class="stat-card" data-reveal style="--stagger:2;">
+        <div class="stat-value" data-countup="15" data-suffix=" phút">0</div>
+        <div class="stat-label">Giao xe tận nơi</div>
+      </div>
+      <div class="stat-card" data-reveal style="--stagger:3;">
+        <div class="stat-value" data-countup="99" data-suffix="%">0</div>
+        <div class="stat-label">Khách hàng hài lòng</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Self-Drawing Curve Section Divider -->
+  <svg class="section-curve-divider" viewBox="0 0 1440 44" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 24 Q360 2 720 24 T1440 24" />
+  </svg>
+
+  <!-- ======================================================================
+       2. FLEET SECTION — 3D Tilt, Glare, Spotlight & Status Badges
+       ====================================================================== -->
+  <section id="fleetSection" class="section">
+    <div class="topo-grid-bg" aria-hidden="true"></div>
+    <div class="container" style="position:relative;">
+      <div class="section-header">
+        <span class="eyebrow">Đội xe nổi bật</span>
+        <h2 class="section-title" data-reveal="text-mask">Chọn chiếc xe đồng hành cùng bạn</h2>
+        <p class="section-subtitle" data-reveal>Nghiêng thẻ 3D theo chuột, ánh sáng spotlight theo con trỏ, và nhấn vào
+          badge trạng thái để xem hiệu ứng lật mượt.</p>
+      </div>
+
+      <div class="fleet-grid">
+        <article class="vehicle-card spotlight-card" tabindex="0" role="button" data-href="vehicles.html" data-reveal
+          style="--stagger:0;" onclick="if(!event.target.closest('[data-flip-badge]'))location.href='vehicles.html'">
+          <div class="badge-row">
+            <span class="status-badge status-badge--available" data-flip-badge title="Click để đổi trạng thái">
+              <span class="status-dot status-dot-pulse"></span>
+              <span class="badge-text">Available</span>
+            </span>
+            <div class="vehicle-stats-row">
+              <span class="vehicle-rating">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.3-6.2 3.3 1.2-6.8-5-4.9 6.9-1z" />
+                </svg>
+                4.9
+              </span>
+              <span class="vehicle-trips">142 chuyến</span>
+            </div>
+          </div>
+          <div class="vehicle-card-media" data-reveal="clip-image">
+            <svg class="reveal-media" viewBox="0 0 140 80" aria-hidden="true">
+              <path d="M28 48 C34 28,58 26,74 32 L96 22 L106 25 L94 48 Z" fill="#22c55e" />
+              <path d="M40 32 C50 26,64 26,72 32 L60 38 L38 38 Z" fill="#132a1c" />
+              <circle cx="108" cy="30" r="5" fill="#fef08a" />
+              <polygon class="headlight-beam" points="113,27 136,16 136,42 113,33" fill="#fef08a" />
+              <circle cx="34" cy="57" r="14" fill="#132a1c" />
+              <circle cx="34" cy="57" r="7" fill="#dcfce7" />
+              <circle cx="102" cy="57" r="14" fill="#132a1c" />
+              <circle cx="102" cy="57" r="7" fill="#dcfce7" />
+            </svg>
+          </div>
+          <h3 style="margin:0;font-size:1.12rem;">VinFast Feliz S</h3>
+          <div class="vehicle-meta-chips">
+            <span class="meta-chip">Số tự động</span>
+            <span class="meta-chip">Điện</span>
+            <span class="meta-chip">2 chỗ</span>
+          </div>
+          <div class="vehicle-address">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M12 21s-6-5.5-6-11a6 6 0 1 1 12 0c0 5.5-6 11-6 11z" />
+              <circle cx="12" cy="10" r="2.2" />
+            </svg>
+            <span>45 Lý Tự Trọng, Quận 1, TP.HCM</span>
+          </div>
+          <div style="margin-top:auto;">
+            <strong style="font-size:1.08rem;color:var(--green-700);">160.000đ</strong>
+            <span style="font-size:12px;color:var(--text-muted);">/ ngày</span>
+          </div>
+        </article>
+
+        <article class="vehicle-card spotlight-card" tabindex="0" role="button" data-href="vehicles.html" data-reveal
+          style="--stagger:1;" onclick="if(!event.target.closest('[data-flip-badge]'))location.href='vehicles.html'">
+          <div class="badge-row">
+            <span class="status-badge status-badge--transit" data-flip-badge title="Click để đổi trạng thái">
+              <span class="status-orbit-wrap"><span class="status-orbit-dot"></span></span>
+              <span class="badge-text">In-Transit</span>
+            </span>
+            <div class="vehicle-stats-row">
+              <span class="vehicle-rating">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.3-6.2 3.3 1.2-6.8-5-4.9 6.9-1z" />
+                </svg>
+                4.8
+              </span>
+              <span class="vehicle-trips">86 chuyến</span>
+            </div>
+          </div>
+          <div class="vehicle-card-media" data-reveal="clip-image">
+            <svg class="reveal-media" viewBox="0 0 160 80" aria-hidden="true">
+              <path
+                d="M18 52 C18 40,26 35,38 34 L54 18 C59 14,72 13,98 13 C112 13,121 20,129 33 L144 37 C150 39,152 44,152 52 L149 58 L18 58 Z"
+                fill="#16a34a" />
+              <path d="M58 20 L95 20 C106 20,114 25,120 33 L47 33 Z" fill="#ecfccb" />
+              <polygon class="headlight-beam" points="148,38 160,30 160,52 148,46" fill="#fef08a" />
+              <circle cx="42" cy="59" r="12" fill="#132a1c" />
+              <circle cx="42" cy="59" r="6" fill="#dcfce7" />
+              <circle cx="122" cy="59" r="12" fill="#132a1c" />
+              <circle cx="122" cy="59" r="6" fill="#dcfce7" />
+            </svg>
+          </div>
+          <h3 style="margin:0;font-size:1.12rem;">VinFast VF 5 Plus</h3>
+          <div class="vehicle-meta-chips">
+            <span class="meta-chip">Số tự động</span>
+            <span class="meta-chip">Điện</span>
+            <span class="meta-chip">5 chỗ</span>
+          </div>
+          <div class="vehicle-address">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M12 21s-6-5.5-6-11a6 6 0 1 1 12 0c0 5.5-6 11-6 11z" />
+              <circle cx="12" cy="10" r="2.2" />
+            </svg>
+            <span>240 Võ Văn Ngân, Thủ Đức, TP.HCM</span>
+          </div>
+          <div style="margin-top:auto;">
+            <strong style="font-size:1.08rem;color:var(--green-700);">750.000đ</strong>
+            <span style="font-size:12px;color:var(--text-muted);">/ ngày</span>
+          </div>
+        </article>
+
+        <article class="vehicle-card spotlight-card" tabindex="0" role="button" data-href="vehicles.html" data-reveal
+          style="--stagger:2;" onclick="if(!event.target.closest('[data-flip-badge]'))location.href='vehicles.html'">
+          <div class="badge-row">
+            <span class="status-badge status-badge--available" data-flip-badge title="Click để đổi trạng thái">
+              <span class="status-dot status-dot-pulse"></span>
+              <span class="badge-text">Available</span>
+            </span>
+            <div class="vehicle-stats-row">
+              <span class="vehicle-rating">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.3-6.2 3.3 1.2-6.8-5-4.9 6.9-1z" />
+                </svg>
+                4.7
+              </span>
+              <span class="vehicle-trips">64 chuyến</span>
+            </div>
+          </div>
+          <div class="vehicle-card-media" data-reveal="clip-image">
+            <svg class="reveal-media" viewBox="0 0 160 80" aria-hidden="true">
+              <path
+                d="M16 52 C16 39,24 34,38 33 L54 17 C60 13,74 12,102 12 C118 12,126 20,134 33 L146 37 C151 39,153 44,153 52 L150 58 L16 58 Z"
+                fill="#15803d" />
+              <path d="M58 19 L98 19 C110 19,117 24,123 32 L46 32 Z" fill="#d9f99d" />
+              <circle cx="42" cy="59" r="12" fill="#132a1c" />
+              <circle cx="42" cy="59" r="6" fill="#dcfce7" />
+              <circle cx="122" cy="59" r="12" fill="#132a1c" />
+              <circle cx="122" cy="59" r="6" fill="#dcfce7" />
+            </svg>
+          </div>
+          <h3 style="margin:0;font-size:1.12rem;">Toyota Fortuner Legender</h3>
+          <div class="vehicle-meta-chips">
+            <span class="meta-chip">Số sàn</span>
+            <span class="meta-chip">Dầu</span>
+            <span class="meta-chip">7 chỗ</span>
+          </div>
+          <div class="vehicle-address">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M12 21s-6-5.5-6-11a6 6 0 1 1 12 0c0 5.5-6 11-6 11z" />
+              <circle cx="12" cy="10" r="2.2" />
+            </svg>
+            <span>18 Nguyễn Thị Minh Khai, Quận 3, TP.HCM</span>
+          </div>
+          <div style="margin-top:auto;">
+            <strong style="font-size:1.08rem;color:var(--green-700);">1.150.000đ</strong>
+            <span style="font-size:12px;color:var(--text-muted);">/ ngày</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       3. STICKY STORYTELLING — "Quy trình thuê xe"
+       ====================================================================== -->
+  <section id="storySection" class="section" style="background:var(--bg-surface-soft);">
     <div class="container">
-      <span class="demo-badge">RideHub 2.0 • Kiến trúc Layout &amp; API Tách Rời</span>
-      <h1>Layout Chung, Menu Theo Vai Trò &amp; Hàm Gọi API Dùng Chung</h1>
-      <p style="font-size: 15px; max-width: 820px; margin-top: 8px;">
-        Toàn bộ thanh điều hướng (Header), menu phân quyền cho 5 vai trò (SRS v2.2), hệ thống thông báo, avatar tài
-        khoản,
-        CSS dùng chung và bộ gọi API tập trung đã được tách thành các file độc lập tái sử dụng cao.
-      </p>
+      <div class="section-header">
+        <span class="eyebrow">Quy trình thuê xe</span>
+        <h2 class="section-title" data-reveal="text-mask">4 bước lăn bánh cực kỳ nhẹ nhàng</h2>
+      </div>
 
-      <div class="panel-card" style="margin-top: 24px; background: rgba(255,255,255,0.9);">
-        <div style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: var(--green-800);">
-          ⚡ Trải nghiệm ngay: Bấm chuyển vai trò để xem Header &amp; Menu thay đổi tức thì:
+      <div class="story-grid">
+        <div class="story-sticky">
+          <span class="eyebrow">Trạng thái trực quan</span>
+          <h3 id="storyStageTitle" style="font-family:var(--font-display);font-size:1.5rem;margin:0 0 8px;">1. Chọn xe
+            &amp; thời gian</h3>
+          <p id="storyStageDesc" style="color:var(--text-secondary);margin:0;">Lọc xe máy hoặc ô tô theo bán kính gần
+            bạn nhất.</p>
+          <div class="story-road-bar">
+            <div id="storyCar" class="story-car">
+              <svg viewBox="0 0 110 64" width="64" height="38">
+                <path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#16a34a" />
+                <circle cx="27" cy="45" r="10" fill="#132a1c" />
+                <circle cx="81" cy="45" r="10" fill="#132a1c" />
+              </svg>
+            </div>
+          </div>
         </div>
-        <div class="role-btn-group" id="demoRoleBtns">
-          <button class="role-btn" data-role="guest">🔑 Khách vãng lai (Guest)</button>
-          <button class="role-btn" data-role="customer">👤 Khách thuê (Customer)</button>
-          <button class="role-btn" data-role="store_owner">🏪 Chủ cửa hàng (Store Owner)</button>
-          <button class="role-btn" data-role="admin">⚡ Quản trị hệ thống (Admin)</button>
-        </div>
-        <div style="margin-top: 12px; font-size: 13px; color: var(--text-muted);" id="currentRoleDesc">
-          Đang xem với vai trò: <strong>Khách thuê (Customer)</strong>. Menu hiển thị: Trang chủ, Tìm &amp; Thuê xe,
-          Chuyến đi, Đơn đặt xe, Hướng dẫn.
+
+        <div class="story-steps">
+          <div class="story-step-card is-active" data-step="0" data-title="1. Chọn xe &amp; thời gian"
+            data-desc="Lọc xe máy hoặc ô tô theo bán kính gần bạn nhất.">
+            <h4>Bước 1: Chọn xe phù hợp</h4>
+            <p style="margin:0;color:var(--text-secondary);">Xem thông số thực tế, mức pin và giá minh bạch theo giờ
+              hoặc ngày.</p>
+          </div>
+          <div class="story-step-card" data-step="1" data-title="2. Xác thực eKYC &amp; OTP"
+            data-desc="Kéo thả ảnh GPLX và nhập mã OTP 6 số chỉ trong 15 giây.">
+            <h4>Bước 2: Xác thực nhanh</h4>
+            <p style="margin:0;color:var(--text-secondary);">Hệ thống tự động kiểm tra hợp lệ với phản hồi tức thì.</p>
+          </div>
+          <div class="story-step-card" data-step="2" data-title="3. Giữ chỗ &amp; thanh toán QR"
+            data-desc="Giữ xe tối đa 30 phút với đồng hồ đếm ngược trực quan.">
+            <h4>Bước 3: Thanh toán không tiền mặt</h4>
+            <p style="margin:0;color:var(--text-secondary);">Quét QR tự động xác nhận và ký hợp đồng điện tử ngay trên
+              màn hình.</p>
+          </div>
+          <div class="story-step-card" data-step="3" data-title="4. Nhận xe &amp; lên đường"
+            data-desc="Theo dõi tài xế giao xe trên đường cong thời gian thực.">
+            <h4>Bước 4: Giao xe tận nơi</h4>
+            <p style="margin:0;color:var(--text-secondary);">Kiểm tra đối chiếu ảnh giao-nhận và tận hưởng chuyến đi
+              xanh.</p>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ======================================================================
-       3. NỘI DUNG CHÍNH: KIỂM THỬ HÀM GỌI API DÙNG CHUNG
+       4. REVIEWS CAROUSEL
        ====================================================================== -->
-  <main class="container" style="padding-top: 36px; padding-bottom: 80px;">
-
-    <!-- KHU VỰC THỬ NGHIỆM HÀM GỌI API DÙNG CHUNG -->
-    <div class="panel-card" style="margin-bottom: 36px;">
-      <div
-        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
-        <div>
-          <h2>🚀 Thử nghiệm hàm gọi API dùng chung (RideHubAPI)</h2>
-          <p style="font-size: 13.5px;">Bấm các nút bên dưới để thực thi hàm gọi API tương ứng và xem phản hồi trực
-            tiếp:</p>
+  <section id="reviewsSection" class="section">
+    <div class="container">
+      <h3 style="font-family:var(--font-display);font-size:1.4rem;margin:0 0 8px;">Đánh giá từ khách hàng (kéo ngang có
+        quán tính)</h3>
+      <div id="reviewsViewport" class="carousel-viewport">
+        <div id="reviewsTrack" class="carousel-track">
+          <div class="review-card"><strong>Minh Anh • Quận 3</strong>
+            <p style="margin:8px 0 0;color:var(--text-secondary);">“Giao xe cực nhanh, hiệu ứng đặt xe rất mượt và dễ
+              nhìn.”</p>
+          </div>
+          <div class="review-card is-center"><strong>Hoàng Nam • Thủ Đức</strong>
+            <p style="margin:8px 0 0;color:var(--text-secondary);">“Xe điện êm ru, quét QR xong là nhận xe ngay, 10
+              điểm!”</p>
+          </div>
+          <div class="review-card"><strong>Thảo Vy • Quận 7</strong>
+            <p style="margin:8px 0 0;color:var(--text-secondary);">“Thích nhất tính năng theo dõi tài xế giao xe trực
+              tiếp trên đường cong.”</p>
+          </div>
+          <div class="review-card"><strong>Đức Thịnh • Bình Thạnh</strong>
+            <p style="margin:8px 0 0;color:var(--text-secondary);">“Giá minh bạch, hỗ trợ đổi xe chỉ trong vài phút.”
+            </p>
+          </div>
         </div>
-        <button id="btnClearLog" class="btn btn-outline btn-sm" type="button">Xóa nhật ký</button>
-      </div>
-
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
-        <button id="btnApiVehicles" class="btn btn-soft btn-sm" type="button">1. RideHubAPI.vehicles.getAll()</button>
-        <button id="btnApiLogin" class="btn btn-soft btn-sm" type="button">2. RideHubAPI.auth.login()</button>
-        <button id="btnApiBooking" class="btn btn-soft btn-sm" type="button">3. RideHubAPI.bookings.create()</button>
-        <button id="btnApiNotifs" class="btn btn-soft btn-sm" type="button">4.
-          RideHubAPI.notifications.getByRole()</button>
-        <button id="btnApiFavorites" class="btn btn-soft btn-sm" type="button">5.
-          RideHubAPI.vehicles.getFavorites()</button>
-      </div>
-
-      <div>
-        <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">KẾT QUẢ GỌI API
-          (CONSOLE OUTPUT):</div>
-        <pre id="apiOutput" class="api-console">// Nhấn vào các nút API phía trên để xem dữ liệu phản hồi...</pre>
       </div>
     </div>
+  </section>
 
-  </main>
+  <div id="chartTooltip" class="chart-tooltip"></div>
+
+  <!-- Footer with Cruising Vehicle & Comprehensive Links -->
+  <footer class="site-footer">
+    <div class="footer-road-edge">
+      <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Click để bấm còi!">
+        <svg viewBox="0 0 110 64" width="76" height="32">
+          <path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#4ade80" />
+          <g transform="translate(27,45)">
+            <g class="wheel-spin">
+              <circle r="10" fill="#132a1c" />
+              <circle r="4.5" fill="#dcfce7" />
+              <line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5" />
+            </g>
+          </g>
+          <g transform="translate(81,45)">
+            <g class="wheel-spin">
+              <circle r="10" fill="#132a1c" />
+              <circle r="4.5" fill="#dcfce7" />
+              <line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5" />
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Cột 1: Về RideHub -->
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <img src="assets/logo-rh.png" alt="RideHub Logo" style="height:34px;width:auto;filter:brightness(0) invert(1);" />
+            <span style="font-family:var(--font-display);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">RideHub</span>
+          </div>
+          <p style="font-size:13px;line-height:1.65;color:#d1fae5;margin:0 0 14px;">
+            Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+          </p>
+          <div style="font-size:12.5px;color:#a7f3d0;display:flex;flex-direction:column;gap:6px;">
+            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868" style="color:var(--green-300);text-decoration:none;">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn" style="color:var(--green-300);text-decoration:none;">support@ridehub.vn</a></div>
+            <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+          </div>
+        </div>
+
+        <!-- Cột 2: Khám phá & Dịch vụ -->
+        <div>
+          <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="index.html">Trang chủ</a></li>
+            <li class="footer-link-item"><a href="vehicles.html">Tìm &amp; Thuê xe máy, Ô tô</a></li>
+            <li class="footer-link-item"><a href="trips.html">Hành trình &amp; Chuyến đi của tôi</a></li>
+            <li class="footer-link-item"><a href="booking.html">Đơn thuê &amp; Thanh toán cọc</a></li>
+            <li class="footer-link-item"><a href="index.html#storySection">Quy trình bàn giao 4 bước</a></li>
+          </ul>
+        </div>
+
+        <!-- Cột 3: Quản trị & Đối tác -->
+        <div>
+          <div class="footer-col-title">Dành cho Đối tác</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="store-portal.html">Cổng Quản lý Cửa hàng</a></li>
+            <li class="footer-link-item"><a href="admin-ops.html">Trung tâm Quản trị Admin</a></li>
+            <li class="footer-link-item"><a href="chat.html">Kênh Hỗ trợ &amp; Tin nhắn trực tuyến</a></li>
+            <li class="footer-link-item"><a href="pages/auth.html">Đăng ký làm Chủ xe / Đối tác</a></li>
+            <li class="footer-link-item"><a href="index.html#featuresSection">Hệ thống đối soát tự động PayOS</a></li>
+          </ul>
+        </div>
+
+        <!-- Cột 4: Cam kết an tâm & Tiêu chuẩn -->
+        <div>
+          <div class="footer-col-title">Cam kết &amp; An toàn</div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#d1fae5;line-height:1.55;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt Face Match.</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Minh bạch bàn giao:</strong> Quay video toàn cảnh 360°, ảnh biên bản &amp; ảnh ODO thực tế.</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Hoàn tiền cọc tự động:</strong> Hoàn 100% trước 24h khi khách hủy theo chính sách.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-divider"></div>
+
+      <div class="footer-bottom-row">
+        <div>
+          © 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Bảo mật PayOS VietQR</span>
+          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Chuẩn an toàn eKYC Chip</span>
+          <a href="index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Điều khoản sử dụng</a>
+          <a href="privacy-policy.html" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+        </div>
+      </div>
+    </div>
+  </footer>
 
   <!-- ======================================================================
-       4. FOOTER DÙNG CHUNG (TỰ ĐỘNG SINH QUA js/layout.js)
+       CHATBOT AI WIDGET
        ====================================================================== -->
-  <footer id="mainFooter"></footer>
+  <button id="chatFab" class="chat-fab has-unread" aria-label="Mở trợ lý AI" type="button">
+    <span class="chat-fab-ring"></span>
+    <svg class="wheel-spin wheel-spin--slow" width="28" height="28" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="3" />
+      <line x1="12" y1="3" x2="12" y2="9" />
+      <line x1="12" y1="15" x2="12" y2="21" />
+      <line x1="3" y1="12" x2="9" y2="12" />
+      <line x1="15" y1="12" x2="21" y2="12" />
+    </svg>
+  </button>
+
+  <div id="chatWindow" class="chat-window" role="dialog" aria-label="Trợ lý AI RideHub">
+    <div
+      style="padding:14px 16px;background:var(--green-600);color:#ffffff;display:flex;justify-content:space-between;align-items:center;">
+      <strong>Trợ lý AI RideHub</strong>
+      <button id="chatCloseBtn" style="border:0;background:transparent;color:#ffffff;font-weight:800;"
+        type="button">✕</button>
+    </div>
+    <div id="chatMessages" class="chat-messages">
+      <div class="chat-msg chat-msg--bot">Xin chào! Bạn muốn tìm xe máy hay ô tô cho chuyến đi hôm nay?</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="chat-quick-pill" data-reply="Gợi ý: VinFast Feliz S (160k/ngày) đang có sẵn gần bạn."
+          type="button">Thuê xe máy</button>
+        <button class="chat-quick-pill" data-handoff="true"
+          data-reply="Đã chuyển yêu cầu sang nhân viên hỗ trợ trực tiếp." type="button">Gặp nhân viên</button>
+      </div>
+    </div>
+    <div style="padding:10px;display:flex;gap:8px;border-top:1px solid var(--green-100);">
+      <input id="chatInput" type="text" placeholder="Nhập tin nhắn..."
+        style="flex:1;padding:8px 12px;border-radius:99px;border:1px solid var(--green-200);outline:none;font-size:13px;" />
+      <button id="chatSendBtn" class="btn btn-primary" style="min-height:36px;padding:6px 14px;"
+        type="button">Gửi</button>
+    </div>
+  </div>
 
   <!-- ======================================================================
-       SCRIPTS: COMMON API & LAYOUT
+       MODALS: Settings ("Giảm hiệu ứng"), 404 Scene, Booking Success Confetti
        ====================================================================== -->
-  <script src="./js/common-api.js"></script>
-  <script src="./js/layout.js"></script>
-  <script src="./js/pages/demo.js"></script>
+  <div id="settingsModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="margin:0;">Cài đặt hiệu ứng</h3>
+        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;"
+          type="button">Đóng</button>
+      </div>
+      <label class="custom-switch">
+        <input id="reduceEffectsToggle" type="checkbox" />
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+        <span><strong>Giảm hiệu ứng</strong> (Tắt hiệu ứng nặng, giữ giao diện tối giản)</span>
+      </label>
+    </div>
+  </div>
+
+  <div id="notFoundModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="text-align:center;">
+      <svg viewBox="0 0 260 130" width="240" height="120" style="margin:0 auto 12px;">
+        <line x1="10" y1="114" x2="250" y2="114" stroke="#86efac" stroke-width="4" stroke-linecap="round" />
+        <!-- Hood smoke -->
+        <circle class="hood-smoke" cx="155" cy="54" r="7" fill="#dcfce7" />
+        <circle class="hood-smoke hood-smoke--2" cx="164" cy="48" r="9" fill="#bbf7d0" />
+        <circle class="hood-smoke hood-smoke--3" cx="150" cy="42" r="6" fill="#ecfccb" />
+        <!-- Stopped car with open hood -->
+        <path d="M55 96 L55 78 L80 62 L135 62 L152 78 L185 78 L185 96 Z" fill="#22c55e" />
+        <line x1="150" y1="78" x2="174" y2="56" stroke="#15803d" stroke-width="5" stroke-linecap="round" />
+        <circle cx="82" cy="98" r="13" fill="#132a1c" />
+        <circle cx="158" cy="98" r="13" fill="#132a1c" />
+        <!-- Swinging "Hết xăng" sign -->
+        <g class="gas-sign-swing" transform="translate(212,42)">
+          <line x1="0" y1="0" x2="0" y2="72" stroke="#15803d" stroke-width="3" />
+          <rect x="-26" y="4" width="52" height="24" rx="6" fill="#fef08a" stroke="#16a34a" stroke-width="2" />
+          <text x="0" y="20" text-anchor="middle" font-size="10" font-weight="800" fill="#132a1c">Hết xăng</text>
+        </g>
+      </svg>
+      <h3 style="margin:0 0 6px;">404 — Xe tạm dừng giữa đường!</h3>
+      <p style="color:var(--text-secondary);margin:0 0 16px;">Trang bạn tìm hiện không tồn tại hoặc đã chuyển tuyến.</p>
+      <button data-close-modal class="btn btn-primary btn-premium" type="button">Quay lại trang chủ</button>
+    </div>
+  </div>
+
+  <script src="js/vehicle-anim.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/auth-rbac.js"></script>
+  <script>
+    (function () {
+      const FAV_KEY = 'ridehub_favorite_vehicles';
+      const getFavs = () => {
+        try { const r = localStorage.getItem(FAV_KEY); if (r) return JSON.parse(r); } catch (_) { }
+        return [];
+      };
+      document.querySelectorAll('.fleet-grid .vehicle-card').forEach((card) => {
+        const media = card.querySelector('.vehicle-card-media');
+        if (!media) return;
+        const name = card.querySelector('h3')?.textContent?.trim() || '';
+        const specs = Array.from(card.querySelectorAll('.meta-chip')).map((c) => c.textContent.trim()).join(' • ');
+        const address = card.querySelector('.vehicle-address span')?.textContent?.trim() || '';
+        const price = card.querySelector('strong')?.textContent?.trim() + '/ngày';
+        const svg = media.querySelector('svg')?.outerHTML || '';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'fav-heart-btn';
+        btn.setAttribute('aria-label', 'Thêm vào xe yêu thích');
+        btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.5-9-9a5.5 5.5 0 0 1 9-5.5A5.5 5.5 0 0 1 21 12c-2 4.5-9 9-9 9z"/></svg>';
+        if (getFavs().some((v) => v.name === name)) btn.classList.add('is-liked');
+
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          let list = getFavs();
+          if (list.some((v) => v.name === name)) {
+            list = list.filter((v) => v.name !== name);
+            btn.classList.remove('is-liked');
+            showRideHubToast(`Đã bỏ thích ${name}`);
+          } else {
+            list.push({ id: 'fav-' + Date.now(), name, specs, address, price, svg });
+            btn.classList.add('is-liked');
+            showRideHubToast(`Đã thêm ${name} vào Xe yêu thích!`);
+          }
+          localStorage.setItem(FAV_KEY, JSON.stringify(list));
+        });
+        media.appendChild(btn);
+      });
+    })();
+  </script>
 </body>
 
 </html>
