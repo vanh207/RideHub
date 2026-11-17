@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bảng Kịch bản Kiểm thử Sprint 2 (QA Test Cases) — RideHub</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/logo-ridehub.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+
+  <style>
+    body {
+      background-color: var(--bg-page);
+      font-family: var(--font-sans);
+      color: var(--text-primary);
+    }
+
+    .tc-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 16px 80px;
+    }
+
+    .tc-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #ffffff;
+      border: 1px solid var(--green-100);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .tc-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-soft);
+      font-size: 13px;
+    }
+
+    .tc-table th {
+      background: #f1f9f3;
+      color: var(--green-900);
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 11.5px;
+      letter-spacing: 0.6px;
+      padding: 14px 12px;
+      border-bottom: 2px solid var(--green-200);
+      text-align: left;
+    }
+
+    .tc-table td {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    .tc-table tr:hover td {
+      background: #fafdfb;
+    }
+
+    .tc-badge-high {
+      background: #fee2e2;
+      color: #b91c1c;
+      font-weight: 800;
+      font-size: 10.5px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .tc-badge-med {
+      background: #fef3c7;
+      color: #b45309;
+      font-weight: 800;
+      font-size: 10.5px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .tc-badge-pass {
+      background: #dcfce7;
+      color: #15803d;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header id="mainNavbar" class="navbar is-scrolled">
+    <div class="container navbar-inner">
+      <a href="../index.html" class="brand-logo">
+        <span class="brand-name">
+          <span>Ride<strong style="color:var(--green-600);font-weight:800;">Hub</strong></span>
+          <span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--green-100);color:var(--green-800);">Sprint 2 QA</span>
+        </span>
+      </a>
+      <nav class="nav-links">
+        <a href="../index.html" class="nav-link">Trang chủ</a>
+        <a href="store-orders.html" class="nav-link">Danh sách đơn cửa hàng</a>
+        <a href="handover.html" class="nav-link">Biên bản giao/nhận</a>
+        <a href="test-cases.html" class="nav-link is-active">Bảng kiểm thử</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="../index.html" class="btn btn-soft" style="min-height:36px;font-size:12.5px;">Về Trang chủ</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="subpage-hero">
+    <div class="aurora-bg"></div>
+    <div class="container" style="position:relative;z-index:2;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span class="status-badge status-badge--available">SPRINT 2 • KIỂM THỬ CHẤT LƯỢNG (3 ĐIỂM)</span>
+        <span style="font-size:13px;color:var(--text-muted);">Phụ trách: <strong>Nguyễn Tuấn Minh</strong> • Hạn: 17/11</span>
+      </div>
+      <h1 style="font-size:1.85rem;margin:0 0 6px;">Test Cases: Xác Nhận Đơn &amp; Biên Bản Giao Nhận</h1>
+      <p class="section-subtitle" style="margin:0;max-width:760px;">
+        Tài liệu kiểm thử chi tiết bao phủ 100% các chức năng Sprint 2: Xác nhận/từ chối đơn hàng, dời lịch, lập biên bản giao nhận xe điện tử, đồng bộ chữ ký số và quyết toán cọc.
+      </p>
+    </div>
+  </section>
+
+  <main class="tc-container">
+    <div class="tc-stats-grid">
+      <div class="stat-card">
+        <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Tổng số Test Cases</div>
+        <div style="font-size:24px;font-weight:800;color:var(--text-primary);margin-top:4px;">15 Kịch bản</div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Phân hệ Xác nhận đơn</div>
+        <div style="font-size:24px;font-weight:800;color:var(--green-700);margin-top:4px;">7 Test Cases</div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Phân hệ Biên bản &amp; Chữ ký</div>
+        <div style="font-size:24px;font-weight:800;color:var(--green-700);margin-top:4px;">8 Test Cases</div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Tỉ lệ Đạt (Pass Rate)</div>
+        <div style="font-size:24px;font-weight:800;color:#15803d;margin-top:4px;">100% (15/15)</div>
+      </div>
+    </div>
+
+    <!-- Nút bấm chuyển nhanh giữa các trang -->
+    <div class="panel-card" style="margin-bottom:20px;padding:16px 20px;background:#f0fdf4;border:1px solid #bbf7d0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <span style="font-size:13.5px;color:var(--green-900);font-weight:700;">
+          ⚡ Kiểm tra trực tiếp 2 chức năng trên giao diện:
+        </span>
+        <div style="display:flex;gap:10px;">
+          <a href="store-orders.html" class="btn btn-primary btn-sm" style="text-decoration:none;">1. Chức năng Quản lý Đơn hàng</a>
+          <a href="handover.html" class="btn btn-soft btn-sm" style="text-decoration:none;">2. Chức năng Biên bản &amp; Chữ ký số</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- BẢNG TEST CASES -->
+    <div style="overflow-x:auto;">
+      <table class="tc-table">
+        <thead>
+          <tr>
+            <th style="width:90px;">Mã TC</th>
+            <th style="width:130px;">Phân hệ</th>
+            <th>Tên Kịch bản &amp; Mục tiêu</th>
+            <th style="width:260px;">Các bước thực hiện (Steps)</th>
+            <th style="width:240px;">Kết quả mong đợi (Expected)</th>
+            <th style="width:80px;">Mức độ</th>
+            <th style="width:80px;">Kết quả</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>TC-ORD-01</strong></td>
+            <td>Duyệt đơn</td>
+            <td>Hiển thị danh sách đơn đặt xe cửa hàng</td>
+            <td>1. Truy cập `store-orders.html`<br>2. Quan sát danh sách các đơn hàng</td>
+            <td>Hiển thị đầy đủ thông tin: Mã đơn (#RH-8842,...), Khách thuê, Phương tiện, Lịch thuê, Tiền cọc VietQR, Badge trạng thái.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-ORD-02</strong></td>
+            <td>Duyệt đơn</td>
+            <td>Lọc đơn theo trạng thái (Filter)</td>
+            <td>1. Nhấp các nút: "Tất cả", "Chờ duyệt", "Đã duyệt", "Yêu cầu đổi lịch", "Đã hủy"<br>2. Kiểm tra danh sách hiển thị</td>
+            <td>Danh sách lọc chính xác theo trạng thái đã chọn, số lượng và thông tin khớp 100%.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-ORD-03</strong></td>
+            <td>Duyệt đơn</td>
+            <td>Xem chi tiết đơn hàng (Modal không kẹt chuột)</td>
+            <td>1. Bấm nút "Xem chi tiết" tại đơn RH-8842<br>2. Kiểm tra thông tin trong popup<br>3. Bấm ra ngoài vùng trắng để đóng</td>
+            <td>Modal mở mượt mà, đầy đủ eKYC, tài sản thế chấp, tiền cọc; bấm ra ngoài tự đóng và chuột hoạt động bình thường.</td>
+            <td><span class="tc-badge-med">Medium</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-ORD-04</strong></td>
+            <td>Duyệt đơn</td>
+            <td>Cửa hàng duyệt nhận đơn &amp; Nhảy số thông báo</td>
+            <td>1. Tại đơn chờ duyệt RH-8842, bấm "Duyệt nhận đơn"<br>2. Quan sát số badge và nút bấm</td>
+            <td>Số thông báo giảm từ 2 xuống 1 ngay lập tức; đơn chuyển sang "Đã duyệt", hiện nút "Lập biên bản giao xe", toast thông báo hiện lên không khóa chuột.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-ORD-05</strong></td>
+            <td>Duyệt đơn</td>
+            <td>Cửa hàng từ chối nhận đơn qua modal chọn lý do</td>
+            <td>1. Bấm "Từ chối" tại đơn chờ duyệt<br>2. Chọn lý do trong popup<br>3. Bấm "Xác nhận Từ chối"</td>
+            <td>Đơn chuyển sang trạng thái "Đã hủy", badge chờ duyệt giảm 1, badge đã hủy tăng 1, kích hoạt hoàn cọc 100% qua VietQR.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-ORD-06</strong></td>
+            <td>Duyệt đơn</td>
+            <td>Xử lý yêu cầu dời lịch thuê từ khách</td>
+            <td>1. Chọn filter "Yêu cầu đổi lịch" (RH-8835)<br>2. Xem chi tiết dời lịch (+1 ngày)<br>3. Bấm "Duyệt đổi lịch"</td>
+            <td>Cập nhật lịch thuê mới thành công, cộng thêm phụ phí phát sinh tương ứng vào tổng tiền đơn hàng.</td>
+            <td><span class="tc-badge-med">Medium</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-ORD-07</strong></td>
+            <td>Duyệt đơn</td>
+            <td>Liên kết từ Đơn duyệt sang Lập biên bản</td>
+            <td>1. Tại đơn đã duyệt, bấm "Lập biên bản giao xe"<br>2. Quan sát chuyển trang</td>
+            <td>Chuyển hướng sang `handover.html?booking_id=...` và tự động điền sẵn thông tin khách thuê và xe.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+
+          <!-- Module 2: Biên bản giao nhận xe điện tử -->
+          <tr>
+            <td><strong>TC-HO-01</strong></td>
+            <td>Biên bản</td>
+            <td>Hiển thị mẫu biên bản 6 phần chuẩn</td>
+            <td>1. Truy cập `handover.html`<br>2. Kiểm tra cấu trúc 6 phần</td>
+            <td>Hiển thị đầy đủ: 1.Các bên giao nhận, 2.Thông tin xe, 3.Tình trạng & ODO, 4.Sơ đồ hư hại, 5.Quyết toán, 6.Chữ ký số.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-HO-02</strong></td>
+            <td>Biên bản</td>
+            <td>ĐỒNG BỘ TÊN NGƯỜI KÝ REAL-TIME</td>
+            <td>1. Nhập họ tên vào ô "Bên giao" ở mục 1<br>2. Nhập họ tên vào ô "Khách thuê" ở mục 1<br>3. Quan sát mục 6 Chữ ký số</td>
+            <td>Tên dưới khung chữ ký tự động đồng bộ ngay lập tức theo từng ký tự gõ, không bị lệch hoặc mất dữ liệu.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-HO-03</strong></td>
+            <td>Biên bản</td>
+            <td>Ký chữ ký số bằng chuột/tay (Canvas)</td>
+            <td>1. Rê chuột hoặc chạm ngón tay vẽ chữ ký vào ô Khách thuê và Nhân viên<br>2. Bấm nút "Ký lại"</td>
+            <td>Vẽ mượt mà, nét mực đen sắc nét; bấm "Ký lại" sẽ xóa sạch canvas để ký lại chữ ký mới.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-HO-04</strong></td>
+            <td>Biên bản</td>
+            <td>Checklist 9 hạng mục an toàn bàn giao</td>
+            <td>1. Tích chọn/bỏ chọn các ô trong mục 3<br>2. Kiểm tra trạng thái checkbox</td>
+            <td>Hoạt động trơn tru, cho phép ghi nhận chi tiết hiện trạng từng bộ phận xe trước khi lăn bánh.</td>
+            <td><span class="tc-badge-med">Medium</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-HO-05</strong></td>
+            <td>Biên bản</td>
+            <td>Sơ đồ tổn hại xe tương tác (Canvas)</td>
+            <td>1. Chọn loại tổn hại (trầy xước, móp vỏ)<br>2. Nhấp vào các vị trí trên thân xe<br>3. Bấm "Xóa các điểm đã chấm"</td>
+            <td>Canvas vẽ điểm đỏ đánh dấu chính xác vị trí nhấp kèm số thứ tự; bấm Xóa sẽ hoàn tác toàn bộ điểm đã chấm.</td>
+            <td><span class="tc-badge-med">Medium</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-HO-06</strong></td>
+            <td>Biên bản</td>
+            <td>Tính toán tiền hoàn cọc tự động</td>
+            <td>1. Thay đổi số tiền ở các ô: phụ phí quá giờ, quá km, hư hại, giữ phạt nguội<br>2. Quan sát ô "Số tiền hoàn trả ngay"</td>
+            <td>Giá trị hoàn trả tự động nhảy lại theo công thức: Cọc gốc - Tổng phụ phí - Tiền giữ phạt nguội (2.000.000đ).</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-HO-07</strong></td>
+            <td>Biên bản</td>
+            <td>Xác nhận &amp; Lưu Biên bản điện tử vào LocalStorage</td>
+            <td>1. Hoàn tất các thông tin<br>2. Bấm "Xác nhận & Lưu Biên Bản Điện Tử"</td>
+            <td>Hiện Toast thành công (không khựng chuột), toàn bộ biên bản kèm 2 ảnh chữ ký Base64 được lưu vào `localStorage.ridehub_handover_protocols`.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-HO-08</strong></td>
+            <td>Biên bản</td>
+            <td>In / Xuất PDF biên bản chuẩn khổ A4</td>
+            <td>1. Bấm nút "In / Xuất PDF"</td>
+            <td>Mở hộp thoại in trình duyệt, CSS @media print ẩn thanh điều hướng, căn lề tài liệu văn bản chuẩn khổ A4.</td>
+            <td><span class="tc-badge-med">Medium</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+
+</html>
