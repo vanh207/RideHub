@@ -1,0 +1,1231 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RideHub Payment – Thanh toán QR</title>
+    <style>
+      /* ── Reset & Base ── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --primary: #2563eb;
+        --primary-l: #eff6ff;
+        --success: #16a34a;
+        --success-l: #dcfce7;
+        --warning: #d97706;
+        --warning-l: #fef3c7;
+        --danger: #dc2626;
+        --danger-l: #fee2e2;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-400: #9ca3af;
+        --gray-600: #4b5563;
+        --gray-800: #1f2937;
+        --radius: 16px;
+        --shadow: 0 4px 32px rgba(0, 0, 0, 0.1);
+      }
+      html,
+      body {
+        min-height: 100vh;
+        background: linear-gradient(
+          135deg,
+          #eff6ff 0%,
+          #f3f4f6 50%,
+          #f0fdf4 100%
+        );
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        color: var(--gray-800);
+      }
+
+      /* ── Layout ── */
+      .page-wrapper {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px 100px;
+      }
+
+      /* ── Top Bar ── */
+      .topbar {
+        width: 100%;
+        max-width: 900px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--gray-800);
+      }
+      .brand-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+      }
+      .order-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .order-id {
+        color: var(--gray-600);
+        font-size: 0.85rem;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+      .badge-warning {
+        background: var(--warning-l);
+        color: var(--warning);
+      }
+      .badge-success {
+        background: var(--success-l);
+        color: var(--success);
+      }
+      .badge-danger {
+        background: var(--danger-l);
+        color: var(--danger);
+      }
+      .badge-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        animation: pulse 1.4s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      /* ── Card ── */
+      .payment-card {
+        width: 100%;
+        max-width: 900px;
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        transition: all 0.4s;
+      }
+      @media (max-width: 680px) {
+        .payment-card {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ── Left Column ── */
+      .col-left {
+        background: linear-gradient(
+          160deg,
+          #1e3a8a 0%,
+          #2563eb 60%,
+          #3b82f6 100%
+        );
+        color: white;
+        padding: 32px 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .col-left::before {
+        content: "";
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .col-left::after {
+        content: "";
+        position: absolute;
+        bottom: -40px;
+        left: -40px;
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .amount-block {
+        text-align: center;
+      }
+      .amount-label {
+        font-size: 0.78rem;
+        opacity: 0.75;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .amount-value {
+        font-size: 2.4rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-top: 4px;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+      }
+      .amount-unit {
+        font-size: 1rem;
+        font-weight: 500;
+        opacity: 0.85;
+      }
+
+      /* ── Countdown ── */
+      .countdown-block {
+        width: 100%;
+      }
+      .countdown-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .countdown-label {
+        font-size: 0.78rem;
+        opacity: 0.8;
+      }
+      .countdown-time {
+        font-size: 1.3rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .countdown-time.urgent {
+        color: #fca5a5;
+        animation: blink 0.7s step-end infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.4;
+        }
+      }
+      .progress-track {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #34d399, #fcd34d);
+        transition: width 0.9s linear;
+      }
+
+      /* ── QR Area ── */
+      .qr-area {
+        position: relative;
+        width: 220px;
+        height: 220px;
+        border-radius: 16px;
+        background: white;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+      }
+      .qr-area img {
+        width: 200px;
+        height: 200px;
+        display: block;
+        border-radius: 8px;
+      }
+      /* Scan corner decoration */
+      .scan-corner {
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border-color: #2563eb;
+        border-style: solid;
+        border-width: 0;
+      }
+      .scan-corner.tl {
+        top: 2px;
+        left: 2px;
+        border-top-width: 3px;
+        border-left-width: 3px;
+        border-radius: 6px 0 0 0;
+      }
+      .scan-corner.tr {
+        top: 2px;
+        right: 2px;
+        border-top-width: 3px;
+        border-right-width: 3px;
+        border-radius: 0 6px 0 0;
+      }
+      .scan-corner.bl {
+        bottom: 2px;
+        left: 2px;
+        border-bottom-width: 3px;
+        border-left-width: 3px;
+        border-radius: 0 0 0 6px;
+      }
+      .scan-corner.br {
+        bottom: 2px;
+        right: 2px;
+        border-bottom-width: 3px;
+        border-right-width: 3px;
+        border-radius: 0 0 6px 0;
+      }
+      /* Laser scan line */
+      .laser {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(37, 99, 235, 0.8),
+          transparent
+        );
+        border-radius: 2px;
+        animation: laserScan 2s ease-in-out infinite;
+        top: 10px;
+      }
+      @keyframes laserScan {
+        0% {
+          top: 10px;
+          opacity: 1;
+        }
+        50% {
+          top: 208px;
+          opacity: 0.8;
+        }
+        100% {
+          top: 10px;
+          opacity: 1;
+        }
+      }
+
+      .qr-expired-overlay {
+        display: none;
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(3px);
+        border-radius: 16px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        z-index: 10;
+      }
+      .qr-expired-overlay.visible {
+        display: flex;
+      }
+
+      .btn-refresh {
+        padding: 8px 18px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        background: var(--primary);
+        color: white;
+        font-size: 0.82rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.2s;
+      }
+      .btn-refresh:hover {
+        background: #1d4ed8;
+      }
+
+      .btn-download {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 16px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1.5px solid rgba(255, 255, 255, 0.35);
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.2s;
+      }
+      .btn-download:hover {
+        background: rgba(255, 255, 255, 0.28);
+      }
+
+      /* ── Steps ── */
+      .steps {
+        width: 100%;
+      }
+      .steps-title {
+        font-size: 0.78rem;
+        opacity: 0.75;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 10px;
+      }
+      .step-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .step-num {
+        flex-shrink: 0;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+      .step-text {
+        font-size: 0.82rem;
+        opacity: 0.9;
+        line-height: 1.4;
+      }
+
+      /* ── Right Column ── */
+      .col-right {
+        padding: 32px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        background: white;
+      }
+
+      .section-title {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--gray-400);
+        margin-bottom: 4px;
+      }
+
+      .info-table {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .info-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 11px 14px;
+        border-radius: 10px;
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        transition: background 0.15s;
+      }
+      .info-row:hover {
+        background: var(--primary-l);
+        border-color: #bfdbfe;
+      }
+      .info-label {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        min-width: 80px;
+      }
+      .info-value {
+        font-size: 0.88rem;
+        font-weight: 600;
+        flex: 1;
+        padding: 0 8px;
+        word-break: break-all;
+      }
+      .info-value.highlight {
+        font-size: 1.1rem;
+        color: var(--primary);
+      }
+
+      .btn-copy {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 10px;
+        border-radius: 6px;
+        border: 1.5px solid var(--gray-200);
+        background: white;
+        color: var(--gray-600);
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+      }
+      .btn-copy:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+      }
+      .btn-copy.copied {
+        background: var(--success);
+        border-color: var(--success);
+        color: white;
+      }
+
+      /* ── Status Bar ── */
+      .status-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        background: var(--gray-50);
+        border: 1px dashed var(--gray-200);
+      }
+      .spinner {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        border: 2.5px solid var(--gray-200);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .status-text {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        line-height: 1.4;
+      }
+
+      /* ── Cancel Button ── */
+      .btn-cancel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 11px;
+        border-radius: 10px;
+        cursor: pointer;
+        border: 1.5px solid var(--gray-200);
+        background: white;
+        color: var(--gray-600);
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      .btn-cancel:hover {
+        background: var(--danger-l);
+        border-color: var(--danger);
+        color: var(--danger);
+      }
+
+      /* ── Secure Footer ── */
+      .secure-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 0.72rem;
+        color: var(--gray-400);
+        margin-top: 4px;
+      }
+
+      /* ═══════════════════════════════════════════
+       SUCCESS SCREEN
+    ═══════════════════════════════════════════ */
+      .success-screen {
+        display: none;
+        padding: 48px 32px;
+        grid-column: 1 / -1;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        text-align: center;
+      }
+      .success-screen.visible {
+        display: flex;
+      }
+      .success-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--success-l);
+        border: 3px solid var(--success);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes popIn {
+        from {
+          transform: scale(0);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .success-icon svg {
+        width: 40px;
+        height: 40px;
+        color: var(--success);
+      }
+      .success-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--gray-800);
+      }
+      .success-sub {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+      }
+      .receipt-box {
+        width: 100%;
+        max-width: 380px;
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: 14px;
+        padding: 20px;
+      }
+      .receipt-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 0.85rem;
+      }
+      .receipt-row:last-child {
+        border-bottom: none;
+      }
+      .receipt-label {
+        color: var(--gray-600);
+      }
+      .receipt-value {
+        font-weight: 600;
+      }
+      .receipt-value.big {
+        font-size: 1.1rem;
+        color: var(--success);
+      }
+
+      /* ═══════════════════════════════════════════
+       EXPIRED OVERLAY
+    ═══════════════════════════════════════════ */
+      .expired-screen {
+        display: none;
+        padding: 48px 32px;
+        grid-column: 1 / -1;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        text-align: center;
+      }
+      .expired-screen.visible {
+        display: flex;
+      }
+      .expired-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--danger-l);
+        border: 3px solid var(--danger);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .expired-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--gray-800);
+      }
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px;
+        border-radius: 10px;
+        background: var(--primary);
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: background 0.2s;
+      }
+      .btn-primary:hover {
+        background: #1d4ed8;
+      }
+
+      /* ═══════════════════════════════════════════
+       DEMO TOOLBAR
+    ═══════════════════════════════════════════ */
+      .demo-toolbar {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(31, 41, 55, 0.92);
+        backdrop-filter: blur(10px);
+        border-radius: 999px;
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        z-index: 999;
+      }
+      .demo-label {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.55);
+        font-weight: 500;
+        padding-right: 6px;
+        border-right: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .demo-btn {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.78rem;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .demo-btn.waiting {
+        background: rgba(217, 119, 6, 0.22);
+        color: #fcd34d;
+      }
+      .demo-btn.success {
+        background: rgba(22, 163, 74, 0.22);
+        color: #4ade80;
+      }
+      .demo-btn.expired {
+        background: rgba(220, 38, 38, 0.22);
+        color: #fca5a5;
+      }
+      .demo-btn.active {
+        opacity: 1;
+      }
+      .demo-btn:not(.active) {
+        opacity: 0.55;
+      }
+      .demo-btn:hover {
+        opacity: 1;
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      /* ── Toast ── */
+      .toast {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: var(--gray-800);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        opacity: 0;
+        transition: all 0.3s;
+        pointer-events: none;
+        z-index: 9999;
+        white-space: nowrap;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <!-- ── Top Bar ── -->
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-icon">🏍️</div>
+          RideHub Payment
+        </div>
+        <div class="order-info">
+          <span class="order-id">#ORD-20268899</span>
+          <span class="badge badge-warning" id="statusBadge">
+            <span class="badge-dot"></span>
+            Đang chờ thanh toán
+          </span>
+        </div>
+      </div>
+
+      <!-- ── Payment Card ── -->
+      <div class="payment-card" id="paymentCard">
+        <!-- ===== LEFT COLUMN ===== -->
+        <div class="col-left" id="colLeft">
+          <!-- Amount -->
+          <div class="amount-block">
+            <div class="amount-label">Số tiền cần thanh toán</div>
+            <div class="amount-value">
+              1.250.000 <span class="amount-unit">VNĐ</span>
+            </div>
+          </div>
+
+          <!-- Countdown -->
+          <div class="countdown-block">
+            <div class="countdown-header">
+              <span class="countdown-label">⏱ Thời gian còn lại</span>
+              <span class="countdown-time" id="timerDisplay">05:00</span>
+            </div>
+            <div class="progress-track">
+              <div
+                class="progress-fill"
+                id="progressFill"
+                style="width: 100%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- QR Code -->
+          <div class="qr-area" id="qrArea">
+            <img
+              id="qrImg"
+              src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=ThanhToanDonHangORD20268899&bgcolor=ffffff&color=1E3A8A&margin=4"
+              alt="QR Code Thanh toán"
+            />
+            <!-- Corner decorations -->
+            <span class="scan-corner tl"></span>
+            <span class="scan-corner tr"></span>
+            <span class="scan-corner bl"></span>
+            <span class="scan-corner br"></span>
+            <!-- Laser -->
+            <div class="laser" id="laser"></div>
+            <!-- Expired overlay -->
+            <div class="qr-expired-overlay" id="qrExpiredOverlay">
+              <span style="font-size: 2rem">⌛</span>
+              <div
+                style="
+                  font-size: 0.85rem;
+                  color: var(--gray-600);
+                  font-weight: 600;
+                "
+              >
+                QR Code đã hết hạn
+              </div>
+              <button class="btn-refresh" onclick="setState('waiting')">
+                🔄 Tạo lại mã QR
+              </button>
+            </div>
+          </div>
+
+          <!-- Download -->
+          <a
+            class="btn-download"
+            href="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=ThanhToanDonHangORD20268899"
+            download="QR_ORD20268899.png"
+            target="_blank"
+          >
+            ⬇️ Tải ảnh QR
+          </a>
+
+          <!-- Steps -->
+          <div class="steps">
+            <div class="steps-title">Hướng dẫn thanh toán</div>
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-text">Mở app ngân hàng hoặc ví điện tử</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-text">
+                Chọn <strong>Quét mã QR</strong> và hướng vào mã
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-text">
+                Kiểm tra thông tin và xác nhận thanh toán
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /col-left -->
+
+        <!-- ===== RIGHT COLUMN ===== -->
+        <div class="col-right" id="colRight">
+          <div>
+            <div class="section-title">Thông tin chuyển khoản thủ công</div>
+            <div class="info-table">
+              <div class="info-row">
+                <span class="info-label">Ngân hàng</span>
+                <span class="info-value">🏦 MB Bank</span>
+                <button class="btn-copy" onclick="copyText('MB Bank', this)">
+                  📋 Copy
+                </button>
+              </div>
+
+              <div class="info-row">
+                <span class="info-label">Số TK</span>
+                <span class="info-value">09876543210</span>
+                <button
+                  class="btn-copy"
+                  onclick="copyText('09876543210', this)"
+                >
+                  📋 Copy
+                </button>
+              </div>
+
+              <div class="info-row">
+                <span class="info-label">Chủ TK</span>
+                <span class="info-value">THAN VAN MINH TUYEN</span>
+                <button
+                  class="btn-copy"
+                  onclick="copyText('THAN VAN MINH TUYEN', this)"
+                >
+                  📋 Copy
+                </button>
+              </div>
+
+              <div class="info-row">
+                <span class="info-label">Số tiền</span>
+                <span class="info-value highlight">1.250.000 VNĐ</span>
+                <button class="btn-copy" onclick="copyText('1250000', this)">
+                  📋 Copy
+                </button>
+              </div>
+
+              <div class="info-row">
+                <span class="info-label">Nội dung CK</span>
+                <span
+                  class="info-value"
+                  style="font-weight: 700; letter-spacing: 0.04em"
+                  >ORD20268899</span
+                >
+                <button
+                  class="btn-copy"
+                  onclick="copyText('ORD20268899', this)"
+                >
+                  📋 Copy
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status bar -->
+          <div class="status-bar" id="statusBar">
+            <div class="spinner" id="spinner"></div>
+            <span class="status-text" id="statusText">
+              Hệ thống sẽ tự động xác nhận sau <strong>5–10 giây</strong> kể từ
+              khi chuyển khoản thành công.
+            </span>
+          </div>
+
+          <!-- Cancel -->
+          <button class="btn-cancel" onclick="setState('expired')">
+            ✕ Hủy giao dịch
+          </button>
+
+          <!-- Secure note -->
+          <div class="secure-note">
+            🔒 Giao dịch được bảo mật bởi SSL / TLS 256-bit
+          </div>
+        </div>
+        <!-- /col-right -->
+
+        <!-- ===== SUCCESS SCREEN ===== -->
+        <div class="success-screen" id="successScreen">
+          <div class="success-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <div class="success-title">Thanh toán thành công! 🎉</div>
+          <div class="success-sub">Đơn hàng #ORD-20268899 đã được xác nhận</div>
+          <div class="receipt-box">
+            <div class="receipt-row">
+              <span class="receipt-label">Mã đơn hàng</span>
+              <span class="receipt-value">#ORD-20268899</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">Số tiền</span>
+              <span class="receipt-value big">1.250.000 VNĐ</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">Ngân hàng</span>
+              <span class="receipt-value">MB Bank</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">Thời gian</span>
+              <span class="receipt-value" id="txTime">—</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">Mã giao dịch</span>
+              <span class="receipt-value" style="color: var(--primary)"
+                >FT26321NKXGT</span
+              >
+            </div>
+          </div>
+          <button class="btn-primary" onclick="setState('waiting')">
+            🏍️ Về trang chủ RideHub
+          </button>
+        </div>
+
+        <!-- ===== EXPIRED SCREEN ===== -->
+        <div class="expired-screen" id="expiredScreen">
+          <div class="expired-icon">
+            <span style="font-size: 2.5rem">⌛</span>
+          </div>
+          <div class="expired-title">Giao dịch đã hết hạn</div>
+          <div
+            style="color: var(--gray-600); font-size: 0.9rem; max-width: 320px"
+          >
+            Phiên thanh toán đã hết hạn hoặc bị hủy. Bạn có muốn tạo đơn hàng
+            mới không?
+          </div>
+          <button class="btn-primary" onclick="setState('waiting')">
+            🔄 Tạo lại giao dịch mới
+          </button>
+          <button
+            class="btn-cancel"
+            style="max-width: 200px; width: 100%"
+            onclick=""
+          >
+            Về trang chủ
+          </button>
+        </div>
+      </div>
+      <!-- /payment-card -->
+    </div>
+    <!-- /page-wrapper -->
+
+    <!-- ═══════ DEMO TOOLBAR ═══════ -->
+    <div class="demo-toolbar">
+      <span class="demo-label">🧪 Demo</span>
+      <button
+        class="demo-btn waiting active"
+        id="btnWaiting"
+        onclick="setState('waiting')"
+      >
+        <span class="dot"></span> Đang chờ
+      </button>
+      <button
+        class="demo-btn success"
+        id="btnSuccess"
+        onclick="setState('success')"
+      >
+        <span class="dot"></span> Thành công
+      </button>
+      <button
+        class="demo-btn expired"
+        id="btnExpired"
+        onclick="setState('expired')"
+      >
+        <span class="dot"></span> Hết hạn
+      </button>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      /* ── Countdown ── */
+      const TOTAL_SECONDS = 5 * 60; // 5:00
+      let remaining = TOTAL_SECONDS;
+      let timerInterval = null;
+
+      function formatTime(s) {
+        const m = String(Math.floor(s / 60)).padStart(2, "0");
+        const sec = String(s % 60).padStart(2, "0");
+        return `${m}:${sec}`;
+      }
+
+      function startTimer() {
+        clearInterval(timerInterval);
+        remaining = TOTAL_SECONDS;
+        updateTimerUI();
+        timerInterval = setInterval(() => {
+          remaining--;
+          updateTimerUI();
+          if (remaining <= 0) {
+            clearInterval(timerInterval);
+            setState("expired");
+          }
+        }, 1000);
+      }
+
+      function stopTimer() {
+        clearInterval(timerInterval);
+      }
+
+      function updateTimerUI() {
+        const el = document.getElementById("timerDisplay");
+        const fill = document.getElementById("progressFill");
+        el.textContent = formatTime(remaining);
+        el.classList.toggle("urgent", remaining <= 60);
+        fill.style.width = (remaining / TOTAL_SECONDS) * 100 + "%";
+      }
+
+      /* ── State Machine ── */
+      function setState(state) {
+        const colLeft = document.getElementById("colLeft");
+        const colRight = document.getElementById("colRight");
+        const successScreen = document.getElementById("successScreen");
+        const expiredScreen = document.getElementById("expiredScreen");
+        const statusBadge = document.getElementById("statusBadge");
+        const qrExpiredOverlay = document.getElementById("qrExpiredOverlay");
+        const laser = document.getElementById("laser");
+        const spinner = document.getElementById("spinner");
+        const statusText = document.getElementById("statusText");
+        const statusBar = document.getElementById("statusBar");
+
+        // Reset
+        colLeft.style.display = "";
+        colRight.style.display = "";
+        successScreen.classList.remove("visible");
+        expiredScreen.classList.remove("visible");
+        qrExpiredOverlay.classList.remove("visible");
+
+        // Reset demo buttons
+        ["btnWaiting", "btnSuccess", "btnExpired"].forEach((id) =>
+          document.getElementById(id).classList.remove("active"),
+        );
+
+        if (state === "waiting") {
+          startTimer();
+          statusBadge.className = "badge badge-warning";
+          statusBadge.innerHTML =
+            '<span class="badge-dot"></span> Đang chờ thanh toán';
+          laser.style.display = "block";
+          spinner.style.display = "";
+          statusText.innerHTML =
+            "Hệ thống sẽ tự động xác nhận sau <strong>5–10 giây</strong> kể từ khi chuyển khoản thành công.";
+          statusBar.style.background = "";
+          statusBar.style.borderColor = "";
+          document.getElementById("btnWaiting").classList.add("active");
+        } else if (state === "success") {
+          stopTimer();
+          colLeft.style.display = "none";
+          colRight.style.display = "none";
+          successScreen.classList.add("visible");
+          statusBadge.className = "badge badge-success";
+          statusBadge.innerHTML =
+            '<span class="badge-dot" style="animation:none"></span> Thanh toán thành công';
+          document.getElementById("txTime").textContent =
+            new Date().toLocaleString("vi-VN");
+          document.getElementById("btnSuccess").classList.add("active");
+        } else if (state === "expired") {
+          stopTimer();
+          colLeft.style.display = "none";
+          colRight.style.display = "none";
+          expiredScreen.classList.add("visible");
+          qrExpiredOverlay.classList.add("visible");
+          statusBadge.className = "badge badge-danger";
+          statusBadge.innerHTML =
+            '<span class="badge-dot" style="animation:none"></span> Hết hạn giao dịch';
+          document.getElementById("timerDisplay").textContent = "00:00";
+          document.getElementById("progressFill").style.width = "0%";
+          laser.style.display = "none";
+          document.getElementById("btnExpired").classList.add("active");
+        }
+      }
+
+      /* ── Copy to Clipboard ── */
+      function copyText(text, btn) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            const orig = btn.innerHTML;
+            btn.innerHTML = "✅ Đã copy";
+            btn.classList.add("copied");
+            showToast("✅ Đã sao chép: " + text);
+            setTimeout(() => {
+              btn.innerHTML = orig;
+              btn.classList.remove("copied");
+            }, 2000);
+          })
+          .catch(() => {
+            // Fallback
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+            showToast("✅ Đã sao chép: " + text);
+          });
+      }
+
+      /* ── Toast ── */
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+      }
+
+      /* ── Boot ── */
+      startTimer();
+    </script>
+  </body>
+</html>
