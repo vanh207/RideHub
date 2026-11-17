@@ -10,6 +10,7 @@ env/
 .env.example
 serviceAccountKey.json
 backend/serviceAccountKey.json
+private_uploads/
 
 # IDE
 .vscode/
