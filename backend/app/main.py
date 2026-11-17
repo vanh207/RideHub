@@ -20,7 +20,21 @@ from app.core.store_errors import (
 )
 from app.core.firebase import init_firebase
 from app.db.session import Base, engine
-from app.routers import health, items, payment, notifications, chat, faq, handover, vehicles, delivery, store_staff, login, stores
+from app.routers import (
+    admin_reviews,
+    chat,
+    delivery,
+    faq,
+    handover,
+    health,
+    items,
+    login,
+    notifications,
+    payment,
+    store_staff,
+    stores,
+    vehicles,
+)
 
     
 @asynccontextmanager
@@ -68,6 +82,7 @@ app.include_router(vehicles.router, prefix="/api")
 app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
 app.include_router(stores.router, prefix="/api")
+app.include_router(admin_reviews.router, prefix="/api")
 app.include_router(login.router)
 app.include_router(login.router, prefix="/api")
 

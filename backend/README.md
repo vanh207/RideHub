@@ -123,6 +123,12 @@ Kiểm tra:
 | POST | `/api/items` | Thêm mới | `{"name": "Trà đá", "description": "...", "price": 5000}` |
 | PUT | `/api/items/{id}` | Sửa (gửi trường nào sửa trường đó) | `{"price": 6000}` |
 | DELETE | `/api/items/{id}` | Xoá | |
+| GET | `/api/admin/reviews/queue` | Danh sách cửa hàng, CCCD và GPLX đang chờ duyệt (Admin) | |
+| PATCH | `/api/admin/reviews/stores/{id}` | Duyệt/từ chối cửa hàng (Admin) | `{"status":"rejected","reason":"Thiếu giấy phép"}` |
+| PATCH | `/api/admin/reviews/identity-documents/{id}` | Duyệt/từ chối CCCD khách hàng (Admin) | `{"status":"approved"}` |
+| PATCH | `/api/admin/reviews/driver-licenses/{id}` | Duyệt/từ chối GPLX khách hàng (Admin) | `{"status":"rejected","reason":"Ảnh bị mờ"}` |
+
+Các API quản trị yêu cầu đăng nhập bằng tài khoản Admin. `status` nhận `approved` hoặc `rejected`; khi từ chối, `reason` là bắt buộc. Hồ sơ chỉ được xử lý khi đang ở trạng thái chờ duyệt.
 
 Khi lỗi, API trả về JSON dạng `{"detail": "..."}`. Ví dụ: 404 khi không tìm thấy, 422 khi dữ liệu gửi lên sai.
 
