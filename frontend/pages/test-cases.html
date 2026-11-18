@@ -22,6 +22,138 @@
       color: var(--text-primary);
     }
 
+    /* Top Subpage Navigation Bar & Responsive Active Pill */
+    .portal-nav {
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(34, 197, 94, 0.18);
+      box-shadow: 0 4px 20px -8px rgba(22, 163, 74, 0.08);
+    }
+
+    .portal-nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 66px;
+      gap: 12px;
+      padding: 6px 0;
+    }
+
+    .portal-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .portal-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      padding: 4px;
+      list-style: none;
+      background: #f0fdf4;
+      border: 1px solid #dcfce7;
+      border-radius: 9999px;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .portal-nav-links::-webkit-scrollbar {
+      display: none;
+    }
+
+    .portal-nav-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      text-decoration: none;
+      border: 1.5px solid transparent;
+      background: transparent;
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .portal-nav-pill:hover {
+      color: #15803d;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Hiệu ứng Active Pill đồng bộ theo yêu cầu */
+    .portal-nav-pill.is-active {
+      background: #ffffff;
+      color: #166534;
+      border-color: #16a34a;
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(22, 163, 74, 0.16);
+    }
+
+    .portal-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .portal-station-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #166534;
+      white-space: nowrap;
+    }
+
+    .portal-station-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      display: inline-block;
+      box-shadow: 0 0 8px #22c55e;
+      flex-shrink: 0;
+    }
+
+    .portal-btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      color: #15803d;
+      font-size: 12.5px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .portal-btn-back:hover {
+      background: #bbf7d0;
+      color: #14532d;
+      transform: translateY(-1px);
+    }
+
     .tc-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -103,29 +235,93 @@
       border-radius: 999px;
       display: inline-block;
     }
+
+    /* RESPONSIVE MEDIA QUERIES CHO TEST CASES */
+    @media (max-width: 1024px) {
+      .portal-nav-inner {
+        flex-wrap: wrap;
+        padding: 8px 12px;
+      }
+      .portal-nav-links {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+      }
+      .portal-station-pill {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .portal-brand-text {
+        font-size: 17px !important;
+      }
+      .portal-brand-badge {
+        font-size: 9.5px !important;
+        padding: 2px 6px !important;
+      }
+      .portal-nav-pill {
+        font-size: 12px;
+        padding: 5px 10px;
+      }
+      .portal-btn-back {
+        font-size: 11.5px;
+        padding: 5px 10px;
+      }
+      .tc-stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
   </style>
 </head>
 
 <body>
   <div class="noise-overlay" aria-hidden="true"></div>
 
-  <!-- Header -->
-  <header id="mainNavbar" class="navbar is-scrolled">
-    <div class="container navbar-inner">
-      <a href="../index.html" class="brand-logo">
-        <span class="brand-name">
-          <span>Ride<strong style="color:var(--green-600);font-weight:800;">Hub</strong></span>
-          <span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--green-100);color:var(--green-800);">Sprint 2 QA</span>
+  <!-- Header / Navbar Cửa Hàng Đồng Bộ Responsive Pill -->
+  <header class="portal-nav">
+    <div class="container portal-nav-inner">
+      <a href="../index.html" class="portal-brand-wrap" aria-label="RideHub Homepage">
+        <svg width="34" height="34" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+          <defs>
+            <linearGradient id="navLogoBg" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#22c55e" />
+              <stop offset="60%" stop-color="#16a34a" />
+              <stop offset="100%" stop-color="#14532d" />
+            </linearGradient>
+            <linearGradient id="navLogoTrack" x1="12" y1="10" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff" />
+              <stop offset="100%" stop-color="#bbf7d0" />
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="40" height="40" rx="12" fill="url(#navLogoBg)" />
+          <path d="M14 32V13C14 13 19 11 25 11C31 11 35 14 35 19C35 23 31 26 25 26H14" stroke="url(#navLogoTrack)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M22 25L32 34" stroke="url(#navLogoTrack)" stroke-width="3.2" stroke-linecap="round" />
+          <circle cx="33" cy="13" r="3" fill="#86efac" />
+        </svg>
+        <span class="portal-brand-text" style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text-primary);">
+          Ride<span style="color:var(--green-600);">Hub</span>
         </span>
+        <span class="portal-brand-badge" style="font-size:10.5px;font-weight:800;letter-spacing:0.8px;padding:3px 8px;border-radius:999px;background:var(--green-100);color:var(--green-800);text-transform:uppercase;margin-left:2px;">Cổng Cửa Hàng</span>
       </a>
-      <nav class="nav-links">
-        <a href="../index.html" class="nav-link">Trang chủ</a>
-        <a href="store-orders.html" class="nav-link">Danh sách đơn cửa hàng</a>
-        <a href="handover.html" class="nav-link">Biên bản giao/nhận</a>
-        <a href="test-cases.html" class="nav-link is-active">Bảng kiểm thử</a>
+
+      <!-- 3 Nút Chức Năng Cửa Hàng Đồng Bộ Phong Cách Pill Active -->
+      <nav class="portal-nav-links" aria-label="Menu chức năng Cửa hàng">
+        <a href="../index.html" class="portal-nav-pill">Trang chủ</a>
+        <a href="store-orders.html" class="portal-nav-pill">Duyệt đơn đặt xe</a>
+        <a href="handover.html" class="portal-nav-pill">Biên bản giao/nhận</a>
+        <a href="test-cases.html" class="portal-nav-pill is-active">Bảng kiểm thử QA</a>
       </nav>
-      <div class="nav-actions">
-        <a href="../index.html" class="btn btn-soft" style="min-height:36px;font-size:12.5px;">Về Trang chủ</a>
+
+      <!-- User Station Badge & Back to Home -->
+      <div class="portal-nav-actions">
+        <div class="portal-station-pill">
+          <span class="portal-station-dot"></span>
+          <span>GreenRide Q.1 (Trực tuyến)</span>
+        </div>
+        <a href="../index.html" class="portal-btn-back">
+          ← Về Trang chủ
+        </a>
       </div>
     </div>
   </header>
@@ -333,6 +529,7 @@
       </table>
     </div>
   </main>
+  <script src="../js/auth-rbac.js"></script>
 </body>
 
 </html>
