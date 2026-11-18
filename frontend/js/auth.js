@@ -419,15 +419,39 @@
   // ======================================================================
   // 2. Xử lý Đăng nhập qua Google (Firebase Client Auth + Backend RBAC)
   // ======================================================================
-  const initFirebaseClient = () => {
+  const initFirebaseClient = async () => {
     if (typeof firebase === 'undefined') return null;
     if (!firebase.apps || !firebase.apps.length) {
+      if (window.envConfigPromise) {
+        await window.envConfigPromise.catch(() => {});
+      }
       const storedApiKey = localStorage.getItem('ridehub_firebase_api_key');
+      let currentApiKey = (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE && CONFIG.FIREBASE.apiKey) ? CONFIG.FIREBASE.apiKey : (storedApiKey || "");
+
+      if (!currentApiKey) {
+        try {
+          const cfgRes = await fetch(getApiUrl('auth/config'));
+          if (cfgRes.ok) {
+            const cfgData = await cfgRes.json();
+            if (cfgData?.data?.firebase) {
+              const fb = cfgData.data.firebase;
+              if (fb.apiKey) currentApiKey = fb.apiKey;
+              if (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE) {
+                if (fb.apiKey) CONFIG.FIREBASE.apiKey = fb.apiKey;
+                if (fb.projectId) CONFIG.FIREBASE.projectId = fb.projectId;
+                if (fb.authDomain) CONFIG.FIREBASE.authDomain = fb.authDomain;
+                if (fb.storageBucket) CONFIG.FIREBASE.storageBucket = fb.storageBucket;
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
       const fbConfig = {
-        apiKey: (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE && CONFIG.FIREBASE.apiKey) ? CONFIG.FIREBASE.apiKey : (storedApiKey || ""),
-        projectId: "ridehub-carmoto",
-        authDomain: "ridehub-carmoto.firebaseapp.com",
-        storageBucket: "ridehub-carmoto.appspot.com",
+        apiKey: currentApiKey,
+        projectId: (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE && CONFIG.FIREBASE.projectId) || "ridehub-carmoto",
+        authDomain: (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE && CONFIG.FIREBASE.authDomain) || "ridehub-carmoto.firebaseapp.com",
+        storageBucket: (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE && CONFIG.FIREBASE.storageBucket) || "ridehub-carmoto.appspot.com",
       };
 
       if (!fbConfig.apiKey) {
@@ -509,7 +533,7 @@
     googleBtn.innerHTML = '<span>Đang kết nối Google Firebase...</span>';
 
     try {
-      const app = initFirebaseClient();
+      const app = await initFirebaseClient();
       if (!app || typeof firebase.auth !== 'function') {
         throw new Error('Firebase Auth SDK chưa sẵn sàng.');
       }
