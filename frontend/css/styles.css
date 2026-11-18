@@ -1,3 +1,5 @@
+@import './components.css';
+
 /* ==========================================================================
    RideHub Layout & Component Styles
    ========================================================================== */
@@ -231,37 +233,8 @@ button {
   opacity: 1;
 }
 
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 11px 20px;
-  border-radius: var(--radius-pill);
-  border: 1px solid transparent;
-  font-weight: 700;
-  font-size: 14px;
-  min-height: 44px;
-  text-decoration: none;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--green-500), var(--green-600));
-  color: #ffffff;
-  box-shadow: 0 10px 22px -8px rgba(22, 163, 74, 0.45);
-}
-
-.btn-soft {
-  background: var(--green-100);
-  color: var(--green-700);
-}
-
-.btn-outline {
-  background: var(--bg-surface);
-  border-color: var(--border-strong);
-  color: var(--text-primary);
-}
+/* Buttons (Đã gom & chuẩn hóa tại components.css) */
+/* .btn, .btn-primary, .btn-soft, .btn-outline được nạp từ components.css */
 
 /* --------------------------------------------------------------------------
    Hero Section & 5-Layer Road Scene
@@ -1185,47 +1158,8 @@ button {
   to { transform: scaleX(0); }
 }
 
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(19, 42, 28, 0.36);
-  backdrop-filter: blur(0px);
-  z-index: var(--z-modal);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  transition: backdrop-filter 0.35s var(--ease-out), opacity 0.3s var(--ease-out);
-  opacity: 0;
-}
-
-.modal-backdrop.is-open {
-  display: flex;
-  opacity: 1;
-  backdrop-filter: blur(8px);
-}
-
-.modal-dialog {
-  width: min(560px, 94vw);
-  max-height: 88vh;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  background: var(--bg-surface);
-  border-radius: var(--radius-xl);
-  padding: 28px;
-  box-shadow: 0 28px 60px -16px rgba(19, 42, 28, 0.28);
-  transform: scale(0.86) translateY(18px);
-  transition: transform 0.42s var(--ease-spring);
-}
-
-.modal-dialog::-webkit-scrollbar {
-  display: none;
-}
-
-.modal-backdrop.is-open .modal-dialog {
-  transform: scale(1) translateY(0);
-}
+/* Modals (Đã gom & chuẩn hóa tại components.css) */
+/* .modal-backdrop, .modal-dialog, .modal-header, .modal-body, .modal-footer được nạp từ components.css */
 
 /* Chatbot Widget */
 .chat-fab {
@@ -2221,43 +2155,8 @@ button {
 
 /* ==========================================================================
    eKYC Waiting Room & Biometric Modal (FR-08, FR-09)
+   (Styles modal dùng chung từ components.css)
    ========================================================================== */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  animation: fadeInModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.modal-backdrop.is-open {
-  display: flex !important;
-}
-.modal-backdrop[style*="display:none"],
-.modal-backdrop.is-hidden {
-  display: none !important;
-}
-.modal-dialog {
-  background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  padding: 24px;
-  animation: slideUpModal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes fadeInModal {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes slideUpModal {
-  from { opacity: 0; transform: translateY(20px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
 
 .ekyc-stepper {
   display: flex;
