@@ -2,6 +2,7 @@
 
 Muốn thêm cấu hình mới: thêm 1 dòng vào class Settings + thêm vào .env.example.
 """
+from decimal import Decimal
 from urllib.parse import quote_plus
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -57,6 +58,26 @@ class Settings(BaseSettings):
     FIREBASE_AUTH_DOMAIN: str = ""
     FIREBASE_STORAGE_BUCKET: str = ""
 
+    # ---- Đặt xe & giữ chỗ (TF197DE) ----
+    # FR-30: giữ chỗ mặc định 30 phút.
+    BOOKING_HOLD_MINUTES: int = 30
+    # BR-07: đệm 60 phút trước/sau mỗi lượt thuê.
+    BOOKING_BUFFER_MINUTES: int = 60
+    # BR-02: thời lượng thuê tối thiểu 4 giờ, tối đa 30 ngày.
+    BOOKING_MIN_DURATION_HOURS: int = 4
+    BOOKING_MAX_DURATION_DAYS: int = 30
+    # BR-03: cọc 30% tiền thuê, tối thiểu 200.000đ, tối đa 1.000.000đ.
+    BOOKING_DEPOSIT_RATE: Decimal = Decimal("0.30")
+    BOOKING_DEPOSIT_MIN: Decimal = Decimal("200000")
+    BOOKING_DEPOSIT_MAX: Decimal = Decimal("1000000")
+    # SRS không nêu khoảng tối thiểu trước giờ nhận; đặt 0 phút.
+    BOOKING_MIN_START_LEAD_MINUTES: int = 0
+    # Thuê dưới 24 giờ thì dùng giá giờ nếu xe có cấu hình.
+    BOOKING_HOURLY_MAX_HOURS: int = 24
+    # Thử lại khi MySQL báo deadlock (1213) hoặc lock wait timeout (1205).
+    BOOKING_LOCK_RETRY_ATTEMPTS: int = 3
+    BOOKING_LOCK_RETRY_BASE_DELAY_SECONDS: float = 0.05
+
     @property
     def database_url(self) -> str:
         # mysql+pymysql://user:password@host:port/database
@@ -72,6 +93,10 @@ class Settings(BaseSettings):
             return [
                 "http://localhost:5500",
                 "http://127.0.0.1:5500",
+                "http://localhost:5501",
+                "http://127.0.0.1:5501",
+                "http://localhost:5502",
+                "http://127.0.0.1:5502",
                 "http://localhost:3000",
                 "http://localhost:8000",
                 "http://127.0.0.1:8000",
