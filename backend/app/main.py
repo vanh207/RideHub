@@ -22,6 +22,7 @@ from app.core.firebase import init_firebase
 from app.db.session import Base, engine
 from app.routers import (
     admin_reviews,
+    bookings,
     chat,
     delivery,
     faq,
@@ -83,6 +84,7 @@ app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
 app.include_router(stores.router, prefix="/api")
 app.include_router(admin_reviews.router, prefix="/api")
+app.include_router(bookings.router, prefix="/api")
 app.include_router(login.router)
 app.include_router(login.router, prefix="/api")
 
