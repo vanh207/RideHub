@@ -1,621 +1,649 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Biên bản Giao / Nhận xe điện tử | RideHub Luxury Rental</title>
-  <link rel="icon" href="../assets/images/logo.svg">
-  <link rel="stylesheet" href="../css/styles.css">
-  <style>
-    /* Styling chuyên sâu giao diện cửa hàng cho thuê xe chuyên nghiệp */
-    .store-hero {
-      background: linear-gradient(135deg, #091427 0%, #1e293b 60%, #1e3a8a 100%);
-      color: #ffffff;
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
-      position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .store-hero-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .store-station-title {
-      font-size: 22px;
-      font-weight: 800;
-      color: #ffffff;
-      margin: 0 0 6px 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .store-badges {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .store-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 12px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      border-radius: 9999px;
-      font-size: 13px;
-      color: #e2e8f0;
-    }
-
-    /* Thẻ xe sang trọng */
-    .vehicle-premium-card {
-      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-      border: 1.5px solid #cbd5e1;
-      border-radius: 12px;
-      padding: 18px;
-      margin-bottom: 18px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-
-    .vehicle-row {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-
-    .vehicle-visual-box {
-      width: 150px;
-      height: 95px;
-      background: #e2e8f0;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-      border: 1px solid #cbd5e1;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
-    }
-
-    .vehicle-specs-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
-      margin-top: 12px;
-      background: #f1f5f9;
-      padding: 12px;
-      border-radius: 8px;
-    }
-
-    .spec-item {
-      font-size: 13px;
-    }
-
-    .spec-label {
-      color: #64748b;
-      font-size: 11.5px;
-      text-transform: uppercase;
-      font-weight: 600;
-      display: block;
-    }
-
-    .spec-val {
-      font-weight: 700;
-      color: #0f172a;
-    }
-
-    /* Đồng hồ đo mức nhiên liệu trực quan */
-    .fuel-gauge-bar {
-      height: 12px;
-      background: #e2e8f0;
-      border-radius: 9999px;
-      overflow: hidden;
-      margin: 8px 0;
-      display: flex;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
-    }
-
-    .fuel-fill {
-      width: 100%;
-      background: linear-gradient(90deg, #ef4444 0%, #f59e0b 40%, #10b981 100%);
-      transition: width 0.3s ease;
-    }
-
-    /* Chứng thư số & Chữ ký số */
-    .signature-card-box {
-      border: 2px dashed #94a3b8;
-      border-radius: 10px;
-      background: #ffffff;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-    }
-
-    .sig-watermark {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(-12deg);
-      font-size: 20px;
-      font-weight: 900;
-      color: rgba(30, 41, 59, 0.05);
-      letter-spacing: 4px;
-      pointer-events: none;
-      user-select: none;
-      white-space: nowrap;
-    }
-
-    .sig-name-sync {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: #475569;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Biên bản Giao / Nhận xe — RideHub</title>
+  <meta name="description" content="Lập biên bản giao nhận xe điện tử: kiểm tra tình trạng, tải ảnh, checklist và chữ ký số." />
+  <link rel="icon" type="image/svg+xml" href="../assets/logo-ridehub.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="css/handover.css" />
 </head>
+<body>
 
-<body data-root="../">
-  <header id="app-header"></header>
-
-  <main class="container">
-    <!-- Hero Banner Cửa Hàng Thuê Xe Chuyên Nghiệp -->
-    <section class="store-hero">
-      <div class="store-hero-header">
-        <div>
-          <div class="store-station-title">
-            <span>🚗 RideHub Central Showroom & Rental Station #01</span>
-          </div>
-          <p style="margin: 0; color: #cbd5e1; font-size: 14.5px;">
-            Trạm giao nhận phương tiện tự lái chính hãng · Sân bay Quốc tế Đà Nẵng (Ga T1 Quốc Nội)
-          </p>
-          <div class="store-badges">
-            <span class="store-pill"><span class="live-pulse"></span> Trực tuyến 24/7</span>
-            <span class="store-pill">⭐ 4.9/5 (1.250+ lượt thuê)</span>
-            <span class="store-pill">🛡️ Tiêu chuẩn kiểm định 120 điểm</span>
-            <span class="store-pill">📞 Hotline: 1900-7433</span>
-          </div>
-        </div>
-
-        <div style="text-align: right;">
-          <div
-            style="background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25);">
-            <div style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Mã chứng từ điện
-              tử</div>
-            <strong style="font-size: 16px; color: #38bdf8; letter-spacing: 1px;"
-              id="protocol-id-badge">BB-202611-0891</strong>
-            <div style="font-size: 12px; color: #a7f3d0; margin-top: 2px;">Hợp đồng: #BK-88421</div>
-          </div>
-        </div>
+<!-- ══════════════════════════════════════════════════════════════════════════
+     PORTAL NAV
+     ══════════════════════════════════════════════════════════════════════════ -->
+<nav class="portal-nav" aria-label="Điều hướng cửa hàng">
+  <div class="portal-nav-inner">
+    <a href="store-orders.html" class="portal-brand" aria-label="GreenRide Q.1 — về trang đơn hàng">
+      <img src="../assets/logo-ridehub.png" alt="RideHub" />
+      <div>
+        <div class="portal-brand-name">RideHub</div>
+        <div class="portal-brand-sub">Cửa Hàng</div>
       </div>
+    </a>
+    <div class="portal-divider" aria-hidden="true"></div>
+    <div class="portal-links">
+      <a href="store-orders.html" class="portal-link">Duyệt đơn đặt xe</a>
+      <a href="handover.html" class="portal-link is-active" aria-current="page">Biên bản giao/nhận</a>
+      <a href="test-cases.html" class="portal-link">Bảng kiểm thử QA</a>
+    </div>
+    <div class="portal-actions">
+      <a href="../index.html" class="portal-btn-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        Trang chủ
+      </a>
+    </div>
+  </div>
+</nav>
 
-      <!-- Segmented Control chuyển đổi Check-out và Check-in -->
-      <div class="tab-group" role="tablist"
-        style="margin-top: 20px; background: rgba(15,23,42,0.6); padding: 5px; border: 1px solid rgba(255,255,255,0.15);">
-        <button id="tab-checkout" type="button" class="tab-btn active" role="tab" aria-selected="true"
-          style="color: #0f172a;">
-          🚗 1. Bàn giao xuất phát (Check-out)
-        </button>
-        <button id="tab-checkin" type="button" class="tab-btn" role="tab" aria-selected="false" style="color: #cbd5e1;">
-          🏁 2. Nhận xe hoàn trả (Check-in & Quyết toán cọc)
-        </button>
+<!-- ══════════════════════════════════════════════════════════════════════════
+     MAIN
+     ══════════════════════════════════════════════════════════════════════════ -->
+<main class="ho-main" id="hoMain">
+
+  <!-- Page header -->
+  <div class="ho-page-header">
+    <p class="ho-breadcrumb">
+      <a href="store-orders.html">Đơn hàng</a> › Biên bản Giao/Nhận xe
+    </p>
+    <h1 class="ho-page-title">
+      Biên bản Giao / Nhận xe
+      <span id="hoDraftBadge" class="ho-draft-badge" style="display:none;" aria-label="Có nháp đang lưu">📝 Nháp</span>
+    </h1>
+    <p class="ho-page-subtitle">Lập biên bản kiểm tra tình trạng xe điện tử · Hợp đồng: <strong id="hoContractId">—</strong></p>
+  </div>
+
+  <!-- TABS -->
+  <div role="tablist" aria-label="Giai đoạn biên bản" class="ho-tabs">
+    <button role="tab" id="tab-checkout" data-tab="checkout"
+            aria-selected="true" aria-controls="panel-checkout" tabindex="0"
+            class="ho-tab-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
+      Check-out (Giao xe)
+    </button>
+    <button role="tab" id="tab-checkin" data-tab="checkin"
+            aria-selected="false" aria-controls="panel-checkin" tabindex="-1"
+            class="ho-tab-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14m-7-7 7 7 7-7"/></svg>
+      Check-in (Nhận xe)
+    </button>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PANEL: CHECK-OUT
+       ════════════════════════════════════════ -->
+  <div role="tabpanel" id="panel-checkout" aria-labelledby="tab-checkout">
+
+    <!-- 1. Thông tin hợp đồng & xe -->
+    <section class="ho-card" aria-labelledby="coContractTitle">
+      <h2 class="ho-section-title" id="coContractTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Thông tin hợp đồng &amp; xe
+      </h2>
+      <div class="ho-info-row">
+        <span class="ho-chip">📋 HĐ: <strong id="hoContractId2">—</strong></span>
+        <span class="ho-chip">🚗 <span id="hoPlate">—</span></span>
+        <span class="ho-chip">🔵 <span id="hoVehicle">—</span></span>
       </div>
-
-      <div id="protocol-alert-banner" class="status status-loading"
-        style="margin: 12px 0 0 0; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.15); color: #e2e8f0; display: flex; align-items: center; justify-content: space-between; font-size: 13.5px;">
-        <span>ℹ️ <strong>Chế độ:</strong> Bàn giao xe xuất phát. Nhân viên và khách thuê đối chiếu thực tế phương tiện
-          và đồng kiểm vết trầy xước.</span>
-        <span class="badge badge-neutral" id="current-timestamp" style="background: #334155; color: #f1f5f9;">Thời gian:
-          Đang đồng bộ...</span>
-      </div>
-    </section>
-
-    <!-- Thẻ Phương Tiện Showroom Đẳng Cấp -->
-    <section class="card" style="border-left: 5px solid var(--color-primary);">
-      <div
-        style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
-        <h2 style="margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-          <span>🚘 Thông tin phương tiện bàn giao</span>
-          <span class="badge badge-primary">SUV 5 Chỗ Cao Cấp</span>
-        </h2>
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 13px; color: var(--color-muted);">Biển kiểm soát:</span>
-          <span class="license-plate-badge" id="display-plate">43A - 688.92</span>
+      <div class="ho-grid-4">
+        <div class="ho-field">
+          <span class="ho-label">Đăng kiểm hết hạn</span>
+          <span class="ho-input" style="background:#f7fdf9;color:#6b8a76;" id="hoRegExp" aria-readonly="true">—</span>
         </div>
-      </div>
-
-      <div class="vehicle-premium-card">
-        <div class="vehicle-row">
-          <div class="vehicle-visual-box">
-            <!-- Icon/Visual xe hơi chất lượng cao -->
-            <svg viewBox="0 0 120 70" width="110" height="65">
-              <path d="M15 45 L25 25 L45 18 L80 18 L100 30 L112 40 L115 50 L10 50 Z" fill="#2563eb" opacity="0.9" />
-              <circle cx="32" cy="50" r="11" fill="#1e293b" stroke="#94a3b8" stroke-width="2" />
-              <circle cx="88" cy="50" r="11" fill="#1e293b" stroke="#94a3b8" stroke-width="2" />
-              <path d="M42 22 L76 22 L92 32 L34 32 Z" fill="#93c5fd" opacity="0.85" />
-              <rect x="108" y="42" width="6" height="5" rx="1" fill="#f59e0b" />
-              <rect x="8" y="42" width="6" height="5" rx="1" fill="#dc2626" />
-            </svg>
-          </div>
-          <div style="flex: 1;">
-            <div style="font-size: 20px; font-weight: 800; color: #0f172a;">Mazda CX-5 2.0L Premium (Đời 2024)</div>
-            <div style="color: #64748b; font-size: 13.5px; margin-top: 2px;">
-              Màu sơn: Đỏ Pha Lê (Soul Red Crystal) · Số khung: ...829104 · Số máy: ...389211
-            </div>
-            <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
-              <span class="badge badge-success">✓ Bảo hiểm 2 chiều PTI</span>
-              <span class="badge badge-neutral">✓ Đăng kiểm tới 12/2027</span>
-              <span class="badge badge-neutral">✓ Camera hành trình 4K</span>
-            </div>
-          </div>
+        <div class="ho-field">
+          <span class="ho-label">Bảo hiểm hết hạn</span>
+          <span class="ho-input" style="background:#f7fdf9;color:#6b8a76;" id="hoInsExp" aria-readonly="true">—</span>
         </div>
-
-        <div class="vehicle-specs-grid">
-          <div class="spec-item">
-            <span class="spec-label">Hộp số</span>
-            <span class="spec-val">Tự động 6 cấp</span>
-          </div>
-          <div class="spec-item">
-            <span class="spec-label">Nhiên liệu</span>
-            <span class="spec-val">Xăng (6.8L/100km)</span>
-          </div>
-          <div class="spec-item">
-            <span class="spec-label">Định mức ngày</span>
-            <span class="spec-val" style="color: #16a34a;">350 km / ngày</span>
-          </div>
-          <div class="spec-item">
-            <span class="spec-label">Phí vượt km</span>
-            <span class="spec-val">3.000 đ / km</span>
-          </div>
-          <div class="spec-item">
-            <span class="spec-label">Tiền cọc giữ xe</span>
-            <span class="spec-val" style="color: #2563eb;">10.000.000 đ</span>
-          </div>
+        <div class="ho-field">
+          <span class="ho-label">Định mức km / Phí vượt</span>
+          <span class="ho-input" style="background:#f7fdf9;color:#6b8a76;" id="hoKmLimit" aria-readonly="true">—</span>
+        </div>
+        <div class="ho-field">
+          <span class="ho-label">Tiền cọc</span>
+          <span class="ho-input" style="background:#f7fdf9;color:#6b8a76;font-weight:700;" id="hoDeposit" aria-readonly="true">—</span>
         </div>
       </div>
     </section>
 
-    <!-- FORM BIÊN BẢN CHÍNH -->
-    <form id="handover-form">
-      <div class="layout-2col">
-        <!-- CỘT TRÁI: THÔNG TIN CÁC BÊN & VẬN HÀNH -->
+    <!-- 2. Các bên -->
+    <section class="ho-card" aria-labelledby="coPartiesTitle">
+      <h2 class="ho-section-title" id="coPartiesTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Các bên tham gia
+      </h2>
+      <div class="ho-grid-2">
         <div>
-          <!-- 1. CÁC BÊN GIAO NHẬN (ĐỒNG BỘ TÊN VỚI CHỮ KÝ) -->
-          <section class="card">
-            <h2 style="font-size: 17px; margin-bottom: 12px; color: #1e3a8a;">
-              1. Thông tin các bên giao nhận
-            </h2>
-
-            <label for="store_agent">Bên giao (Đại diện trạm xe RideHub) *</label>
-            <input type="text" id="store_agent" value="Nguyễn Tuấn Minh" placeholder="Nhập tên nhân viên bàn giao"
-              required>
-            <span class="muted" style="font-size: 12px; display: block; margin-top: 2px;">
-              Tên nhân viên sẽ tự động đồng bộ sang ô chữ ký bên dưới.
-            </span>
-
-            <label for="customer_name">Khách thuê (Bên nhận xe) *</label>
-            <input type="text" id="customer_name" value="Nguyễn Văn Quân" placeholder="Nhập tên khách thuê" required>
-            <span class="muted" style="font-size: 12px; display: block; margin-top: 2px;">
-              Tên khách thuê sẽ tự động đồng bộ sang ô chữ ký bên dưới.
-            </span>
-
-            <div class="grid-2">
-              <div>
-                <label for="customer_cccd">Số CCCD / Hộ chiếu *</label>
-                <input type="text" id="customer_cccd" value="048098001234" required>
-              </div>
-              <div>
-                <label for="customer_phone">Số điện thoại *</label>
-                <input type="tel" id="customer_phone" value="0988.765.432" required>
-              </div>
+          <p style="font-size:12px;font-weight:800;color:#16a34a;text-transform:uppercase;margin:0 0 10px;">Khách thuê</p>
+          <div class="ho-grid-2" style="gap:10px;">
+            <div class="ho-field">
+              <label class="ho-label" for="coCustName">Họ tên <span class="req" aria-hidden="true">*</span></label>
+              <input id="coCustName" class="ho-input" type="text" placeholder="Nguyễn Văn A" required aria-required="true" />
+              <span id="coCustNameErr" class="ho-field-error" role="alert"></span>
             </div>
-
-            <div class="grid-2">
-              <div>
-                <label for="driver_license">Số GPLX người lái *</label>
-                <input type="text" id="driver_license" value="B2 - 790150029182" required>
-              </div>
-              <div>
-                <label for="handover_location">Địa điểm bàn giao *</label>
-                <input type="text" id="handover_location" value="Sân bay Quốc tế Đà Nẵng (Ga T1)" required>
-              </div>
+            <div class="ho-field">
+              <label class="ho-label" for="coCustPhone">Số điện thoại</label>
+              <input id="coCustPhone" class="ho-input" type="tel" placeholder="09xxxxxxxx" />
             </div>
-          </section>
-
-          <!-- 2. VẬN HÀNH & NHIÊN LIỆU -->
-          <section class="card">
-            <h2 style="font-size: 17px; margin-bottom: 12px; color: #1e3a8a;">
-              2. Đồng hồ ODO & Vạch nhiên liệu
-            </h2>
-
-            <div class="grid-2">
-              <div>
-                <label for="odo_checkout">Số km lúc giao (ODO Check-out) *</label>
-                <input type="number" id="odo_checkout" value="18420" min="0" required>
-              </div>
-              <div>
-                <label for="odo_checkin">Số km lúc trả (ODO Check-in)</label>
-                <input type="number" id="odo_checkin" value="18690" min="0" placeholder="Nhập khi trả xe">
-              </div>
+            <div class="ho-field">
+              <label class="ho-label" for="coCustCCCD">CCCD / Hộ chiếu</label>
+              <input id="coCustCCCD" class="ho-input" type="text" placeholder="0792..." />
             </div>
-
-            <div id="odo-calc-info" class="status status-ok"
-              style="margin-top: 12px; font-size: 13.5px; border-left: 4px solid #16a34a;">
-              📈 Quãng đường đã di chuyển: <strong id="odo-diff">270</strong> km (Hạn mức hợp đồng: 350 km/ngày - Nằm
-              trong định mức an toàn).
+            <div class="ho-field">
+              <label class="ho-label" for="coCustLicense">GPLX</label>
+              <input id="coCustLicense" class="ho-input" type="text" placeholder="B2 — ..." />
             </div>
-
-            <!-- Vạch xăng trực quan -->
-            <label style="margin-top: 14px;">Mức nhiên liệu lúc giao (Check-out) *</label>
-            <div class="fuel-gauge-bar">
-              <div class="fuel-fill" id="fuel-bar-indicator"></div>
-            </div>
-            <div class="fuel-gauge-picker" id="fuel-checkout-group">
-              <div class="fuel-btn" data-level="E">E (Hết)</div>
-              <div class="fuel-btn" data-level="1/4">1/4</div>
-              <div class="fuel-btn" data-level="2/4">2/4</div>
-              <div class="fuel-btn" data-level="3/4">3/4</div>
-              <div class="fuel-btn active" data-level="FULL">FULL (Đầy)</div>
-            </div>
-
-            <div id="fuel-checkin-container" style="display: none; margin-top: 16px;">
-              <label>Mức nhiên liệu lúc nhận lại (Check-in) *</label>
-              <div class="fuel-gauge-picker" id="fuel-checkin-group">
-                <div class="fuel-btn" data-level="E">E</div>
-                <div class="fuel-btn" data-level="1/4">1/4</div>
-                <div class="fuel-btn" data-level="2/4">2/4</div>
-                <div class="fuel-btn" data-level="3/4">3/4</div>
-                <div class="fuel-btn active" data-level="FULL">FULL</div>
-              </div>
-            </div>
-          </section>
-
-          <!-- 3. GIẤY TỜ & PHỤ KIỆN -->
-          <section class="card">
-            <h2 style="font-size: 17px; margin-bottom: 12px; color: #1e3a8a;">
-              3. Giấy tờ & Phụ kiện kèm theo
-            </h2>
-            <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" checked id="doc_reg">
-                <div class="check-item-content">
-                  <div class="check-item-title">Cà vẹt xe</div>
-                  <div class="check-item-desc">Sao y công chứng kèm xác nhận ngân hàng</div>
-                </div>
-              </label>
-
-              <label class="check-item">
-                <input type="checkbox" checked id="doc_insp">
-                <div class="check-item-content">
-                  <div class="check-item-title">Sổ đăng kiểm</div>
-                  <div class="check-item-desc">Hiệu lực đến tháng 12/2027</div>
-                </div>
-              </label>
-
-              <label class="check-item">
-                <input type="checkbox" checked id="doc_ins">
-                <div class="check-item-content">
-                  <div class="check-item-title">Bảo hiểm TNDS & Thân vỏ</div>
-                  <div class="check-item-desc">Gói bảo hiểm toàn diện PTI</div>
-                </div>
-              </label>
-
-              <label class="check-item">
-                <input type="checkbox" checked id="acc_key">
-                <div class="check-item-content">
-                  <div class="check-item-title">01 Smartkey chính</div>
-                  <div class="check-item-desc">Kèm chip định vị trạm RideHub</div>
-                </div>
-              </label>
-
-              <label class="check-item">
-                <input type="checkbox" checked id="acc_spare_tire">
-                <div class="check-item-content">
-                  <div class="check-item-title">Lốp dự phòng & Kích nâng</div>
-                  <div class="check-item-desc">Đầy đủ bộ dụng cụ tháo ốc trong cốp</div>
-                </div>
-              </label>
-
-              <label class="check-item">
-                <input type="checkbox" checked id="acc_cam">
-                <div class="check-item-content">
-                  <div class="check-item-title">Camera hành trình trước/sau</div>
-                  <div class="check-item-desc">Thẻ nhớ 64GB ghi hình sắc nét</div>
-                </div>
-              </label>
-            </div>
-          </section>
+          </div>
         </div>
-
-        <!-- CỘT PHẢI: SƠ ĐỒ THÂN VỎ, QUYẾT TOÁN CỌC & CHỮ KÝ ĐỒNG BỘ -->
         <div>
-          <!-- 4. SƠ ĐỒ THÂN VỎ TƯƠNG TÁC -->
-          <section class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <h2 style="font-size: 17px; margin: 0; color: #1e3a8a;">
-                4. Sơ đồ thân vỏ & Vết trầy xước
-              </h2>
-              <span class="badge badge-warning">Chạm vào điểm để đổi trạng thái</span>
+          <p style="font-size:12px;font-weight:800;color:#16a34a;text-transform:uppercase;margin:0 0 10px;">Nhân viên giao xe</p>
+          <div class="ho-grid-2" style="gap:10px;">
+            <div class="ho-field">
+              <label class="ho-label" for="coStaffName">Họ tên NV <span class="req" aria-hidden="true">*</span></label>
+              <input id="coStaffName" class="ho-input" type="text" placeholder="Nguyễn Thị B" required aria-required="true" />
+              <span id="coStaffNameErr" class="ho-field-error" role="alert"></span>
             </div>
-            <p class="muted" style="font-size: 13px; margin: 0 0 10px 0;">
-              Sơ đồ đối chiếu thực tế 4 mặt. Điểm <strong style="color: #dc2626;">Màu đỏ</strong> là vết xước đã ghi
-              nhận trước khi xuất bãi.
-            </p>
-
-            <div class="vehicle-map-container" style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);">
-              <div class="car-diagram">
-                <svg viewBox="0 0 400 220" width="100%" height="auto"
-                  style="display: block; margin: 0 auto; filter: drop-shadow(0 6px 12px rgba(15,23,42,0.1));">
-                  <rect x="70" y="45" width="260" height="130" rx="36" fill="#cbd5e1" stroke="#475569"
-                    stroke-width="2.5" />
-                  <path d="M 125 55 L 145 78 L 145 142 L 125 165 Z" fill="#60a5fa" opacity="0.85" />
-                  <rect x="150" y="62" width="120" height="96" rx="8" fill="#f8fafc" stroke="#94a3b8" />
-                  <path d="M 275 75 L 295 60 L 295 160 L 275 145 Z" fill="#60a5fa" opacity="0.85" />
-                  <rect x="90" y="28" width="40" height="16" rx="4" fill="#0f172a" />
-                  <rect x="270" y="28" width="40" height="16" rx="4" fill="#0f172a" />
-                  <rect x="90" y="176" width="40" height="16" rx="4" fill="#0f172a" />
-                  <rect x="270" y="176" width="40" height="16" rx="4" fill="#0f172a" />
-                  <path d="M 70 58 Q 60 70 70 82" stroke="#f59e0b" stroke-width="4" fill="none" />
-                  <path d="M 70 138 Q 60 150 70 162" stroke="#f59e0b" stroke-width="4" fill="none" />
-                  <path d="M 330 60 Q 338 72 330 84" stroke="#dc2626" stroke-width="4" fill="none" />
-                  <path d="M 330 136 Q 338 148 330 160" stroke="#dc2626" stroke-width="4" fill="none" />
-                  <text x="85" y="115" font-size="11" fill="#1e293b" font-weight="700">ĐẦU XE</text>
-                  <text x="285" y="115" font-size="11" fill="#1e293b" font-weight="700">ĐUÔI XE</text>
-                </svg>
-
-                <button type="button" class="hotspot-point" style="top: 25%; left: 16%;" data-zone="Cản trước trái"
-                  title="Cản trước trái">1</button>
-                <button type="button" class="hotspot-point has-damage" style="top: 75%; left: 16%;"
-                  data-zone="Cản trước phải" title="Cản trước phải (Có vết trầy)">2</button>
-                <button type="button" class="hotspot-point" style="top: 15%; left: 52%;" data-zone="Cánh cửa trước trái"
-                  title="Cánh cửa trước trái">3</button>
-                <button type="button" class="hotspot-point has-damage" style="top: 85%; left: 52%;"
-                  data-zone="Hông sau phải" title="Hông sau phải (Vết xước dăm 5cm)">4</button>
-                <button type="button" class="hotspot-point" style="top: 25%; left: 84%;" data-zone="Cản sau trái"
-                  title="Cản sau trái">5</button>
-                <button type="button" class="hotspot-point" style="top: 75%; left: 84%;" data-zone="Cản sau phải"
-                  title="Cản sau phải">6</button>
-                <button type="button" class="hotspot-point" style="top: 50%; left: 32%;" data-zone="Kính chắn gió trước"
-                  title="Kính chắn gió">7</button>
-              </div>
-
-              <div class="damage-list-box" id="damage-list-summary" style="border-left: 4px solid #f59e0b;">
-                <strong>Vết xước đã ghi nhận trước xuất phát (2 điểm):</strong>
-                <ul style="margin: 6px 0 0 16px; padding: 0;">
-                  <li><strong>Vị trí 2 (Cản trước phải):</strong> Vết trầy sơn nhẹ 3cm do cạ vỉa hè cũ.</li>
-                  <li><strong>Vị trí 4 (Hông sau phải):</strong> Vết xước mờ gần hốc bánh xe, không móp méo.</li>
-                </ul>
-              </div>
+            <div class="ho-field">
+              <label class="ho-label" for="coPickupAddr">Địa điểm giao</label>
+              <input id="coPickupAddr" class="ho-input" type="text" placeholder="Địa chỉ..." />
             </div>
-          </section>
-
-          <!-- 5. BẢNG QUYẾT TOÁN CỌC -->
-          <section class="card" id="settlement-card"
-            style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);">
-            <h2 style="font-size: 17px; margin-bottom: 12px; color: #1e3a8a;">
-              5. Quyết toán chi phí & Hoàn cọc
-            </h2>
-            <div class="calc-row">
-              <span>Tiền đặt cọc ban đầu (Đã thanh toán):</span>
-              <strong id="val-deposit" style="color: #0f172a;">10.000.000 đ</strong>
+            <div class="ho-field" style="grid-column:span 2;">
+              <label class="ho-label" for="coDt">Thời điểm giao xe <span class="req" aria-hidden="true">*</span></label>
+              <input id="coDt" class="ho-input" type="datetime-local" required aria-required="true" />
+              <span id="coDtErr" class="ho-field-error" role="alert"></span>
             </div>
-            <div class="calc-row">
-              <span>Phụ phí quá giờ (0 giờ):</span>
-              <span id="val-overtime">0 đ</span>
-            </div>
-            <div class="calc-row">
-              <span>Phụ phí vượt hạn mức km (0 km):</span>
-              <span id="val-overkm">0 đ</span>
-            </div>
-            <div class="calc-row">
-              <span>Phụ phí nhiên liệu (Đã trả đúng vạch FULL):</span>
-              <span id="val-fuel">0 đ</span>
-            </div>
-            <div class="calc-row">
-              <span>Phụ phí vệ sinh (Xe sạch sẽ):</span>
-              <span id="val-cleaning">0 đ</span>
-            </div>
-            <div class="calc-row">
-              <span>Tổn hại thân vỏ mới phát sinh:</span>
-              <span id="val-damages" style="color: #16a34a; font-weight: 600;">0 đ (Không phát sinh)</span>
-            </div>
-            <div class="calc-row"
-              style="background: #fef3c7; padding: 10px; border-radius: 6px; margin: 8px 0; border: 1px solid #fde68a;">
-              <span style="color: #92400e; font-weight: 600;">Giữ cọc bảo đảm phạt nguội CSGT (15 ngày):</span>
-              <strong style="color: #b45309;" id="val-hold-deposit">- 2.000.000 đ</strong>
-            </div>
-            <div class="calc-row total"
-              style="background: #ecfdf5; padding: 12px; border-radius: 8px; border: 1px solid #a7f3d0;">
-              <span style="color: #065f46;">SỐ TIỀN HOÀN TRẢ NGAY LẬP TỨC:</span>
-              <span style="font-size: 20px; font-weight: 900; color: #047857;" id="val-final-refund">8.000.000 đ</span>
-            </div>
-          </section>
-
-          <!-- 6. CHỮ KÝ SỐ ĐIỆN TỬ - TÊN ĐỒNG BỘ 100% -->
-          <section class="card" style="border: 1.5px solid #3b82f6;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <h2 style="font-size: 17px; margin: 0; color: #1e3a8a;">
-                6. Chữ ký số xác nhận hai bên
-              </h2>
-              <span class="badge badge-success">✓ Xác thực eKYC</span>
-            </div>
-            <p class="muted" style="font-size: 13px; margin: 0 0 14px 0;">
-              Hai bên cam kết đã đối chiếu thực tế phương tiện, xác nhận đúng thông tin trên biên bản và đồng thuận ký
-              tên.
-            </p>
-
-            <div class="grid-2">
-              <!-- Ô CHỮ KÝ KHÁCH THUÊ -->
-              <div>
-                <label style="display: flex; justify-content: space-between; align-items: center;">
-                  <span>Chữ ký Khách thuê *</span>
-                  <span class="badge badge-neutral" style="font-size: 11px;">Bên nhận xe</span>
-                </label>
-                <div class="signature-card-box">
-                  <div class="sig-watermark">RIDEHUB SIGNED</div>
-                  <canvas id="sig-customer" class="signature-canvas"></canvas>
-                  <div class="signature-actions">
-                    <div class="sig-name-sync">
-                      <span class="muted">Họ tên:</span>
-                      <strong id="sig-customer-name" class="sig-name-display">Nguyễn Văn Quân</strong>
-                    </div>
-                    <button type="button" class="btn btn-small" id="btn-clear-customer">Ký lại</button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Ô CHỮ KÝ NHÂN VIÊN GIAO NHẬN -->
-              <div>
-                <label style="display: flex; justify-content: space-between; align-items: center;">
-                  <span>Chữ ký Nhân viên giao/nhận *</span>
-                  <span class="badge badge-neutral" style="font-size: 11px;">Đại diện trạm</span>
-                </label>
-                <div class="signature-card-box">
-                  <div class="sig-watermark">RIDEHUB VERIFIED</div>
-                  <canvas id="sig-staff" class="signature-canvas"></canvas>
-                  <div class="signature-actions">
-                    <div class="sig-name-sync">
-                      <span class="muted">Họ tên:</span>
-                      <strong id="sig-staff-name" class="sig-name-display">Nguyễn Tuấn Minh</strong>
-                    </div>
-                    <button type="button" class="btn btn-small" id="btn-clear-staff">Ký lại</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-actions" style="margin-top: 24px;">
-              <button type="submit" class="btn btn-primary"
-                style="flex: 2; padding: 12px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(37,99,235,0.35);">
-                ✅ Xác nhận & Lưu Biên Bản Điện Tử
-              </button>
-              <button type="button" class="btn" id="btn-export-pdf" style="flex: 1; font-weight: 600;">
-                📄 In / Xuất PDF
-              </button>
-            </div>
-          </section>
+          </div>
         </div>
       </div>
-    </form>
-  </main>
+    </section>
 
-  <footer id="app-footer"></footer>
+    <!-- 3. Số km ODO -->
+    <section class="ho-card" aria-labelledby="coOdoTitle">
+      <h2 class="ho-section-title" id="coOdoTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><polyline points="12 6 12 12 16 14"/></svg>
+        Đồng hồ ODO (Số km)
+      </h2>
+      <div class="ho-odo-wrap">
+        <div class="ho-field">
+          <label class="ho-label" for="coOdo">ODO lúc giao (km) <span class="req" aria-hidden="true">*</span></label>
+          <input id="coOdo" class="ho-input" type="number" min="0" placeholder="Ví dụ: 12450" required aria-required="true" />
+          <span id="coOdoErr" class="ho-field-error" role="alert"></span>
+        </div>
+        <div class="ho-odo-arrow" aria-hidden="true">→</div>
+        <div class="ho-field">
+          <label class="ho-label" for="coOdoRef">ODO dự kiến trả</label>
+          <input id="coOdoRef" class="ho-input" type="number" min="0" placeholder="Tự động tính" readonly aria-readonly="true" tabindex="-1" />
+        </div>
+      </div>
+      <p class="ho-hint" style="margin-top:8px;">ODO lúc trả sẽ nhập ở tab Check-in; quãng đường &amp; phí vượt sẽ tự tính.</p>
+    </section>
 
-  <script src="https://cdn.jsdelivr.net/npm/axios@1.7.9/dist/axios.min.js"></script>
-  <script src="../js/config.js"></script>
-  <script src="../js/utils.js"></script>
-  <script src="../js/layout.js"></script>
+    <!-- 4. Nhiên liệu -->
+    <section class="ho-card" aria-labelledby="coFuelTitle">
+      <h2 class="ho-section-title" id="coFuelTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/></svg>
+        Mức nhiên liệu lúc giao
+      </h2>
+      <fieldset style="border:none;padding:0;margin:0;">
+        <legend class="visually-hidden">Chọn mức xăng lúc giao</legend>
+        <div class="ho-fuel-btns" role="group" aria-label="Mức xăng lúc giao">
+          <button class="ho-fuel-btn" type="button" data-tab="checkout" data-level="E" aria-pressed="false">E (Hết)</button>
+          <button class="ho-fuel-btn" type="button" data-tab="checkout" data-level="1/4" aria-pressed="false">1/4</button>
+          <button class="ho-fuel-btn" type="button" data-tab="checkout" data-level="2/4" aria-pressed="false">2/4</button>
+          <button class="ho-fuel-btn" type="button" data-tab="checkout" data-level="3/4" aria-pressed="false">3/4</button>
+          <button class="ho-fuel-btn" type="button" data-tab="checkout" data-level="FULL" aria-pressed="true">FULL</button>
+        </div>
+        <div class="ho-fuel-gauge" role="img" aria-label="Thanh đồng hồ xăng lúc giao">
+          <div class="ho-fuel-seg" data-tab="checkout"></div>
+          <div class="ho-fuel-seg" data-tab="checkout"></div>
+          <div class="ho-fuel-seg" data-tab="checkout"></div>
+          <div class="ho-fuel-seg" data-tab="checkout"></div>
+        </div>
+        <div class="ho-fuel-label"><span>E</span><span>1/4</span><span>2/4</span><span>3/4</span><span>FULL</span></div>
+      </fieldset>
+    </section>
+
+    <!-- 5. Tải ảnh xe lúc giao -->
+    <section class="ho-card" aria-labelledby="coPhotoTitle">
+      <h2 class="ho-section-title" id="coPhotoTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"/><circle cx="12" cy="14" r="3.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Ảnh xe lúc giao
+      </h2>
+
+      <!-- Required slots -->
+      <div id="coRequiredPhotos" aria-label="Ảnh bắt buộc lúc giao">
+        <p class="ho-photo-group-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Ảnh bắt buộc (6 góc) — Nhấn ô để chọn / chụp ảnh
+        </p>
+        <div class="ho-photo-grid">
+          <div id="coPhoto_req-front"  class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh đầu xe"></div>
+          <div id="coPhoto_req-rear"   class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh đuôi xe"></div>
+          <div id="coPhoto_req-left"   class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh bên trái"></div>
+          <div id="coPhoto_req-right"  class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh bên phải"></div>
+          <div id="coPhoto_req-odo"    class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh đồng hồ ODO"></div>
+          <div id="coPhoto_req-interior" class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh nội thất"></div>
+        </div>
+      </div>
+
+      <hr class="ho-divider" />
+
+      <!-- Extra photos -->
+      <div>
+        <p class="ho-photo-group-title">Ảnh vết xước / hư hỏng thêm (tuỳ chọn — kéo thả hoặc chọn file)</p>
+        <div id="coDropZone" style="border:2px dashed #c8e0cc;border-radius:10px;padding:18px;text-align:center;background:#f7fdf9;min-height:60px;" aria-label="Vùng kéo thả ảnh thêm">
+          <p style="margin:0;color:#6b8a76;font-size:13px;" aria-hidden="true">Kéo thả ảnh vào đây</p>
+        </div>
+        <div id="coExtraGrid" class="ho-photo-grid" style="margin-top:10px;" aria-label="Ảnh tùy chọn đã tải"></div>
+        <button class="ho-photo-add-btn" type="button" data-tab="checkout" aria-label="Thêm ảnh tùy chọn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Thêm ảnh
+        </button>
+        <p class="ho-hint">Chỉ nhận JPG, PNG, WebP · Tối đa 5MB/ảnh · Tối đa 20 ảnh tổng cộng</p>
+      </div>
+    </section>
+
+    <!-- 6. Checklist giấy tờ & phụ kiện -->
+    <section class="ho-card" aria-labelledby="coChecklistTitle">
+      <h2 class="ho-section-title" id="coChecklistTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Checklist giấy tờ &amp; phụ kiện
+      </h2>
+      <div class="ho-checklist-actions">
+        <button class="ho-btn-sm ho-checklist-all" type="button" data-tab="checkout" aria-label="Đánh dấu tất cả mục là Đủ">✓ Chọn tất cả: Đủ</button>
+      </div>
+      <div id="coChecklist" class="ho-checklist" role="group" aria-label="Checklist lúc giao xe"></div>
+    </section>
+
+    <!-- Note -->
+    <section class="ho-card">
+      <h2 class="ho-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Ghi chú lúc giao
+      </h2>
+      <div class="ho-field">
+        <label class="ho-label" for="coNote">Ghi chú chung</label>
+        <textarea id="coNote" class="ho-textarea" placeholder="Khách đề nghị giao sớm, xe được rửa sạch trước khi giao..."></textarea>
+      </div>
+    </section>
+
+    <!-- 9. Chữ ký Check-out -->
+    <section class="ho-card" aria-labelledby="coSigTitle">
+      <h2 class="ho-section-title" id="coSigTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+        Chữ ký xác nhận — Check-out
+      </h2>
+      <div class="ho-sig-wrap">
+        <div class="ho-sig-box">
+          <label class="ho-sig-label" for="coSigCustomer">Chữ ký khách thuê <span class="req" aria-hidden="true">*</span></label>
+          <canvas id="coSigCustomer" class="ho-sig-canvas" width="400" height="160" aria-label="Vùng ký tên khách thuê — dùng chuột hoặc ngón tay để ký"></canvas>
+          <p class="ho-sig-name" id="coSigCustName" aria-live="polite">—</p>
+          <button class="ho-sig-redo" id="coSigCustomerRedo" type="button" aria-label="Ký lại chữ ký khách thuê">↺ Ký lại</button>
+        </div>
+        <div class="ho-sig-box">
+          <label class="ho-sig-label" for="coSigStaff">Chữ ký nhân viên <span class="req" aria-hidden="true">*</span></label>
+          <canvas id="coSigStaff" class="ho-sig-canvas" width="400" height="160" aria-label="Vùng ký tên nhân viên — dùng chuột hoặc ngón tay để ký"></canvas>
+          <p class="ho-sig-name" id="coSigStaffName" aria-live="polite">—</p>
+          <button class="ho-sig-redo" id="coSigStaffRedo" type="button" aria-label="Ký lại chữ ký nhân viên">↺ Ký lại</button>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /panel-checkout -->
+
+  <!-- ════════════════════════════════════════
+       PANEL: CHECK-IN
+       ════════════════════════════════════════ -->
+  <div role="tabpanel" id="panel-checkin" aria-labelledby="tab-checkin" hidden>
+
+    <!-- 2. Thông tin nhận xe -->
+    <section class="ho-card" aria-labelledby="ciPartiesTitle">
+      <h2 class="ho-section-title" id="ciPartiesTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Thông tin nhận xe
+      </h2>
+      <div class="ho-grid-2">
+        <div class="ho-field">
+          <label class="ho-label" for="ciCustName">Họ tên khách <span class="req" aria-hidden="true">*</span></label>
+          <input id="ciCustName" class="ho-input" type="text" required aria-required="true" />
+          <span id="ciCustNameErr" class="ho-field-error" role="alert"></span>
+        </div>
+        <div class="ho-field">
+          <label class="ho-label" for="ciStaffName">Nhân viên nhận xe <span class="req" aria-hidden="true">*</span></label>
+          <input id="ciStaffName" class="ho-input" type="text" required aria-required="true" />
+          <span id="ciStaffNameErr" class="ho-field-error" role="alert"></span>
+        </div>
+        <div class="ho-field">
+          <label class="ho-label" for="ciDt">Thời điểm nhận xe <span class="req" aria-hidden="true">*</span></label>
+          <input id="ciDt" class="ho-input" type="datetime-local" required aria-required="true" />
+          <span id="ciDtErr" class="ho-field-error" role="alert"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. ODO Check-in -->
+    <section class="ho-card" aria-labelledby="ciOdoTitle">
+      <h2 class="ho-section-title" id="ciOdoTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><polyline points="12 6 12 12 16 14"/></svg>
+        Đồng hồ ODO (Nhận lại)
+      </h2>
+      <div class="ho-odo-wrap">
+        <div class="ho-field">
+          <label class="ho-label" for="ciOdo">ODO lúc trả (km) <span class="req" aria-hidden="true">*</span></label>
+          <input id="ciOdo" class="ho-input" type="number" min="0" placeholder="Ví dụ: 12850" required aria-required="true" />
+          <span id="ciOdoErr" class="ho-field-error" role="alert"></span>
+        </div>
+        <div class="ho-odo-arrow" aria-hidden="true">−</div>
+        <div class="ho-field">
+          <label class="ho-label" for="ciOdoOut">ODO lúc giao</label>
+          <input id="ciOdoOut" class="ho-input" type="number" readonly aria-readonly="true" tabindex="-1" placeholder="Từ tab Check-out" />
+        </div>
+      </div>
+      <div class="ho-odo-result" aria-live="polite">
+        <div class="ho-odo-stat">
+          <div class="ho-odo-stat-label">Quãng đường đã đi</div>
+          <div class="ho-odo-stat-val" id="ciOdoDistVal">—</div>
+        </div>
+        <div class="ho-odo-stat">
+          <div class="ho-odo-stat-label">Hạn mức</div>
+          <div class="ho-odo-stat-val ok" id="ciOdoAllowed">—</div>
+        </div>
+        <div class="ho-odo-stat">
+          <div class="ho-odo-stat-label">Vượt km / Phí vượt</div>
+          <div class="ho-odo-stat-val" id="ciOdoOver">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Nhiên liệu Check-in -->
+    <section class="ho-card" aria-labelledby="ciFuelTitle">
+      <h2 class="ho-section-title" id="ciFuelTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/></svg>
+        Nhiên liệu khi trả xe
+      </h2>
+      <div class="ho-fuel-row">
+        <div>
+          <p style="font-size:12px;font-weight:700;color:#6b8a76;margin:0 0 8px;">Lúc giao</p>
+          <div class="ho-fuel-gauge" role="img" aria-label="Mức xăng lúc giao (tham khảo)">
+            <div class="ho-fuel-seg" data-tab="checkout"></div>
+            <div class="ho-fuel-seg" data-tab="checkout"></div>
+            <div class="ho-fuel-seg" data-tab="checkout"></div>
+            <div class="ho-fuel-seg" data-tab="checkout"></div>
+          </div>
+          <div class="ho-fuel-label"><span>E</span><span>1/4</span><span>2/4</span><span>3/4</span><span>FULL</span></div>
+        </div>
+        <div>
+          <p style="font-size:12px;font-weight:700;color:#6b8a76;margin:0 0 8px;">Lúc trả <span class="req" aria-hidden="true">*</span></p>
+          <fieldset style="border:none;padding:0;margin:0;">
+            <legend class="visually-hidden">Chọn mức xăng lúc trả</legend>
+            <div class="ho-fuel-btns" role="group" aria-label="Mức xăng lúc trả">
+              <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="E" aria-pressed="false">E (Hết)</button>
+              <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="1/4" aria-pressed="false">1/4</button>
+              <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="2/4" aria-pressed="false">2/4</button>
+              <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="3/4" aria-pressed="false">3/4</button>
+              <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="FULL" aria-pressed="true">FULL</button>
+            </div>
+            <div class="ho-fuel-gauge" role="img" aria-label="Thanh đồng hồ xăng lúc trả">
+              <div class="ho-fuel-seg" data-tab="checkin"></div>
+              <div class="ho-fuel-seg" data-tab="checkin"></div>
+              <div class="ho-fuel-seg" data-tab="checkin"></div>
+              <div class="ho-fuel-seg" data-tab="checkin"></div>
+            </div>
+            <div class="ho-fuel-label"><span>E</span><span>1/4</span><span>2/4</span><span>3/4</span><span>FULL</span></div>
+          </fieldset>
+          <div id="ciFuelWarning" class="ho-fuel-warning" role="alert">
+            ⚠️ Mức xăng thấp hơn lúc giao. <span id="ciFuelWarningFee"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Ảnh Check-in (đối chiếu) -->
+    <section class="ho-card" aria-labelledby="ciPhotoTitle">
+      <h2 class="ho-section-title" id="ciPhotoTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"/><circle cx="12" cy="14" r="3.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Ảnh xe khi nhận lại
+      </h2>
+
+      <!-- Required -->
+      <div id="ciRequiredPhotos" aria-label="Ảnh bắt buộc lúc nhận">
+        <p class="ho-photo-group-title">Ảnh bắt buộc (6 góc) — Đối chiếu với lúc giao</p>
+        <div class="ho-photo-grid">
+          <div id="ciPhoto_req-front"  class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh đầu xe lúc nhận"></div>
+          <div id="ciPhoto_req-rear"   class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh đuôi xe lúc nhận"></div>
+          <div id="ciPhoto_req-left"   class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh bên trái lúc nhận"></div>
+          <div id="ciPhoto_req-right"  class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh bên phải lúc nhận"></div>
+          <div id="ciPhoto_req-odo"    class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh đồng hồ ODO lúc nhận"></div>
+          <div id="ciPhoto_req-interior" class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh nội thất lúc nhận"></div>
+        </div>
+      </div>
+
+      <hr class="ho-divider" />
+      <div>
+        <p class="ho-photo-group-title">Ảnh hư hỏng mới phát hiện (nếu có)</p>
+        <div id="ciDropZone" style="border:2px dashed #c8e0cc;border-radius:10px;padding:18px;text-align:center;background:#f7fdf9;min-height:60px;" aria-label="Vùng kéo thả ảnh hư hỏng mới">
+          <p style="margin:0;color:#6b8a76;font-size:13px;" aria-hidden="true">Kéo thả ảnh vào đây</p>
+        </div>
+        <div id="ciExtraGrid" class="ho-photo-grid" style="margin-top:10px;" aria-label="Ảnh tùy chọn đã tải"></div>
+        <button class="ho-photo-add-btn" type="button" data-tab="checkin" aria-label="Thêm ảnh hư hỏng mới">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Thêm ảnh
+        </button>
+        <p class="ho-hint">Chỉ nhận JPG, PNG, WebP · Tối đa 5MB/ảnh · Tối đa 20 ảnh</p>
+      </div>
+    </section>
+
+    <!-- 6. Checklist Check-in -->
+    <section class="ho-card" aria-labelledby="ciChecklistTitle">
+      <h2 class="ho-section-title" id="ciChecklistTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Checklist giấy tờ &amp; phụ kiện (nhận lại)
+      </h2>
+      <div class="ho-checklist-actions">
+        <button class="ho-btn-sm ho-checklist-all" type="button" data-tab="checkin" aria-label="Đánh dấu tất cả mục là Đủ">✓ Chọn tất cả: Đủ</button>
+      </div>
+      <div id="ciChecklist" class="ho-checklist" role="group" aria-label="Checklist lúc nhận xe"></div>
+    </section>
+
+    <!-- 8. Quyết toán -->
+    <section class="ho-card" aria-labelledby="ciSettlTitle">
+      <h2 class="ho-section-title" id="ciSettlTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Quyết toán &amp; hoàn cọc
+      </h2>
+      <!-- Extra fee inputs -->
+      <div class="ho-grid-3" style="margin-bottom:16px;">
+        <div class="ho-field">
+          <label class="ho-label" for="ciOvertimeHours">Số giờ quá giờ</label>
+          <input id="ciOvertimeHours" class="ho-input" type="number" min="0" step="0.5" placeholder="0" />
+          <span class="ho-hint">50.000 ₫/giờ</span>
+        </div>
+        <div class="ho-field" style="justify-content:flex-end;">
+          <label class="ho-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input id="ciCleaningFee" type="checkbox" style="width:16px;height:16px;" aria-label="Tính phí vệ sinh" />
+            Phí vệ sinh xe
+          </label>
+          <span class="ho-hint">150.000 ₫ (nếu xe bẩn)</span>
+        </div>
+        <div class="ho-field">
+          <label class="ho-label" for="ciCustomFee">Phụ phí khác (₫)</label>
+          <input id="ciCustomFee" class="ho-input" type="number" min="0" placeholder="0" />
+        </div>
+        <div class="ho-field" style="grid-column:span 3;">
+          <label class="ho-label" for="ciCustomFeeNote">Ghi chú phụ phí khác</label>
+          <input id="ciCustomFeeNote" class="ho-input" type="text" placeholder="Mô tả phụ phí..." />
+        </div>
+      </div>
+
+      <div class="ho-settlement" role="region" aria-label="Bảng quyết toán" aria-live="polite">
+        <div class="ho-settlement-row">
+          <span class="ho-settlement-label">Tiền cọc ban đầu</span>
+          <span class="ho-settlement-val" id="settlDeposit">—</span>
+        </div>
+        <div class="ho-settlement-row">
+          <span class="ho-settlement-label">Phí vượt km</span>
+          <span class="ho-settlement-val" id="settlOverKm">—</span>
+        </div>
+        <div class="ho-settlement-row">
+          <span class="ho-settlement-label">Phí bù nhiên liệu</span>
+          <span class="ho-settlement-val" id="settlFuel">—</span>
+        </div>
+        <div class="ho-settlement-row">
+          <span class="ho-settlement-label">Phí quá giờ</span>
+          <span class="ho-settlement-val" id="settlOvertime">—</span>
+        </div>
+        <div class="ho-settlement-row">
+          <span class="ho-settlement-label">Phí vệ sinh</span>
+          <span class="ho-settlement-val" id="settlCleaning">—</span>
+        </div>
+        <div class="ho-settlement-row">
+          <span class="ho-settlement-label">Phí hư hỏng mới</span>
+          <span class="ho-settlement-val" id="settlDamage">—</span>
+        </div>
+        <div class="ho-settlement-row">
+          <span class="ho-settlement-label">Phụ phí khác</span>
+          <span class="ho-settlement-val" id="settlCustom">—</span>
+        </div>
+        <div class="ho-settlement-row total">
+          <span class="ho-settlement-label">Tổng khấu trừ</span>
+          <span class="ho-settlement-val" id="settlTotal">—</span>
+        </div>
+        <div class="ho-settlement-row" id="settlRefundRow">
+          <span class="ho-settlement-label" id="settlRefundLabel">✅ Hoàn cọc khách</span>
+          <span class="ho-settlement-val" id="settlRefund">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Note Check-in -->
+    <section class="ho-card">
+      <h2 class="ho-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Ghi chú lúc nhận
+      </h2>
+      <div class="ho-field">
+        <label class="ho-label" for="ciNote">Ghi chú chung</label>
+        <textarea id="ciNote" class="ho-textarea" placeholder="Khách trả xe đúng giờ, xe sạch sẽ..."></textarea>
+      </div>
+    </section>
+
+    <!-- 9. Chữ ký Check-in -->
+    <section class="ho-card" aria-labelledby="ciSigTitle">
+      <h2 class="ho-section-title" id="ciSigTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+        Chữ ký xác nhận — Check-in
+      </h2>
+      <div class="ho-sig-wrap">
+        <div class="ho-sig-box">
+          <label class="ho-sig-label" for="ciSigCustomer">Chữ ký khách thuê <span class="req" aria-hidden="true">*</span></label>
+          <canvas id="ciSigCustomer" class="ho-sig-canvas" width="400" height="160" aria-label="Vùng ký tên khách — dùng chuột hoặc ngón tay"></canvas>
+          <p class="ho-sig-name" id="ciSigCustName" aria-live="polite">—</p>
+          <button class="ho-sig-redo" id="ciSigCustomerRedo" type="button" aria-label="Ký lại chữ ký khách">↺ Ký lại</button>
+        </div>
+        <div class="ho-sig-box">
+          <label class="ho-sig-label" for="ciSigStaff">Chữ ký nhân viên <span class="req" aria-hidden="true">*</span></label>
+          <canvas id="ciSigStaff" class="ho-sig-canvas" width="400" height="160" aria-label="Vùng ký tên nhân viên — dùng chuột hoặc ngón tay"></canvas>
+          <p class="ho-sig-name" id="ciSigStaffName" aria-live="polite">—</p>
+          <button class="ho-sig-redo" id="ciSigStaffRedo" type="button" aria-label="Ký lại chữ ký nhân viên">↺ Ký lại</button>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /panel-checkin -->
+
+</main><!-- /ho-main -->
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     ACTION BAR (sticky bottom)
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="ho-actions" role="toolbar" aria-label="Hành động biên bản">
+  <button id="hoDraftBtn" class="ho-btn ho-btn-secondary" type="button" aria-label="Lưu nháp vào máy">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    Lưu nháp
+  </button>
+  <button id="hoPrintBtn" class="ho-btn ho-btn-outline" type="button" aria-label="In hoặc xuất PDF biên bản">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    In / Xuất PDF
+  </button>
+  <button id="hoSubmitBtn" class="ho-btn ho-btn-primary" type="button" aria-label="Xác nhận và lưu biên bản điện tử">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+    Xác nhận &amp; Lưu biên bản
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     LIGHTBOX
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div id="hoLightbox" class="ho-lightbox" role="dialog" aria-modal="true" aria-label="Xem ảnh phóng to">
+  <button id="hoLightboxClose" class="ho-lightbox-close" aria-label="Đóng">×</button>
+  <img id="hoLightboxImg" src="" alt="" />
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     DAMAGE MODAL
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div id="hoDamageModal" class="ho-damage-modal" role="dialog" aria-modal="true" aria-labelledby="hoDamageModalTitle" aria-hidden="true">
+  <div class="ho-damage-modal-box">
+    <h3 class="ho-damage-modal-title" id="hoDamageModalTitle">Thêm vết xước</h3>
+    <div class="ho-damage-form">
+      <div>
+        <label for="dmgType">Loại hư hỏng</label>
+        <select id="dmgType">
+          <option value="xước">Xước</option>
+          <option value="móp">Móp</option>
+          <option value="nứt">Nứt</option>
+          <option value="vỡ">Vỡ</option>
+          <option value="gỉ sét">Gỉ sét</option>
+          <option value="khác">Khác</option>
+        </select>
+      </div>
+      <div>
+        <label for="dmgSeverity">Mức độ</label>
+        <select id="dmgSeverity">
+          <option value="nhẹ">Nhẹ (nhìn gần mới thấy)</option>
+          <option value="vừa">Vừa (nhìn xa thấy rõ)</option>
+          <option value="nặng">Nặng (ảnh hưởng vận hành)</option>
+        </select>
+      </div>
+      <div>
+        <label for="dmgAge">Thời điểm</label>
+        <select id="dmgAge">
+          <option value="old">Vết cũ (đã có lúc giao)</option>
+          <option value="new">Vết mới (phát sinh lúc trả)</option>
+        </select>
+      </div>
+      <div>
+        <label for="dmgFee">Phí dự kiến (₫)</label>
+        <input id="dmgFee" type="number" min="0" placeholder="0" />
+      </div>
+      <div>
+        <label for="dmgNote">Ghi chú</label>
+        <textarea id="dmgNote" rows="2" placeholder="Mô tả vị trí, kích thước..."></textarea>
+      </div>
+      <div class="ho-damage-form-actions">
+        <button id="dmgCancel" class="ho-btn ho-btn-secondary" type="button">Huỷ</button>
+        <button id="dmgConfirm" class="ho-btn ho-btn-primary" type="button">Lưu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     TOAST
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div id="hoToast" class="ho-toast hidden" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SCRIPTS
+     ══════════════════════════════════════════════════════════════════════════ -->
+<script src="../js/config.js"></script>
+<script src="../js/handover.js"></script>
+<script src="../js/auth-rbac.js"></script>
+
 </body>
-
 </html>
