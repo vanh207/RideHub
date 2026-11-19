@@ -179,14 +179,7 @@ def seed_default_accounts() -> None:
 
             created_or_updated.append((role_code, email, password, full_name, status_action))
 
-        # 3. In thông báo rõ ràng ra console để lập trình viên tiện sử dụng
-        print("\n" + "=" * 76)
-        print(" [SEED DATA] 3 TÀI KHOẢN MẪU KHỞI TẠO SẴN SÀNG CHO MÔI TRƯỜNG DEV")
-        print("=" * 76)
-        print(f" 1. KHÁCH THUÊ:    customer@ridehub.vn | Mật khẩu: {DEFAULT_PASSWORD} | Role: customer")
-        print(f" 2. CHỦ CỬA HÀNG:  owner@ridehub.vn    | Mật khẩu: {DEFAULT_PASSWORD} | Role: store_owner")
-        print(f" 3. QUẢN TRỊ VIÊN: admin@ridehub.vn    | Mật khẩu: {DEFAULT_PASSWORD} | Role: admin")
-        print("=" * 76 + "\n")
+        logger.info("Sample RideHub development accounts are ready.")
 
     except Exception as e:
         logger.error(f"[SEED DATA] Lỗi khi tạo dữ liệu mẫu: {e}", exc_info=True)
