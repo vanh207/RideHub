@@ -45,6 +45,10 @@ from app.schemas.payment import (
     PaymentWebhookPayload,
     RefundResponse,
 )
+from app.services.payment_booking_reconciliation import (
+    apply_successful_payment_to_booking,
+    create_pending_refund_for_transaction,
+)
 from app.services.payment_gateway import payment_gateway_service
 from app.services.payos_service import payos_service
 from app.services.booking_eligibility import check_customer_can_rent
@@ -142,15 +146,23 @@ async def create_payos_deposit_payment(
                 detail=eligibility.first_reason(),
             )
 
-        if booking.status in ("BOOKED", "COMPLETED"):
+        if booking.status in (
+            "BOOKED",
+            "DEPOSIT_PAID",
+            "PENDING_STORE_CONFIRM",
+            "CONFIRMED",
+            "IN_PROGRESS",
+            "PENDING_SETTLEMENT",
+            "COMPLETED",
+        ):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Đơn đặt xe này đã được xác nhận thanh toán thành công trước đó.",
             )
-        elif booking.status == "CANCELLED":
+        elif booking.status in ("CANCELLED", "EXPIRED"):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Đơn đặt xe đã bị hủy, không thể tạo thanh toán cọc.",
+                detail="Đơn đặt xe đã bị hủy hoặc hết hạn, không thể tạo thanh toán cọc.",
             )
         elif booking.status not in PENDING_BOOKING_STATUSES:
             raise HTTPException(
@@ -334,6 +346,10 @@ async def get_payos_order_status(
             paid_amount = getattr(order_info, "amountPaid", None)
             if paid_amount != int(txn.amount):
                 txn.status = "AMOUNT_MISMATCH"
+            elif booking.status in {"CANCELLED", "EXPIRED", "COMPLETED"}:
+                txn.status = "SUCCESS"
+                txn.paid_at = datetime.now()
+                apply_successful_payment_to_booking(db, booking, txn)
             elif (
                 booking.status in PENDING_BOOKING_STATUSES
                 and booking.hold_expires_at is not None
@@ -341,7 +357,7 @@ async def get_payos_order_status(
             ):
                 txn.status = "SUCCESS"
                 txn.paid_at = datetime.now()
-                booking.status = "BOOKED"
+                apply_successful_payment_to_booking(db, booking, txn)
             else:
                 txn.status = "LATE_PAYMENT"
             db.commit()
@@ -541,7 +557,7 @@ async def cancel_booking_payment(
        bỏ qua mà vẫn trả về `200 OK` cho PayOS (tránh PayOS retry vô hạn).
     4. **Cập nhật trạng thái:** Nếu `success=true` và `code='00'`:
        - `PaymentTransaction.status` → **SUCCESS** + ghi `paid_at`.
-       - `Booking.status` → **BOOKED** (khóa xe, không cho đặt trùng lịch).
+       - `Booking.status` → **DEPOSIT_PAID** (khóa xe, không cho đặt trùng lịch).
     5. **Trả về HTTP 200** cho PayOS biết đã nhận webhook thành công.
 
     > **Lưu ý bảo mật:** `PAYOS_CHECKSUM_KEY` chỉ được đọc từ biến môi trường `.env`,
@@ -618,10 +634,23 @@ def create_payment_transaction(
             )
 
         # Kiểm tra xem đơn đặt xe đã hoàn tất thanh toán trước đó chưa
-        if booking.status in ("BOOKED", "COMPLETED"):
+        if booking.status in (
+            "BOOKED",
+            "DEPOSIT_PAID",
+            "PENDING_STORE_CONFIRM",
+            "CONFIRMED",
+            "IN_PROGRESS",
+            "PENDING_SETTLEMENT",
+            "COMPLETED",
+        ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Đơn đặt xe này đã được xác nhận thanh toán thành công trước đó.",
+            )
+        if booking.status in ("CANCELLED", "EXPIRED"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Đơn đặt xe đã bị hủy hoặc hết hạn, không thể tạo thanh toán cọc.",
             )
 
         if booking.status not in PENDING_BOOKING_STATUSES:
@@ -722,7 +751,7 @@ def create_payment_transaction(
     1. Ghi log bản tin vào `payment_webhook_logs`.
     2. Xác thực chữ ký số **HMAC-SHA256** (TF1B039-TC006).
     3. Kiểm tra tính toàn vẹn **Idempotency** chống trùng lặp (TF1B039-TC007).
-    4. Cập nhật giao dịch thành **SUCCESS**, đồng thời chuyển trạng thái đơn đặt xe sang **BOOKED** (khóa xe) (TF1B039-TC005).
+    4. Cập nhật giao dịch thành **SUCCESS**, đồng thời đối chiếu trạng thái đơn đặt xe (TF1B039-TC005).
     5. Xử lý trường hợp **FAILED** (TF1B039-TC008).
     """,
 )
@@ -861,20 +890,26 @@ def process_payment_webhook(
             ):
                 transaction.status = "LATE_PAYMENT"
                 transaction.paid_at = datetime.now()
+                create_pending_refund_for_transaction(
+                    db,
+                    booking,
+                    transaction,
+                    "LATE_PAYMENT: thanh toán đến sau khi giữ chỗ hết hạn hoặc đơn đã đóng.",
+                )
                 late_log = PaymentWebhookLog(
                     provider_txn_id=payload.provider_txn_id,
                     transaction_code=payload.transaction_code,
                     payload=raw_payload_dict,
                     signature_valid="VALID",
                     process_result="LATE_PAYMENT",
-                    queue_reason="Thanh toán nhận được sau khi booking hết hạn hoặc bị hủy.",
+                    queue_reason="Thanh toán nhận được sau khi booking hết hạn hoặc bị hủy; đã tạo refund PENDING.",
                     processed_at=datetime.now(),
                 )
                 db.add(late_log)
                 db.commit()
                 return {
                     "status": "OK",
-                    "message": "Thanh toán đến sau khi giữ chỗ hết hạn; cần xử lý hoàn tiền.",
+                    "message": "Thanh toán đến sau khi giữ chỗ hết hạn; đã tạo refund PENDING.",
                     "transaction_code": transaction.transaction_code,
                     "booking_id": transaction.booking_id,
                     "booking_status": booking.status,
@@ -883,7 +918,7 @@ def process_payment_webhook(
             transaction.status = "SUCCESS"
             transaction.paid_at = datetime.now()
             if booking:
-                booking.status = "BOOKED"
+                apply_successful_payment_to_booking(db, booking, transaction)
 
             # Ghi log thành công
             success_log = PaymentWebhookLog(
@@ -900,7 +935,7 @@ def process_payment_webhook(
 
             return {
                 "status": "OK",
-                "message": "Xử lý Webhook thành công: Giao dịch SUCCESS, đơn đặt xe đã chuyển sang BOOKED.",
+                "message": "Xử lý Webhook thành công: Giao dịch SUCCESS, trạng thái đơn đặt xe đã được đối chiếu.",
                 "transaction_code": transaction.transaction_code,
                 "booking_id": transaction.booking_id,
                 "booking_status": booking.status if booking else None,

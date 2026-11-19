@@ -6,6 +6,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     String,
+    Text,
     TIMESTAMP,
 )
 from sqlalchemy.sql import func
@@ -45,5 +46,8 @@ class Booking(Base):
     delivery_fee = Column(Numeric(12, 2), default=0)
     deposit_amount = Column(Numeric(12, 2), default=0)
     total_amount = Column(Numeric(12, 2), nullable=False)
+    cancelled_at = Column(TIMESTAMP, nullable=True)
+    cancelled_by = Column(String(30), nullable=True)
+    cancel_reason = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
     updated_at = Column(TIMESTAMP, server_default=func.current_timestamp(), onupdate=func.current_timestamp())

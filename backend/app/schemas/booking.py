@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional
 
 
@@ -66,3 +67,28 @@ class BookingResponse(BookingBase):
 
     class Config:
         from_attributes = True
+
+
+class BookingCancelRequest(BaseModel):
+    reason: str = Field(..., min_length=1, max_length=500)
+
+
+class RefundQuoteResponse(BaseModel):
+    amount: Decimal
+    rate: Decimal
+    policy_code: str
+    reason: str
+
+
+class BookingCancelResponse(BaseModel):
+    booking_id: int
+    status: str
+    cancelled_at: Optional[datetime] = None
+    cancelled_by: Optional[str] = None
+    cancel_reason: Optional[str] = None
+    refund: RefundQuoteResponse
+    refund_id: Optional[int] = None
+    refund_status: Optional[str] = None
+    reservation_released: bool = False
+    schedule_released: bool = False
+    already_cancelled: bool = False

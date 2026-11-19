@@ -12,6 +12,7 @@ from typing import Optional
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
+from app.core.booking_status import BLOCKING_STATUSES_INCLUDING_LEGACY
 from app.core.config import settings
 from app.models.booking import Booking
 from app.models.delivery import DeliveryPoint
@@ -22,15 +23,7 @@ from app.models.vehicle_schedule import VehicleSchedule
 
 # Các trạng thái booking còn chiếm lịch xe.
 # "PENDING" được giữ lại để tương thích dữ liệu cũ.
-BLOCKING_BOOKING_STATUSES = (
-    "PENDING_PAYMENT",
-    "DEPOSIT_PAID",
-    "PENDING_STORE_CONFIRM",
-    "CONFIRMED",
-    "IN_PROGRESS",
-    "PENDING_SETTLEMENT",
-    "PENDING",
-)
+BLOCKING_BOOKING_STATUSES = tuple(sorted(BLOCKING_STATUSES_INCLUDING_LEGACY))
 
 # BR-07: đệm 60 phút trước và sau mỗi lượt thuê.
 AVAILABILITY_BUFFER = timedelta(minutes=settings.BOOKING_BUFFER_MINUTES)

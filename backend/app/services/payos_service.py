@@ -20,6 +20,10 @@ from payos import AsyncPayOS
 from payos.types import CreatePaymentLinkRequest
 
 from app.core.config import settings
+from app.services.payment_booking_reconciliation import (
+    apply_successful_payment_to_booking,
+    create_pending_refund_for_transaction,
+)
 
 
 BANK_NAMES_BY_BIN = {
@@ -325,7 +329,7 @@ class PayOSService:
         2. Ghi log vào bảng payment_webhook_logs.
         3. Idempotency - bỏ qua nếu giao dịch đã được xử lý.
         4. Cập nhật PaymentTransaction: PENDING -> SUCCESS (hoặc FAILED/CANCELLED).
-        5. Nếu SUCCESS: cập nhật Booking -> BOOKED (khóa xe).
+        5. Nếu SUCCESS: cập nhật Booking theo trạng thái chuẩn (DEPOSIT_PAID hoặc refund khi đơn đã đóng).
 
         Args:
             webhook_body: Dict raw payload do PayOS gửi về.
@@ -494,34 +498,40 @@ class PayOSService:
                 ):
                     transaction.status = "LATE_PAYMENT"
                     transaction.paid_at = datetime.now()
+                    create_pending_refund_for_transaction(
+                        db,
+                        booking,
+                        transaction,
+                        "LATE_PAYMENT: thanh toán đến sau khi giữ chỗ hết hạn hoặc đơn đã đóng.",
+                    )
                     webhook_log.process_result = "LATE_PAYMENT"
                     webhook_log.queue_reason = (
-                        "PayOS báo đã thanh toán sau khi booking hết hạn hoặc bị hủy."
+                        "PayOS báo đã thanh toán sau khi booking hết hạn hoặc bị hủy; đã tạo refund PENDING."
                     )
                     db.commit()
                     return {
                         "status": "OK",
-                        "message": "Thanh toán đến sau khi giữ chỗ hết hạn; cần xử lý hoàn tiền.",
+                        "message": "Thanh toán đến sau khi giữ chỗ hết hạn; đã tạo refund PENDING.",
                         "transaction_code": transaction_code,
                         "booking_id": transaction.booking_id,
                         "booking_status": booking.status,
                     }
 
-                if booking:
-                    booking.status = "BOOKED"
                 transaction.status = "SUCCESS"
                 transaction.paid_at = datetime.now()
+                if booking:
+                    apply_successful_payment_to_booking(db, booking, transaction)
 
                 webhook_log.process_result = "SUCCESS"
                 webhook_log.queue_reason = (
                     "Xác thực hợp lệ. Đã cập nhật giao dịch SUCCESS và "
-                    "chuyển đơn đặt xe sang BOOKED (TF1A032)."
+                    "đối chiếu trạng thái đơn đặt xe (TF1A032)."
                 )
                 db.commit()
 
                 return {
                     "status": "OK",
-                    "message": "Webhook PayOS xử lý thành công: giao dịch PAID, xe đã được khóa lịch.",
+                    "message": "Webhook PayOS xử lý thành công: giao dịch PAID, trạng thái đơn đã được đối chiếu.",
                     "transaction_code": transaction_code,
                     "booking_id": transaction.booking_id,
                     "booking_status": booking.status if booking else None,
