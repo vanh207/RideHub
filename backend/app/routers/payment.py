@@ -419,8 +419,31 @@ async def get_booking_payment_status(
     db.commit()
 
     remaining_seconds = _remaining_hold_seconds(booking, now)
+    failure_reason = None
     if transaction:
         payment_status = transaction.status
+        if (
+            payment_status in ("FAILED", "CANCELLED")
+            and booking.status == "CANCELLED"
+            and hold_expired
+        ):
+            payment_status = "EXPIRED"
+        if transaction.status == "FAILED":
+            failure_log = (
+                db.query(PaymentWebhookLog)
+                .filter(
+                    PaymentWebhookLog.transaction_code
+                    == transaction.transaction_code,
+                    PaymentWebhookLog.process_result == "FAILED",
+                )
+                .order_by(PaymentWebhookLog.id.desc())
+                .first()
+            )
+            failure_reason = (
+                failure_log.queue_reason[:500]
+                if failure_log and failure_log.queue_reason
+                else None
+            )
     elif booking.status == "CANCELLED":
         payment_status = "EXPIRED" if expired_now or hold_expired else "CANCELLED"
     else:
@@ -437,6 +460,8 @@ async def get_booking_payment_status(
         payment_status=payment_status,
         transaction_code=transaction.transaction_code if transaction else None,
         amount=float(transaction.amount) if transaction else None,
+        paid_at=transaction.paid_at if transaction else None,
+        failure_reason=failure_reason,
         qr_code_url=transaction.qr_code_url if transaction else None,
         bank_name=beneficiary["bank_name"] if beneficiary else None,
         bin=beneficiary["bin"] if beneficiary else None,

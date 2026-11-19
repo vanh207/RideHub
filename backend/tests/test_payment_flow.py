@@ -14,7 +14,7 @@ from app.core.config import Settings
 from app.core.dependencies import get_current_user
 from app.db.session import Base, get_db
 from app.models.booking import Booking
-from app.models.payment import PaymentTransaction
+from app.models.payment import PaymentTransaction, PaymentWebhookLog
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.routers import payment as payment_router
@@ -239,6 +239,36 @@ def test_expired_hold_is_terminal_and_releases_booking(payment_client):
         assert db.get(Booking, 9401).status == "CANCELLED"
 
 
+def test_failed_transaction_reports_reason_and_expired_hold(payment_client):
+    client, _, session_factory = payment_client
+    with session_factory() as db:
+        booking = db.get(Booking, 9401)
+        booking.hold_expires_at = datetime.now() - timedelta(seconds=1)
+        db.add(
+            PaymentTransaction(
+                booking_id=9401,
+                transaction_code="PAYOS_123458",
+                provider="PAYOS",
+                amount=Decimal("200000"),
+                status="FAILED",
+            )
+        )
+        db.add(
+            PaymentWebhookLog(
+                transaction_code="PAYOS_123458",
+                process_result="FAILED",
+                queue_reason="Ngân hàng từ chối giao dịch.",
+            )
+        )
+        db.commit()
+
+    response = client.get("/api/payments/booking/9401/status")
+    assert response.status_code == 200
+    assert response.json()["payment_status"] == "EXPIRED"
+    assert response.json()["failure_reason"] == "Ngân hàng từ chối giao dịch."
+    assert response.json()["paid_at"] is None
+
+
 def test_status_polling_syncs_paid_payos_link(payment_client, monkeypatch):
     client, _, session_factory = payment_client
     with session_factory() as db:
@@ -272,6 +302,7 @@ def test_status_polling_syncs_paid_payos_link(payment_client, monkeypatch):
     response = client.get("/api/payments/booking/9401/status")
     assert response.status_code == 200
     assert response.json()["payment_status"] == "SUCCESS"
+    assert response.json()["paid_at"]
     assert response.json()["bank_name"] == "MB Bank"
     assert response.json()["bin"] == "970422"
     assert response.json()["account_number"] == "123456"
