@@ -12,6 +12,7 @@ from typing import Optional
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.booking import Booking
 from app.models.delivery import DeliveryPoint
 from app.models.store import Store
@@ -32,11 +33,11 @@ BLOCKING_BOOKING_STATUSES = (
 )
 
 # BR-07: đệm 60 phút trước và sau mỗi lượt thuê.
-AVAILABILITY_BUFFER = timedelta(minutes=60)
+AVAILABILITY_BUFFER = timedelta(minutes=settings.BOOKING_BUFFER_MINUTES)
 
 # BR-02: thời gian thuê tối thiểu 4 giờ và tối đa 30 ngày cho một đơn.
-MIN_RENTAL_DURATION = timedelta(hours=4)
-MAX_RENTAL_DURATION = timedelta(days=30)
+MIN_RENTAL_DURATION = timedelta(hours=settings.BOOKING_MIN_DURATION_HOURS)
+MAX_RENTAL_DURATION = timedelta(days=settings.BOOKING_MAX_DURATION_DAYS)
 
 # Giá trị vehicle_type đang dùng trong model, router quản lý và SQL mẫu.
 ALLOWED_VEHICLE_TYPES = ("MOTORBIKE", "CAR")
@@ -52,6 +53,75 @@ def _escape_like(value: str) -> str:
         .replace("%", "\\%")
         .replace("_", "\\_")
     )
+
+
+def _no_conflict_conditions(
+    vehicle_id_column,
+    start_time: datetime,
+    end_time: datetime,
+    current_time: datetime,
+):
+    """Trả về các điều kiện SQL ``NOT EXISTS`` dùng chung cho tìm xe và đặt xe."""
+    # existing.start_time < end_time + 60 phút
+    latest_start = end_time + AVAILABILITY_BUFFER
+    # existing.end_time + 60 phút > start_time
+    earliest_end = start_time - AVAILABILITY_BUFFER
+
+    booking_conflict = (
+        select(Booking.id)
+        .where(
+            Booking.vehicle_id == vehicle_id_column,
+            Booking.status.in_(BLOCKING_BOOKING_STATUSES),
+            Booking.start_time < latest_start,
+            Booking.end_time > earliest_end,
+        )
+        .exists()
+    )
+    reservation_conflict = (
+        select(VehicleReservation.id)
+        .where(
+            VehicleReservation.vehicle_id == vehicle_id_column,
+            VehicleReservation.status == "ACTIVE",
+            VehicleReservation.expires_at > current_time,
+            VehicleReservation.start_time < latest_start,
+            VehicleReservation.end_time > earliest_end,
+        )
+        .exists()
+    )
+    schedule_conflict = (
+        select(VehicleSchedule.id)
+        .where(
+            VehicleSchedule.vehicle_id == vehicle_id_column,
+            VehicleSchedule.status == "ACTIVE",
+            VehicleSchedule.start_time < latest_start,
+            VehicleSchedule.end_time > earliest_end,
+        )
+        .exists()
+    )
+    return [
+        ~booking_conflict,
+        ~reservation_conflict,
+        ~schedule_conflict,
+    ]
+
+
+def vehicle_has_conflict(
+    db: Session,
+    vehicle_id: int,
+    start_time: datetime,
+    end_time: datetime,
+    *,
+    now: Optional[datetime] = None,
+) -> bool:
+    """Kiểm tra một xe có bị chiếm lịch trong khoảng thời gian yêu cầu không."""
+    current_time = now or datetime.now()
+    no_conflict = _no_conflict_conditions(
+        Vehicle.id, start_time, end_time, current_time
+    )
+    available_vehicle_id = db.scalar(
+        select(Vehicle.id).where(Vehicle.id == vehicle_id, *no_conflict)
+    )
+    return available_vehicle_id is None
 
 
 def search_public_vehicles(
@@ -115,49 +185,11 @@ def search_public_vehicles(
         filters.append(Vehicle.price_per_day <= max_price)
 
     if start_time is not None and end_time is not None:
-        # existing.start_time < end_time + 60 phút
-        latest_start = end_time + AVAILABILITY_BUFFER
-        # existing.end_time + 60 phút > start_time
-        earliest_end = start_time - AVAILABILITY_BUFFER
         current_time = now or datetime.now()
-
-        booking_conflict = (
-            select(Booking.id)
-            .where(
-                Booking.vehicle_id == Vehicle.id,
-                Booking.status.in_(BLOCKING_BOOKING_STATUSES),
-                Booking.start_time < latest_start,
-                Booking.end_time > earliest_end,
-            )
-            .exists()
-        )
-        reservation_conflict = (
-            select(VehicleReservation.id)
-            .where(
-                VehicleReservation.vehicle_id == Vehicle.id,
-                VehicleReservation.status == "ACTIVE",
-                VehicleReservation.expires_at > current_time,
-                VehicleReservation.start_time < latest_start,
-                VehicleReservation.end_time > earliest_end,
-            )
-            .exists()
-        )
-        schedule_conflict = (
-            select(VehicleSchedule.id)
-            .where(
-                VehicleSchedule.vehicle_id == Vehicle.id,
-                VehicleSchedule.status == "ACTIVE",
-                VehicleSchedule.start_time < latest_start,
-                VehicleSchedule.end_time > earliest_end,
-            )
-            .exists()
-        )
         filters.extend(
-            [
-                ~booking_conflict,
-                ~reservation_conflict,
-                ~schedule_conflict,
-            ]
+            _no_conflict_conditions(
+                Vehicle.id, start_time, end_time, current_time
+            )
         )
 
     total = db.scalar(
