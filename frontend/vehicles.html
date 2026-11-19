@@ -485,6 +485,11 @@
       }
 
       document.getElementById('proceedBookingBtn')?.addEventListener('click', () => {
+        const selectedTimes = window.rideHubBookingTimes && window.rideHubBookingTimes();
+        if (!window.rideHubSelectedVehicleId || !selectedTimes) {
+          window.showRideHubToast?.('Hãy chọn xe và khoảng thời gian thuê hợp lệ.', true);
+          return;
+        }
         const specs = Array.from(document.querySelectorAll('#detailChips .meta-chip')).map((c) => c.textContent.trim()).join(' • ');
         const isDelivery = document.getElementById('btnDelivery')?.classList.contains('btn-primary');
         const delFee = isDelivery ? 30000 : 0;
@@ -499,9 +504,12 @@
 
         const draft = {
           orderCode: 'RH-' + Math.floor(100000 + Math.random() * 899999),
+          vehicleId: window.rideHubSelectedVehicleId,
           vehicle: document.getElementById('detailTitle')?.textContent || 'VinFast Feliz S (2025)',
           specs,
           schedule: document.getElementById('detailScheduleInput')?.value || '12/11 21:00 → 15/11 11:00',
+          startTime: selectedTimes.startTime,
+          endTime: selectedTimes.endTime,
           deliveryMode: delMode,
           deliveryAddress: delAddr,
           deliveryFee: delFee,
@@ -520,17 +528,41 @@
   <script>
     let activeBasePrice = 160000;
     let deliveryFee = 0;
+    const todayForBooking = new Date();
+    const defaultStart = new Date(todayForBooking);
+    defaultStart.setDate(defaultStart.getDate() + 1);
+    defaultStart.setHours(0, 0, 0, 0);
+    const daysInStartMonth = new Date(
+      defaultStart.getFullYear(),
+      defaultStart.getMonth() + 1,
+      0
+    ).getDate();
+    if (defaultStart.getDate() > daysInStartMonth - 3) {
+      defaultStart.setMonth(defaultStart.getMonth() + 1, 1);
+    }
+    const defaultEnd = new Date(defaultStart);
+    defaultEnd.setDate(defaultEnd.getDate() + 3);
 
     // Date & Time Picker State
     const dtState = {
-      year: 2026,
-      month: 10, // 0-indexed (10 = Tháng 11)
+      year: defaultStart.getFullYear(),
+      month: defaultStart.getMonth(),
       mode: 'day',
-      startDay: 12,
-      endDay: 15,
+      startDay: defaultStart.getDate(),
+      endDay: defaultEnd.getDate(),
       pickingEnd: false,
       pickupHour: '21:00',
       returnHour: '11:00'
+    };
+    window.rideHubBookingTimes = () => {
+      const pad = (value) => String(value).padStart(2, '0');
+      const datePart = `${dtState.year}-${pad(dtState.month + 1)}-`;
+      const endDay = dtState.mode === 'hour' ? dtState.startDay : dtState.endDay;
+      if (!endDay) return null;
+      return {
+        startTime: `${datePart}${pad(dtState.startDay)}T${dtState.pickupHour}`,
+        endTime: `${datePart}${pad(endDay)}T${dtState.returnHour}`
+      };
     };
 
     const getDaysCount = () => {
@@ -559,7 +591,9 @@
       let html = '';
       for (let i = 0; i < offset; i++) html += '<span></span>';
       for (let d = 1; d <= daysInMonth; d++) {
-        const isPast = dtState.month === 10 && d < 12;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const isPast = new Date(dtState.year, dtState.month, d) < today;
         const isStart = d === dtState.startDay;
         const hasEnd = dtState.mode !== 'hour' && dtState.endDay !== null;
         const isEnd = hasEnd && d === dtState.endDay;
@@ -892,6 +926,7 @@
           const v = VEHICLES_DATA.find((x) => x.id === vehId);
           if (!v) return;
 
+          window.rideHubSelectedVehicleId = v.id;
           activeBasePrice = v.price;
           activeOwner = v.ownerKey === 'car' ? OWNERS_DATA.car : OWNERS_DATA.moto;
 

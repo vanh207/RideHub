@@ -129,6 +129,19 @@
   }
 
   function proceedBooking() {
+    if (!picker || !picker.syncFromText(byId('detailScheduleInput').value)) {
+      toast('Hãy chọn khoảng thời gian hợp lệ bằng lịch thuê xe.', true);
+      return;
+    }
+    const selectedTime = picker.getState();
+    if (!selectedTime.endDay) {
+      toast('Hãy chọn ngày trả xe trước khi tiếp tục.', true);
+      return;
+    }
+    const pad = (value) => String(value).padStart(2, '0');
+    const toDateTime = (day, time) =>
+      `${selectedTime.year}-${pad(selectedTime.month + 1)}-${pad(day)}T${time}`;
+
     const specs = Array.from(document.querySelectorAll('#detailChips .meta-chip')).map((chip) => chip.textContent.trim()).join(' • ');
     const isDelivery = byId('btnDelivery').classList.contains('btn-primary');
     const deliveryMode = isDelivery ? 'Giao xe tận nơi' : 'Tôi tự đến lấy xe';
@@ -146,6 +159,8 @@
       vehicle: vehicle.name,
       specs,
       schedule: byId('detailScheduleInput').value,
+      startTime: toDateTime(selectedTime.startDay, selectedTime.pickupHour),
+      endTime: toDateTime(selectedTime.endDay, selectedTime.returnHour),
       deliveryMode,
       deliveryAddress,
       deliveryFee,

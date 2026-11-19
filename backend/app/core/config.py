@@ -37,8 +37,8 @@ class Settings(BaseSettings):
     PAYOS_CLIENT_ID: str = ""
     PAYOS_API_KEY: str = ""
     PAYOS_CHECKSUM_KEY: str = ""
-    PAYOS_RETURN_URL: str = "http://localhost:3000/payment/success"
-    PAYOS_CANCEL_URL: str = "http://localhost:3000/payment/cancel"
+    PAYOS_RETURN_URL: str = "http://127.0.0.1:8000/frontend/payment-qr.html"
+    PAYOS_CANCEL_URL: str = "http://127.0.0.1:8000/frontend/payment-qr.html"
 
     # ---- Cấu hình Email (SMTP hoặc Mock) ----
     EMAIL_BACKEND: str = "mock"

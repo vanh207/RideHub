@@ -4,6 +4,7 @@ Chạy:  uvicorn app.main:app --reload
 Tài liệu API tự sinh: http://127.0.0.1:8000/docs
 """
 import os
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
@@ -39,7 +40,9 @@ from app.routers import (
     vehicles,
 )
 
-    
+logger = logging.getLogger("ridehub.startup")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Khởi tạo Firebase Admin SDK
@@ -49,14 +52,25 @@ async def lifespan(app: FastAPI):
     # Lưu ý: create_all KHÔNG sửa bảng đã tồn tại. Đổi cột -> sửa bằng SQL hoặc xoá bảng tạo lại.
     try:
         Base.metadata.create_all(bind=engine)
-        print(f"[DB] Đã kết nối MySQL {settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}")
+        logger.info(
+            "[DB] Connected to MySQL %s:%s/%s",
+            settings.DB_HOST,
+            settings.DB_PORT,
+            settings.DB_NAME,
+        )
         # Tự động nạp dữ liệu mẫu (3 tài khoản đại diện: Khách thuê, Chủ cửa hàng, Admin)
         seed_default_accounts()
     except OperationalError as error:
-        print("[DB] KHÔNG kết nối được MySQL! Kiểm tra MySQL đã bật chưa và file .env.")
+        logger.error(
+            "[DB] MySQL connection failed. Check that MySQL is running and "
+            "backend/.env contains the correct connection settings."
+        )
         if "Unknown database" in str(error.orig):
-            print("[DB] Chưa có database -> mở MySQL Workbench, chạy file sql/init.sql")
-        print(f"[DB] Chi tiết: {error.orig}")
+            logger.error(
+                "[DB] The database does not exist; create it using "
+                "backend/sql/init.sql."
+            )
+        logger.error("[DB] Connection detail: %s", error.orig)
     yield
 
 

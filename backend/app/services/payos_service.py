@@ -13,7 +13,7 @@ import re
 import unicodedata
 from datetime import datetime
 from typing import Any, Dict, Optional
-from urllib.parse import quote_plus
+from urllib.parse import parse_qsl, quote_plus, urlencode, urlsplit, urlunsplit
 
 from fastapi import HTTPException, status
 from payos import AsyncPayOS
@@ -27,6 +27,15 @@ def remove_vietnamese_accents(text: str) -> str:
     nfkd = unicodedata.normalize("NFKD", text)
     no_accent = "".join([c for c in nfkd if not unicodedata.combining(c)])
     return no_accent.replace("đ", "d").replace("Đ", "D")
+
+
+def _url_for_booking(url: str, booking_id: int) -> str:
+    parts = urlsplit(url)
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    query["booking_id"] = str(booking_id)
+    return urlunsplit(
+        (parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment)
+    )
 
 
 class PayOSService:
@@ -137,8 +146,14 @@ class PayOSService:
         desc_to_use = self.clean_description(description or default_desc, max_length=25)
 
         # 3. URL chuyển hướng
-        ret_url = return_url or self.return_url or "http://localhost:3000/payment/success"
-        can_url = cancel_url or self.cancel_url or "http://localhost:3000/payment/cancel"
+        ret_url = _url_for_booking(
+            return_url or self.return_url,
+            booking_id,
+        )
+        can_url = _url_for_booking(
+            cancel_url or self.cancel_url,
+            booking_id,
+        )
 
         # 4. Đóng gói request cho PayOS SDK
         payment_data = CreatePaymentLinkRequest(

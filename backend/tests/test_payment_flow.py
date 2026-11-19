@@ -19,6 +19,7 @@ from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.routers import payment as payment_router
 from app.routers.payment import router
+from app.services.payos_service import _url_for_booking
 
 
 def test_placeholder_secrets_are_replaced_with_random_values():
@@ -35,6 +36,13 @@ def test_placeholder_secrets_are_replaced_with_random_values():
     assert first.PAYMENT_GATEWAY_SECRET != "your_mock_webhook_secret_here"
     assert first.JWT_SECRET_KEY != second.JWT_SECRET_KEY
     assert first.PAYMENT_GATEWAY_SECRET != second.PAYMENT_GATEWAY_SECRET
+
+
+def test_payos_redirect_urls_keep_booking_id():
+    assert _url_for_booking(
+        "https://ridehub.example/payment?source=payos",
+        9401,
+    ) == "https://ridehub.example/payment?source=payos&booking_id=9401"
 
 
 @pytest.fixture()
