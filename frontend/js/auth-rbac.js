@@ -33,19 +33,19 @@
       label: 'Khách thuê',
       badgeClass: 'status-badge--available',
       home: 'vehicles.html',
-      allowedPages: ['index.html', 'vehicles.html', 'booking.html', 'trips.html', 'profile.html', 'auth.html', 'chat.html']
+      allowedPages: ['index.html', 'vehicles.html', 'vehicle-detail.html', 'booking.html', 'trips.html', 'profile.html', 'auth.html', 'chat.html']
     },
     store_owner: {
       label: 'Chủ cửa hàng',
       badgeClass: 'status-badge--transit',
       home: 'store-portal.html',
-      allowedPages: ['index.html', 'store-portal.html', 'profile.html', 'auth.html', 'chat.html']
+      allowedPages: ['index.html', 'store-portal.html', 'vehicle-detail.html', 'profile.html', 'auth.html', 'chat.html']
     },
     admin: {
       label: 'Quản trị hệ thống',
       badgeClass: 'status-badge--maintenance',
       home: 'admin-ops.html',
-      allowedPages: ['index.html', 'admin-ops.html', 'profile.html', 'auth.html', 'chat.html']
+      allowedPages: ['index.html', 'admin-ops.html', 'vehicle-detail.html', 'profile.html', 'auth.html', 'chat.html']
     }
   };
 
@@ -489,7 +489,7 @@
       }
 
       // 2. Filter Navbar & Mobile Drawer links based on role
-      const allowed = roleInfo ? roleInfo.allowedPages : ['index.html', 'vehicles.html', 'booking.html', 'auth.html'];
+      const allowed = roleInfo ? roleInfo.allowedPages : ['index.html', 'vehicles.html', 'vehicle-detail.html', 'booking.html', 'auth.html'];
       document.querySelectorAll('.nav-links a, .mobile-drawer a').forEach((link) => {
         const href = link.getAttribute('href');
         if (!href || href.startsWith('#')) return;

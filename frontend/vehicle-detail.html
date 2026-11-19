@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chi tiết xe — RideHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/components/date-time-picker.css" />
+  <link rel="stylesheet" href="css/components/site-footer.css" />
+  <link rel="stylesheet" href="css/components/chat-widget.css" />
+  <link rel="stylesheet" href="css/pages/vehicle-detail.css" />
+</head>
+<body>
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <div class="blob-layer" aria-hidden="true" data-pause-offscreen>
+    <div class="morph-blob morph-blob--1"></div>
+    <div class="morph-blob morph-blob--2"></div>
+  </div>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <header id="mainNavbar" class="navbar is-scrolled">
+    <div class="container navbar-inner">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;" />
+      </a>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">Trang chủ</a>
+        <a href="vehicles.html" class="nav-link is-active">Tìm &amp; Thuê xe</a>
+        <a href="trips.html" class="nav-link">Chuyến đi</a>
+        <a href="chat.html" class="nav-link">Tin nhắn</a>
+        <a href="index.html#storySection" class="nav-link">Hướng dẫn thuê xe</a>
+        <a href="store-portal.html" class="nav-link">Cửa hàng</a>
+        <a href="admin-ops.html" class="nav-link">Quản trị Admin</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <aside id="mobileDrawer" class="mobile-drawer">
+    <a href="index.html">Trang chủ</a>
+    <a href="vehicles.html">Tìm &amp; Thuê xe</a>
+    <a href="trips.html">Chuyến đi</a>
+    <a href="chat.html">Tin nhắn</a>
+    <a href="index.html#storySection">Hướng dẫn thuê xe</a>
+    <a href="store-portal.html">Cổng Cửa hàng</a>
+    <a href="admin-ops.html">Quản trị Admin</a>
+  </aside>
+
+  <main class="detail-main">
+    <div class="container">
+      <nav class="detail-breadcrumb" aria-label="Đường dẫn">
+        <a href="index.html">Trang chủ</a>
+        <span>/</span>
+        <a href="vehicles.html">Tìm &amp; Thuê xe</a>
+        <span>/</span>
+        <span id="detailBreadcrumbName">Chi tiết xe</span>
+      </nav>
+
+      <div id="detailNotFound" class="panel-card detail-notfound" hidden>
+        <strong>Không tìm thấy phương tiện</strong>
+        <p>Phương tiện bạn chọn không tồn tại hoặc đã ngừng cho thuê.</p>
+        <a href="vehicles.html" class="btn btn-primary">Quay lại danh sách xe</a>
+      </div>
+
+      <div id="detailContent" class="detail-layout" hidden>
+        <div class="detail-main-column">
+          <section class="panel-card detail-hero-card">
+            <div id="detailImageBox" class="detail-image"></div>
+            <div class="detail-hero-body">
+              <div class="badge-row">
+                <span class="status-badge status-badge--available">
+                  <span class="status-dot status-dot-pulse"></span>
+                  <span>Sẵn sàng</span>
+                </span>
+                <div class="vehicle-stats-row">
+                  <span id="detailRating" class="vehicle-rating"></span>
+                  <span id="detailTrips" class="vehicle-trips"></span>
+                </div>
+              </div>
+              <h1 id="detailTitle" class="detail-title">Chi tiết phương tiện</h1>
+              <div id="detailChips" class="vehicle-meta-chips"></div>
+              <div class="vehicle-address detail-address">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 1 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>
+                <span id="detailAddress"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel-card detail-section">
+            <h2 class="detail-section-title">Chủ xe</h2>
+            <div id="detailOwnerCard" class="detail-owner-card" role="button" tabindex="0">
+              <div id="detailOwnerAvatar" class="detail-owner-avatar">GR</div>
+              <div class="detail-owner-info">
+                <div class="detail-owner-label">Chủ xe</div>
+                <div id="detailOwnerInfo" class="detail-owner-name"></div>
+                <div id="detailOwnerStat" class="vehicle-stats-row detail-owner-stats"></div>
+              </div>
+              <span class="detail-owner-link">Xem xe chủ này →</span>
+            </div>
+          </section>
+
+          <section class="panel-card detail-section">
+            <h2 class="detail-section-title">Mô tả xe</h2>
+            <p id="detailDesc"></p>
+          </section>
+
+          <section class="panel-card detail-section">
+            <h2 class="detail-section-title">Các tiện nghi trên xe</h2>
+            <div id="detailAmenities" class="vehicle-meta-chips"></div>
+          </section>
+
+          <section class="panel-card detail-section">
+            <h2 class="detail-section-title">Giấy tờ thuê xe</h2>
+            <p>CCCD gắn chip (đối chiếu) &amp; GPLX hợp lệ còn hạn theo hạng xe.</p>
+          </section>
+
+          <section class="panel-card detail-section">
+            <h2 class="detail-section-title">Tài sản thế chấp</h2>
+            <p id="detailCollateral"></p>
+          </section>
+
+          <section class="panel-card detail-section">
+            <h2 class="detail-section-title">Điều khoản</h2>
+            <p>Sử dụng đúng mục đích, không chở hàng cấm, tuân thủ luật giao thông.</p>
+          </section>
+
+          <section class="panel-card detail-section">
+            <h2 class="detail-section-title">Phụ phí</h2>
+            <ul class="detail-list">
+              <li>Vượt giới hạn 250km/ngày: 3.000đ/km</li>
+              <li>Trả xe trễ: 50.000đ/giờ</li>
+              <li>Vệ sinh / khử mùi: 50.000đ</li>
+            </ul>
+          </section>
+
+          <section class="panel-card detail-section">
+            <h2 class="detail-section-title">Chính sách hủy chuyến</h2>
+            <ul class="detail-list">
+              <li>Trước giờ nhận 24h: hoàn 100% cọc</li>
+              <li>Trong vòng 24h trước nhận xe: hoàn 70% cọc</li>
+              <li>Dưới 2h trước nhận xe: không hoàn cọc</li>
+            </ul>
+          </section>
+        </div>
+
+        <aside class="detail-sidebar">
+          <div class="panel-card detail-booking-card">
+            <div class="detail-price">
+              <strong id="detailBasePrice">0đ</strong>
+              <span>/ngày</span>
+            </div>
+
+            <div class="detail-booking-block">
+              <div class="detail-booking-head">
+                <label class="detail-booking-label" for="detailScheduleInput">Thời gian thuê xe (<span id="detailDurationText">3 ngày</span>)</label>
+                <button id="openDetailDateTimeBtn" type="button" class="btn btn-soft detail-schedule-btn">Mở lịch</button>
+              </div>
+              <input id="detailScheduleInput" class="form-input detail-schedule-input" type="text" placeholder="VD: 12/11 21:00 → 15/11 11:00" />
+            </div>
+
+            <div class="detail-booking-block">
+              <div class="detail-booking-label">Hình thức nhận xe</div>
+              <button id="btnSelfPickup" type="button" class="btn btn-primary detail-delivery-btn">Tôi tự đến lấy xe (0đ)</button>
+              <button id="btnDelivery" type="button" class="btn btn-soft detail-delivery-btn">Giao xe tận nơi (+30.000đ)</button>
+              <div id="pickupAddressNote" class="detail-pickup-note"></div>
+              <div id="deliveryAddressWrap" hidden>
+                <input id="deliveryAddressInput" class="form-input" type="text" placeholder="Nhập địa chỉ giao xe tận nơi..." />
+              </div>
+            </div>
+
+            <div class="detail-booking-block">
+              <div class="detail-booking-label">Tiện ích bổ sung</div>
+              <div class="detail-addons">
+                <label class="pill-check"><input type="checkbox" class="addon-chk" data-price="35000" data-perday="1" /> Bảo hiểm chuyến đi (+35.000đ/ngày)</label>
+                <label class="pill-check"><input type="checkbox" class="addon-chk" data-price="20000" data-perday="0" /> Ghế trẻ em / Nón bảo hiểm thêm (+20.000đ)</label>
+                <label class="pill-check"><input type="checkbox" class="addon-chk" data-price="25000" data-perday="0" /> Giao nhận ngoài giờ (+25.000đ)</label>
+              </div>
+            </div>
+
+            <div class="detail-total-box">
+              <div id="detailPriceBreakdown" class="detail-breakdown"></div>
+              <div class="detail-total">Tổng thuê: <span id="detailTotalPrice">0đ</span></div>
+              <div id="detailDeposit" class="detail-deposit"></div>
+            </div>
+
+            <button id="proceedBookingBtn" class="btn btn-primary btn-premium btn-shine detail-book-btn" type="button">Thuê xe</button>
+            <p class="detail-note">Giữ chỗ 30 phút sau khi gửi yêu cầu. Hệ thống tự động đối soát lịch trống trước khi xác nhận.</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-road-edge">
+      <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Nền tảng thuê xe thông minh">
+        <svg viewBox="0 0 110 64" width="76" height="32"><path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#4ade80"/><g transform="translate(27,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g><g transform="translate(81,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g></svg>
+      </div>
+    </div>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand-row">
+            <img src="assets/logo-rh.png" alt="RideHub Logo" class="footer-logo" />
+            <span class="footer-brand-name">RideHub</span>
+          </div>
+          <p class="footer-brand-desc">
+            Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+          </p>
+          <div class="footer-contact">
+            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn">support@ridehub.vn</a></div>
+            <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="index.html">Trang chủ</a></li>
+            <li class="footer-link-item"><a href="vehicles.html">Tìm &amp; Thuê xe máy, Ô tô</a></li>
+            <li class="footer-link-item"><a href="trips.html">Hành trình &amp; Chuyến đi của tôi</a></li>
+            <li class="footer-link-item"><a href="booking.html">Đơn thuê &amp; Thanh toán cọc</a></li>
+            <li class="footer-link-item"><a href="index.html#storySection">Quy trình bàn giao 4 bước</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="footer-col-title">Dành cho Đối tác</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="store-portal.html">Cổng Quản lý Cửa hàng</a></li>
+            <li class="footer-link-item"><a href="admin-ops.html">Trung tâm Quản trị Admin</a></li>
+            <li class="footer-link-item"><a href="chat.html">Kênh Hỗ trợ &amp; Tin nhắn trực tuyến</a></li>
+            <li class="footer-link-item"><a href="auth.html">Đăng ký làm Chủ xe / Đối tác</a></li>
+            <li class="footer-link-item"><a href="index.html#featuresSection">Hệ thống đối soát tự động PayOS</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="footer-col-title">Cam kết &amp; An toàn</div>
+          <div class="footer-commitments">
+            <div class="footer-commitment"><span>✓</span><span><strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt Face Match.</span></div>
+            <div class="footer-commitment"><span>✓</span><span><strong>Minh bạch bàn giao:</strong> Quay video toàn cảnh 360°, ảnh biên bản &amp; ảnh ODO thực tế.</span></div>
+            <div class="footer-commitment"><span>✓</span><span><strong>Hoàn tiền cọc tự động:</strong> Hoàn 100% trước 24h khi khách hủy theo chính sách.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-divider"></div>
+
+      <div class="footer-bottom-row">
+        <div>
+          © 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.
+        </div>
+        <div class="footer-bottom-links">
+          <span class="footer-badge">Bảo mật PayOS VietQR</span>
+          <span class="footer-badge">Chuẩn an toàn eKYC Chip</span>
+          <a href="index.html#storySection">Điều khoản sử dụng</a>
+          <a href="index.html#storySection">Chính sách bảo mật</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <button id="chatFab" class="chat-fab has-unread" aria-label="Mở trợ lý AI RideHub" type="button">
+    <span class="chat-fab-ring"></span>
+    <svg class="wheel-spin wheel-spin--slow" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/>
+    </svg>
+  </button>
+
+  <div id="chatWindow" class="chat-window" role="dialog" aria-label="Trợ lý AI RideHub">
+    <div class="chat-window-header">
+      <div class="chat-window-title">
+        <span class="chat-status-dot"></span>
+        <strong>Trợ lý AI Tìm &amp; Thuê xe</strong>
+      </div>
+      <button id="chatCloseBtn" class="chat-close-btn" type="button">✕</button>
+    </div>
+    <div id="chatMessages" class="chat-messages">
+      <div class="chat-msg chat-msg--bot">Xin chào! Tôi có thể giúp bạn tìm xe máy hoặc ô tô phù hợp, tư vấn chính sách cọc hay kiểm tra xe trống lịch hôm nay.</div>
+      <div class="chat-quick-row">
+        <button class="chat-quick-pill" data-reply="Gợi ý: VinFast Feliz S (160k/ngày) đang có sẵn gần bạn." type="button">Tìm xe máy giá rẻ</button>
+        <button class="chat-quick-pill" data-reply="VinFast VF 5 Plus (750k/ngày) và Mazda 3 (850k/ngày) đang có sẵn trống lịch." type="button">Tìm ô tô tự lái</button>
+        <button class="chat-quick-pill" data-reply="Bạn chỉ cần hoàn tất eKYC (CCCD + GPLX hợp lệ) là được Miễn thế chấp tiền cọc!" type="button">Miễn cọc eKYC?</button>
+        <button class="chat-quick-pill" data-handoff="true" data-reply="Đã chuyển yêu cầu hỗ trợ sang Nhân viên trực tiếp. Mã phiên: #RH-2026-889." type="button">Gặp nhân viên hỗ trợ</button>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input id="chatInput" type="text" placeholder="Hỏi tìm xe, giá thuê, địa điểm..." />
+      <button id="chatSendBtn" class="btn btn-primary chat-send-btn" type="button">Gửi</button>
+    </div>
+  </div>
+
+  <div id="ownerProfileModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ownerModalTitle">
+    <div class="modal-dialog detail-owner-modal">
+      <div class="detail-modal-header">
+        <h3 id="ownerModalTitle">Thông tin chủ xe</h3>
+        <button data-close-modal class="btn btn-soft detail-modal-close" type="button">Đóng</button>
+      </div>
+
+      <div class="detail-owner-summary">
+        <div id="ownerModalAvatar" class="detail-owner-avatar">GR</div>
+        <div>
+          <h4 id="ownerModalName" class="detail-owner-name"></h4>
+          <div id="ownerModalStats" class="detail-owner-stats"></div>
+          <div id="ownerModalAddr" class="detail-owner-address"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="filter-label detail-fleet-label">Các xe chủ xe đang cho thuê</div>
+        <div id="ownerFleetList" class="detail-owner-fleet"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/vehicle-anim.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/auth-rbac.js"></script>
+  <script src="js/data/vehicles.js"></script>
+  <script src="js/components/date-time-picker.js"></script>
+  <script src="js/pages/vehicle-detail.js"></script>
+</body>
+</html>
