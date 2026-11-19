@@ -15,10 +15,10 @@ const CONFIG = {
   API_BASE_URL: getInitialApiBaseUrl(),
   APP_NAME: "RideHub",
   FIREBASE: {
-    apiKey: "",         // Nạp tự động từ .env (FIREBASE_WEB_API_KEY)
-    projectId: "",      // Nạp tự động từ .env (FIREBASE_PROJECT_ID)
-    authDomain: "",     // Nạp tự động từ .env (FIREBASE_AUTH_DOMAIN)
-    storageBucket: "",  // Nạp tự động từ .env (FIREBASE_STORAGE_BUCKET)
+    apiKey: "AIzaSyAeC9Ln5LN9IIlHhuwGoAcwKYp-8HDDyKU",         // Nạp sẵn mặc định từ .env
+    projectId: "ridehub-carmoto",                               // Nạp sẵn mặc định từ .env
+    authDomain: "ridehub-carmoto.firebaseapp.com",              // Nạp sẵn mặc định từ .env
+    storageBucket: "ridehub-carmoto.appspot.com",               // Nạp sẵn mặc định từ .env
   }
 };
 
