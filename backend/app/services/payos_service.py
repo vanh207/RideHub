@@ -190,6 +190,21 @@ class PayOSService:
                 detail=f"Lỗi khi tra cứu đơn hàng PayOS #{order_code}: {str(exc)}",
             )
 
+    async def cancel_payment_link(
+        self,
+        order_code: int,
+        reason: str = "Booking hold cancelled",
+    ) -> Any:
+        """Hủy link PayOS đang chờ thanh toán."""
+        client = self._get_client()
+        try:
+            return await client.cancelPaymentLink(order_code, reason)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Không thể hủy liên kết thanh toán PayOS.",
+            ) from exc
+
     def verify_payment_webhook_data(self, webhook_body: Dict[str, Any]) -> Any:
         """Xác thực chữ ký dữ liệu Webhook từ PayOS."""
         client = self._get_client()
@@ -293,8 +308,28 @@ class PayOSService:
                     detail=f"Không tìm thấy giao dịch PayOS với mã {transaction_code}",
                 )
 
+            booking = (
+                db.query(Booking)
+                .filter(Booking.id == transaction.booking_id)
+                .with_for_update()
+                .first()
+            )
+            transaction = (
+                db.query(PaymentTransaction)
+                .filter(PaymentTransaction.id == transaction.id)
+                .with_for_update()
+                .first()
+            )
+
             # B5. Idempotency - bỏ qua nếu đã xử lý xong
-            if transaction.status in ("SUCCESS", "REFUNDED"):
+            if transaction.status in (
+                "SUCCESS",
+                "REFUNDED",
+                "FAILED",
+                "CANCELLED",
+                "EXPIRED",
+                "LATE_PAYMENT",
+            ):
                 webhook_log.process_result = "IDEMPOTENT_IGNORED"
                 webhook_log.queue_reason = (
                     f"Giao dịch {transaction_code} đã ở trạng thái {transaction.status}. "
@@ -315,22 +350,64 @@ class PayOSService:
             )
 
             if is_success:
+                reported_amount = data_block.get("amount")
+                try:
+                    amount_matches = (
+                        not isinstance(reported_amount, bool)
+                        and float(reported_amount) == float(transaction.amount)
+                    )
+                except (TypeError, ValueError):
+                    amount_matches = False
+
+                if not amount_matches:
+                    transaction.status = "AMOUNT_MISMATCH"
+                    transaction.paid_at = datetime.now()
+                    webhook_log.process_result = "AMOUNT_MISMATCH"
+                    webhook_log.queue_reason = (
+                        "Số tiền PayOS báo không khớp số tiền của giao dịch."
+                    )
+                    db.commit()
+                    return {
+                        "status": "OK",
+                        "message": "Số tiền thanh toán không khớp; cần xử lý thủ công.",
+                        "transaction_code": transaction_code,
+                        "booking_id": transaction.booking_id,
+                    }
+
                 # === Thanh toán THÀNH CÔNG ===
-                transaction.status = "SUCCESS"
-                transaction.paid_at = datetime.now()
                 transaction.provider_txn_id = (
                     data_block.get("reference")
                     or data_block.get("paymentLinkId")
                 )
 
                 # Cập nhật đơn đặt xe sang BOOKED (khóa xe)
-                booking = (
-                    db.query(Booking)
-                    .filter(Booking.id == transaction.booking_id)
-                    .first()
-                )
+                if (
+                    booking
+                    and (
+                        booking.status not in {"PENDING_PAYMENT", "PENDING"}
+                        or booking.hold_expires_at is None
+                        or booking.hold_expires_at <= datetime.now()
+                    )
+                ):
+                    transaction.status = "LATE_PAYMENT"
+                    transaction.paid_at = datetime.now()
+                    webhook_log.process_result = "LATE_PAYMENT"
+                    webhook_log.queue_reason = (
+                        "PayOS báo đã thanh toán sau khi booking hết hạn hoặc bị hủy."
+                    )
+                    db.commit()
+                    return {
+                        "status": "OK",
+                        "message": "Thanh toán đến sau khi giữ chỗ hết hạn; cần xử lý hoàn tiền.",
+                        "transaction_code": transaction_code,
+                        "booking_id": transaction.booking_id,
+                        "booking_status": booking.status,
+                    }
+
                 if booking:
                     booking.status = "BOOKED"
+                transaction.status = "SUCCESS"
+                transaction.paid_at = datetime.now()
 
                 webhook_log.process_result = "SUCCESS"
                 webhook_log.queue_reason = (

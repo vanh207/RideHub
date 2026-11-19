@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="vi">
   <head>
@@ -803,7 +804,7 @@
           RideHub Payment
         </div>
         <div class="order-info">
-          <span class="order-id">#ORD-20268899</span>
+          <span class="order-id">Booking #<span id="bookingIdDisplay">—</span></span>
           <span class="badge badge-warning" id="statusBadge">
             <span class="badge-dot"></span>
             Đang chờ thanh toán
@@ -813,13 +814,17 @@
 
       <!-- ── Payment Card ── -->
       <div class="payment-card" id="paymentCard">
+        <div id="pageError" role="alert" hidden style="grid-column: 1 / -1; padding: 1rem; color: #991b1b; background: #fee2e2; border-radius: 12px;">
+          <span id="pageErrorText"></span>
+          <button type="button" id="retryButton" style="margin-left: .75rem;">Thử lại</button>
+        </div>
         <!-- ===== LEFT COLUMN ===== -->
         <div class="col-left" id="colLeft">
           <!-- Amount -->
           <div class="amount-block">
             <div class="amount-label">Số tiền cần thanh toán</div>
             <div class="amount-value">
-              1.250.000 <span class="amount-unit">VNĐ</span>
+              <span id="amountDisplay">Đang tải...</span> <span class="amount-unit">VNĐ</span>
             </div>
           </div>
 
@@ -827,7 +832,7 @@
           <div class="countdown-block">
             <div class="countdown-header">
               <span class="countdown-label">⏱ Thời gian còn lại</span>
-              <span class="countdown-time" id="timerDisplay">05:00</span>
+              <span class="countdown-time" id="timerDisplay">--:--</span>
             </div>
             <div class="progress-track">
               <div
@@ -842,7 +847,6 @@
           <div class="qr-area" id="qrArea">
             <img
               id="qrImg"
-              src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=ThanhToanDonHangORD20268899&bgcolor=ffffff&color=1E3A8A&margin=4"
               alt="QR Code Thanh toán"
             />
             <!-- Corner decorations -->
@@ -864,18 +868,17 @@
               >
                 QR Code đã hết hạn
               </div>
-              <button class="btn-refresh" onclick="setState('waiting')">
-                🔄 Tạo lại mã QR
-              </button>
             </div>
           </div>
 
           <!-- Download -->
           <a
             class="btn-download"
-            href="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=ThanhToanDonHangORD20268899"
-            download="QR_ORD20268899.png"
+            id="downloadQr"
+            href="#"
+            download="RideHub-payment-QR.png"
             target="_blank"
+            rel="noopener noreferrer"
           >
             ⬇️ Tải ảnh QR
           </a>
@@ -906,57 +909,44 @@
         <!-- ===== RIGHT COLUMN ===== -->
         <div class="col-right" id="colRight">
           <div>
-            <div class="section-title">Thông tin chuyển khoản thủ công</div>
+            <div class="section-title">Thông tin thanh toán</div>
             <div class="info-table">
-              <div class="info-row">
+              <div class="info-row" id="bankNameRow">
                 <span class="info-label">Ngân hàng</span>
-                <span class="info-value">🏦 MB Bank</span>
-                <button class="btn-copy" onclick="copyText('MB Bank', this)">
+                <span class="info-value" id="bankName">—</span>
+                <button class="btn-copy" data-copy-field="bankName">
                   📋 Copy
                 </button>
               </div>
 
-              <div class="info-row">
+              <div class="info-row" id="accountNumberRow">
                 <span class="info-label">Số TK</span>
-                <span class="info-value">09876543210</span>
-                <button
-                  class="btn-copy"
-                  onclick="copyText('09876543210', this)"
-                >
+                <span class="info-value" id="accountNumber">—</span>
+                <button class="btn-copy" data-copy-field="accountNumber">
                   📋 Copy
                 </button>
               </div>
 
-              <div class="info-row">
+              <div class="info-row" id="accountNameRow">
                 <span class="info-label">Chủ TK</span>
-                <span class="info-value">THAN VAN MINH TUYEN</span>
-                <button
-                  class="btn-copy"
-                  onclick="copyText('THAN VAN MINH TUYEN', this)"
-                >
+                <span class="info-value" id="accountName">—</span>
+                <button class="btn-copy" data-copy-field="accountName">
                   📋 Copy
                 </button>
               </div>
 
-              <div class="info-row">
+              <div class="info-row" id="amountRow">
                 <span class="info-label">Số tiền</span>
-                <span class="info-value highlight">1.250.000 VNĐ</span>
-                <button class="btn-copy" onclick="copyText('1250000', this)">
+                <span class="info-value highlight"><span id="amountCopyDisplay">—</span> VNĐ</span>
+                <button class="btn-copy" data-copy-field="amountRaw">
                   📋 Copy
                 </button>
               </div>
 
-              <div class="info-row">
+              <div class="info-row" id="descriptionRow">
                 <span class="info-label">Nội dung CK</span>
-                <span
-                  class="info-value"
-                  style="font-weight: 700; letter-spacing: 0.04em"
-                  >ORD20268899</span
-                >
-                <button
-                  class="btn-copy"
-                  onclick="copyText('ORD20268899', this)"
-                >
+                <span class="info-value" id="transferDescription" style="font-weight: 700; letter-spacing: 0.04em">—</span>
+                <button class="btn-copy" data-copy-field="transferDescription">
                   📋 Copy
                 </button>
               </div>
@@ -967,13 +957,12 @@
           <div class="status-bar" id="statusBar">
             <div class="spinner" id="spinner"></div>
             <span class="status-text" id="statusText">
-              Hệ thống sẽ tự động xác nhận sau <strong>5–10 giây</strong> kể từ
-              khi chuyển khoản thành công.
+              Đang kết nối cổng thanh toán...
             </span>
           </div>
 
           <!-- Cancel -->
-          <button class="btn-cancel" onclick="setState('expired')">
+          <button class="btn-cancel" id="cancelPaymentButton">
             ✕ Hủy giao dịch
           </button>
 
@@ -999,19 +988,19 @@
             </svg>
           </div>
           <div class="success-title">Thanh toán thành công! 🎉</div>
-          <div class="success-sub">Đơn hàng #ORD-20268899 đã được xác nhận</div>
+          <div class="success-sub">Đơn hàng #<span id="successBookingId">—</span> đã được xác nhận</div>
           <div class="receipt-box">
             <div class="receipt-row">
               <span class="receipt-label">Mã đơn hàng</span>
-              <span class="receipt-value">#ORD-20268899</span>
+              <span class="receipt-value">#<span id="receiptBookingId">—</span></span>
             </div>
             <div class="receipt-row">
               <span class="receipt-label">Số tiền</span>
-              <span class="receipt-value big">1.250.000 VNĐ</span>
+              <span class="receipt-value big"><span id="receiptAmount">—</span> VNĐ</span>
             </div>
             <div class="receipt-row">
               <span class="receipt-label">Ngân hàng</span>
-              <span class="receipt-value">MB Bank</span>
+              <span class="receipt-value" id="receiptBank">—</span>
             </div>
             <div class="receipt-row">
               <span class="receipt-label">Thời gian</span>
@@ -1020,11 +1009,11 @@
             <div class="receipt-row">
               <span class="receipt-label">Mã giao dịch</span>
               <span class="receipt-value" style="color: var(--primary)"
-                >FT26321NKXGT</span
+                ><span id="receiptTransaction">—</span></span
               >
             </div>
           </div>
-          <button class="btn-primary" onclick="setState('waiting')">
+          <button class="btn-primary" onclick="window.location.href='vehicles.html'">
             🏍️ Về trang chủ RideHub
           </button>
         </div>
@@ -1036,19 +1025,16 @@
           </div>
           <div class="expired-title">Giao dịch đã hết hạn</div>
           <div
+            id="expiredMessage"
             style="color: var(--gray-600); font-size: 0.9rem; max-width: 320px"
           >
             Phiên thanh toán đã hết hạn hoặc bị hủy. Bạn có muốn tạo đơn hàng
             mới không?
           </div>
-          <button class="btn-primary" onclick="setState('waiting')">
+          <button class="btn-primary" onclick="window.location.href='vehicles.html'">
             🔄 Tạo lại giao dịch mới
           </button>
-          <button
-            class="btn-cancel"
-            style="max-width: 200px; width: 100%"
-            onclick=""
-          >
+          <button class="btn-cancel" style="max-width: 200px; width: 100%" onclick="window.location.href='vehicles.html'">
             Về trang chủ
           </button>
         </div>
@@ -1057,175 +1043,10 @@
     </div>
     <!-- /page-wrapper -->
 
-    <!-- ═══════ DEMO TOOLBAR ═══════ -->
-    <div class="demo-toolbar">
-      <span class="demo-label">🧪 Demo</span>
-      <button
-        class="demo-btn waiting active"
-        id="btnWaiting"
-        onclick="setState('waiting')"
-      >
-        <span class="dot"></span> Đang chờ
-      </button>
-      <button
-        class="demo-btn success"
-        id="btnSuccess"
-        onclick="setState('success')"
-      >
-        <span class="dot"></span> Thành công
-      </button>
-      <button
-        class="demo-btn expired"
-        id="btnExpired"
-        onclick="setState('expired')"
-      >
-        <span class="dot"></span> Hết hạn
-      </button>
-    </div>
-
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
-    <script>
-      /* ── Countdown ── */
-      const TOTAL_SECONDS = 5 * 60; // 5:00
-      let remaining = TOTAL_SECONDS;
-      let timerInterval = null;
-
-      function formatTime(s) {
-        const m = String(Math.floor(s / 60)).padStart(2, "0");
-        const sec = String(s % 60).padStart(2, "0");
-        return `${m}:${sec}`;
-      }
-
-      function startTimer() {
-        clearInterval(timerInterval);
-        remaining = TOTAL_SECONDS;
-        updateTimerUI();
-        timerInterval = setInterval(() => {
-          remaining--;
-          updateTimerUI();
-          if (remaining <= 0) {
-            clearInterval(timerInterval);
-            setState("expired");
-          }
-        }, 1000);
-      }
-
-      function stopTimer() {
-        clearInterval(timerInterval);
-      }
-
-      function updateTimerUI() {
-        const el = document.getElementById("timerDisplay");
-        const fill = document.getElementById("progressFill");
-        el.textContent = formatTime(remaining);
-        el.classList.toggle("urgent", remaining <= 60);
-        fill.style.width = (remaining / TOTAL_SECONDS) * 100 + "%";
-      }
-
-      /* ── State Machine ── */
-      function setState(state) {
-        const colLeft = document.getElementById("colLeft");
-        const colRight = document.getElementById("colRight");
-        const successScreen = document.getElementById("successScreen");
-        const expiredScreen = document.getElementById("expiredScreen");
-        const statusBadge = document.getElementById("statusBadge");
-        const qrExpiredOverlay = document.getElementById("qrExpiredOverlay");
-        const laser = document.getElementById("laser");
-        const spinner = document.getElementById("spinner");
-        const statusText = document.getElementById("statusText");
-        const statusBar = document.getElementById("statusBar");
-
-        // Reset
-        colLeft.style.display = "";
-        colRight.style.display = "";
-        successScreen.classList.remove("visible");
-        expiredScreen.classList.remove("visible");
-        qrExpiredOverlay.classList.remove("visible");
-
-        // Reset demo buttons
-        ["btnWaiting", "btnSuccess", "btnExpired"].forEach((id) =>
-          document.getElementById(id).classList.remove("active"),
-        );
-
-        if (state === "waiting") {
-          startTimer();
-          statusBadge.className = "badge badge-warning";
-          statusBadge.innerHTML =
-            '<span class="badge-dot"></span> Đang chờ thanh toán';
-          laser.style.display = "block";
-          spinner.style.display = "";
-          statusText.innerHTML =
-            "Hệ thống sẽ tự động xác nhận sau <strong>5–10 giây</strong> kể từ khi chuyển khoản thành công.";
-          statusBar.style.background = "";
-          statusBar.style.borderColor = "";
-          document.getElementById("btnWaiting").classList.add("active");
-        } else if (state === "success") {
-          stopTimer();
-          colLeft.style.display = "none";
-          colRight.style.display = "none";
-          successScreen.classList.add("visible");
-          statusBadge.className = "badge badge-success";
-          statusBadge.innerHTML =
-            '<span class="badge-dot" style="animation:none"></span> Thanh toán thành công';
-          document.getElementById("txTime").textContent =
-            new Date().toLocaleString("vi-VN");
-          document.getElementById("btnSuccess").classList.add("active");
-        } else if (state === "expired") {
-          stopTimer();
-          colLeft.style.display = "none";
-          colRight.style.display = "none";
-          expiredScreen.classList.add("visible");
-          qrExpiredOverlay.classList.add("visible");
-          statusBadge.className = "badge badge-danger";
-          statusBadge.innerHTML =
-            '<span class="badge-dot" style="animation:none"></span> Hết hạn giao dịch';
-          document.getElementById("timerDisplay").textContent = "00:00";
-          document.getElementById("progressFill").style.width = "0%";
-          laser.style.display = "none";
-          document.getElementById("btnExpired").classList.add("active");
-        }
-      }
-
-      /* ── Copy to Clipboard ── */
-      function copyText(text, btn) {
-        navigator.clipboard
-          .writeText(text)
-          .then(() => {
-            const orig = btn.innerHTML;
-            btn.innerHTML = "✅ Đã copy";
-            btn.classList.add("copied");
-            showToast("✅ Đã sao chép: " + text);
-            setTimeout(() => {
-              btn.innerHTML = orig;
-              btn.classList.remove("copied");
-            }, 2000);
-          })
-          .catch(() => {
-            // Fallback
-            const ta = document.createElement("textarea");
-            ta.value = text;
-            ta.style.position = "fixed";
-            ta.style.opacity = "0";
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand("copy");
-            document.body.removeChild(ta);
-            showToast("✅ Đã sao chép: " + text);
-          });
-      }
-
-      /* ── Toast ── */
-      function showToast(msg) {
-        const t = document.getElementById("toast");
-        t.textContent = msg;
-        t.classList.add("show");
-        setTimeout(() => t.classList.remove("show"), 2200);
-      }
-
-      /* ── Boot ── */
-      startTimer();
-    </script>
+    <script src="js/config.js" defer></script>
+    <script src="js/payment-qr.js" defer></script>
   </body>
 </html>
