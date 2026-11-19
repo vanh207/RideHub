@@ -4,17 +4,199 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hồ sơ &amp; Đổi mật khẩu — RideHub</title>
-    <link rel="icon" type="image/png" href="assets/logo-rh.png" />
+    <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/variables.css" />
-    <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="css/animations.css" />
-    <link rel="stylesheet" href="css/pages/kyc.css" />
+    <link rel="stylesheet" href="../css/variables.css" />
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <style id="kycCustomStyles">
+      /* ── Modern eKYC Identity Verification Styles ── */
+      .kyc-tips-banner {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+      }
+      .kyc-tips-icon {
+        font-size: 20px;
+        line-height: 1.2;
+      }
+      .kyc-tips-content {
+        font-size: 13px;
+        color: #166534;
+        line-height: 1.5;
+      }
+      .kyc-section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .kyc-step-num {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #16a34a;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13.5px;
+        flex-shrink: 0;
+      }
+      .kyc-section-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+      .kyc-section-desc {
+        margin: 2px 0 0;
+        font-size: 12.5px;
+        color: #64748b;
+      }
+      .kyc-upload-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      @media (max-width: 640px) {
+        .kyc-upload-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .kyc-upload-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: all 0.2s ease;
+      }
+      .kyc-upload-box:hover {
+        border-color: #16a34a;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.08);
+      }
+      .kyc-upload-box.is-input-error {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+      }
+      .kyc-box-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+      .kyc-file-state {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #f1f5f9;
+        color: #64748b;
+        transition: all 0.2s;
+      }
+      .kyc-file-state.has-file {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .kyc-dropzone-label {
+        display: block;
+        cursor: pointer;
+        position: relative;
+      }
+      .kyc-dropzone-label input[type="file"] {
+        display: none !important;
+      }
+      .kyc-preview-container {
+        min-height: 155px;
+        border: 2px dashed #cbd5e1;
+        border-radius: 10px;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s ease;
+      }
+      .kyc-upload-box:hover .kyc-preview-container {
+        border-color: #22c55e;
+        background: #f0fdf4;
+      }
+      .kyc-dropzone-content {
+        text-align: center;
+        padding: 16px;
+      }
+      .kyc-icon-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin: 0 auto 8px;
+      }
+      .kyc-dropzone-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 3px;
+      }
+      .kyc-dropzone-sub {
+        font-size: 11.5px;
+        color: #64748b;
+      }
+      .kyc-preview-container img {
+        width: 100%;
+        height: 155px;
+        object-fit: cover;
+        border-radius: 8px;
+        display: block;
+      }
+      .kyc-image-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      .kyc-preview-container:hover .kyc-image-overlay {
+        opacity: 1;
+      }
+      .kyc-overlay-btn {
+        background: #ffffff;
+        color: #0f172a;
+        border: none;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      }
+    </style>
   </head>
 
   <body>
@@ -22,18 +204,19 @@
 
     <header id="mainNavbar" class="navbar is-scrolled">
       <div class="container navbar-inner">
-        <a href="index.html" class="brand-logo">
+        <a href="../index.html" class="brand-logo">
           <img
-            src="assets/logo-ridehub.svg"
+            src="../assets/logo-rh.png"
             alt="RideHub"
-            style="height: 36px; width: auto"
+            style="height: 36px; width: auto; object-fit: contain"
           />
+          <span>RideHub</span>
         </a>
         <nav class="nav-links">
-          <a href="index.html" class="nav-link">Trang chủ</a>
-          <a href="vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+          <a href="../index.html" class="nav-link">Trang chủ</a>
+          <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
           <a href="trips.html" class="nav-link">Chuyến đi</a>
-          <a href="index.html#storySection" class="nav-link"
+          <a href="../index.html#storySection" class="nav-link"
             >Hướng dẫn thuê xe</a
           >
         </nav>
@@ -85,7 +268,46 @@
           <button
             type="button"
             class="user-menu-item prof-nav-btn"
-            data-prof-tab="license"
+            data-prof-tab="store"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M3 10h18M5 10v10h14V10M4 10l1-6h14l1 6" />
+              <path d="M9 20v-6h6v6" />
+            </svg>
+            <span>Đăng ký cửa hàng</span>
+          </button>
+          <button
+            type="button"
+            class="user-menu-item prof-nav-btn"
+            data-prof-tab="cccd"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <circle cx="9" cy="10" r="2" />
+              <path d="M6 15c.8-1.6 4.2-1.6 5 0M14 10h4M14 14h4" />
+            </svg>
+            <span>CCCD</span>
+          </button>
+          <button
+            type="button"
+            class="user-menu-item prof-nav-btn"
+            data-prof-tab="gplx"
           >
             <svg
               width="18"
@@ -99,7 +321,7 @@
               <rect x="3" y="5" width="18" height="14" rx="2" />
               <path d="M7 15h4M7 11h10" />
             </svg>
-            <span>CCCD &amp; GPLX</span>
+            <span>GPLX</span>
           </button>
           <button
             type="button"
@@ -237,21 +459,214 @@
             </form>
           </div>
 
-          <!-- Giấy phép lái xe -->
+          <!-- Đăng ký cửa hàng -->
           <div
-            id="driver-license"
+            id="store-registration"
             class="panel-card"
-            data-prof-panel="license"
+            data-prof-panel="store"
             hidden
           >
+            <h1
+              style="
+                margin: 0 0 8px;
+                font-size: 1.35rem;
+                font-family: var(--font-display);
+              "
+            >
+              Đăng ký cửa hàng
+            </h1>
+            <p
+              style="
+                margin: 0 0 16px;
+                color: var(--text-muted);
+                font-size: 13px;
+              "
+            >
+              Gửi thông tin cửa hàng và giấy phép kinh doanh để RideHub xét
+              duyệt.
+            </p>
+            <div
+              id="storeStatusNotice"
+              class="kyc-status-notice"
+              aria-live="polite"
+              hidden
+            >
+              <span
+                id="storeStatusBadge"
+                class="status-badge status-badge--booked"
+              ></span>
+              <p id="storeStatusMessage" style="margin: 8px 0 0"></p>
+            </div>
+            <form id="storeRegistrationForm" novalidate>
+              <div class="kyc-fields-grid">
+                <div class="filter-group">
+                  <label class="filter-label" for="storeName"
+                    >Tên cửa hàng</label
+                  >
+                  <input
+                    id="storeName"
+                    name="name"
+                    class="form-input"
+                    type="text"
+                    minlength="3"
+                    maxlength="100"
+                    required
+                  />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="storePhone"
+                    >Số điện thoại cửa hàng</label
+                  >
+                  <input
+                    id="storePhone"
+                    name="phone"
+                    class="form-input"
+                    type="tel"
+                    autocomplete="tel"
+                    maxlength="20"
+                    required
+                  />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="storeEmail"
+                    >Email cửa hàng</label
+                  >
+                  <input
+                    id="storeEmail"
+                    name="email"
+                    class="form-input"
+                    type="email"
+                    maxlength="255"
+                    required
+                  />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="storeBusinessLicenseNumber"
+                    >Mã số doanh nghiệp / mã số thuế</label
+                  >
+                  <input
+                    id="storeBusinessLicenseNumber"
+                    name="business_license_number"
+                    class="form-input"
+                    type="text"
+                    inputmode="numeric"
+                    pattern="[0-9]{10}([0-9]{3})?"
+                    minlength="10"
+                    maxlength="13"
+                    required
+                  />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="storeProvince"
+                    >Tỉnh / thành phố</label
+                  >
+                  <input
+                    id="storeProvince"
+                    name="province"
+                    class="form-input"
+                    type="text"
+                    maxlength="100"
+                    required
+                  />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="storeDistrict"
+                    >Quận / huyện</label
+                  >
+                  <input
+                    id="storeDistrict"
+                    name="district"
+                    class="form-input"
+                    type="text"
+                    maxlength="100"
+                    required
+                  />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="storeWard"
+                    >Phường / xã</label
+                  >
+                  <input
+                    id="storeWard"
+                    name="ward"
+                    class="form-input"
+                    type="text"
+                    maxlength="100"
+                    required
+                  />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="storeAddressDetail"
+                    >Địa chỉ cụ thể</label
+                  >
+                  <input
+                    id="storeAddressDetail"
+                    name="address_detail"
+                    class="form-input"
+                    type="text"
+                    maxlength="500"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="filter-group">
+                <label class="filter-label" for="storeDescription"
+                  >Mô tả cửa hàng (không bắt buộc)</label
+                >
+                <textarea
+                  id="storeDescription"
+                  name="description"
+                  class="form-input"
+                  rows="3"
+                  maxlength="1000"
+                ></textarea>
+              </div>
+              <div class="filter-group">
+                <label class="filter-label" for="storeBusinessLicenseFile"
+                  >Giấy phép kinh doanh
+                  <strong style="color: #e11d48">*</strong></label
+                >
+                <input
+                  id="storeBusinessLicenseFile"
+                  name="business_license_file"
+                  class="form-input"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                  required
+                />
+                <small class="kyc-field-help"
+                  >Chấp nhận PDF, JPG hoặc PNG; dung lượng tối đa 5MB. Tệp được
+                  lưu riêng tư để xét duyệt.</small
+                >
+              </div>
+              <button
+                id="storeRegistrationSubmit"
+                class="btn btn-primary btn-premium btn-shine"
+                type="submit"
+              >
+                Gửi đăng ký xét duyệt
+              </button>
+            </form>
+          </div>
+
+          <!-- CCCD -->
+          <div
+            id="identity-card"
+            class="panel-card"
+            data-prof-panel="cccd"
+            hidden
+          >
+            <!-- Header Xác minh danh tính -->
             <div
               style="
                 display: flex;
                 justify-content: space-between;
-                align-items: center;
+                align-items: flex-start;
                 flex-wrap: wrap;
-                gap: 10px;
-                margin-bottom: 14px;
+                gap: 12px;
+                margin-bottom: 20px;
+                padding-bottom: 16px;
+                border-bottom: 1px solid var(--border-soft, #e2e8f0);
               "
             >
               <div>
@@ -264,23 +679,33 @@
                 >
                   Xác minh danh tính
                 </h2>
-                <p
-                  style="
-                    margin: 4px 0 0;
-                    font-size: 13px;
-                    color: var(--text-muted);
-                  "
-                >
+                <p style="margin: 6px 0 0; font-size: 13.5px; color: #64748b">
                   Cập nhật CCCD và GPLX để hoàn tất hồ sơ thuê xe.
                 </p>
               </div>
-              <span
-                id="licStatusBadge"
-                class="status-badge status-badge--booked"
-                aria-live="polite"
-                >Chưa nộp</span
+              <button
+                type="button"
+                id="btnKycQuickFill"
+                class="btn btn-soft"
+                style="
+                  font-size: 12.5px;
+                  padding: 7px 16px;
+                  border-radius: 999px;
+                  background: #ecfdf5;
+                  color: #059669;
+                  border: 1px solid #a7f3d0;
+                  font-weight: 700;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  transition: all 0.2s;
+                "
               >
+                ⚡ Điền mẫu tự động
+              </button>
             </div>
+
             <div
               id="kycStatusNotice"
               class="kyc-status-notice"
@@ -546,10 +971,45 @@
       </div>
     </main>
 
-    <script src="js/effects.js"></script>
-    <script src="js/auth-rbac.js"></script>
+    <script src="../js/components.js"></script>
+    <script src="../js/effects.js"></script>
+    <script src="../js/auth-rbac.js"></script>
     <script>
+      const faceScanFields = [
+        {
+          containerId: "cccdFaceScan",
+          videoId: "cccdFaceVideo",
+          previewId: "cccdFacePreview",
+          placeholderId: "cccdFacePlaceholder",
+          startId: "cccdFaceStart",
+          captureId: "cccdFaceCapture",
+          stopId: "cccdFaceStop",
+          userKey: "cccdFacePhotoUrl",
+        },
+      ];
+      const kycImages = {};
+      let activeFaceScan = null;
+      let faceScanRequestId = 0;
+      const stopFaceCamera = () => {
+        faceScanRequestId += 1;
+        if (!activeFaceScan) return;
+        const scan = activeFaceScan;
+        scan.stream.getTracks().forEach((track) => track.stop());
+        scan.stream = null;
+        document.getElementById(scan.videoId).srcObject = null;
+        document.getElementById(scan.videoId).hidden = true;
+        document.getElementById(scan.captureId).hidden = true;
+        document.getElementById(scan.stopId).hidden = true;
+        document.getElementById(scan.startId).hidden = false;
+        document.getElementById(scan.previewId).hidden =
+          !kycImages[scan.userKey];
+        document.getElementById(scan.placeholderId).hidden = Boolean(
+          kycImages[scan.userKey],
+        );
+        activeFaceScan = null;
+      };
       const switchProfileTab = (tabName) => {
+        stopFaceCamera();
         document.querySelectorAll(".prof-nav-btn").forEach((btn) => {
           const active = btn.dataset.profTab === tabName;
           btn.classList.toggle("is-active", active);
@@ -570,52 +1030,282 @@
 
       const syncFromHash = () => {
         if (location.hash === "#change-password") switchProfileTab("password");
-        else if (location.hash === "#driver-license")
-          switchProfileTab("license");
+        else if (["#identity-card", "#cccd"].includes(location.hash))
+          switchProfileTab("cccd");
+        else if (["#driver-license", "#gplx"].includes(location.hash))
+          switchProfileTab("gplx");
+        else if (["#store-registration", "#store"].includes(location.hash))
+          switchProfileTab("store");
         else if (location.hash === "#favorite-vehicles")
           switchProfileTab("favorites");
         else switchProfileTab("profile");
       };
       window.addEventListener("hashchange", syncFromHash);
       syncFromHash();
+      const storeRegistrationForm = document.getElementById(
+        "storeRegistrationForm",
+      );
+      const storeFieldIds = {
+        name: "storeName",
+        phone: "storePhone",
+        email: "storeEmail",
+        province: "storeProvince",
+        district: "storeDistrict",
+        ward: "storeWard",
+        address_detail: "storeAddressDetail",
+        description: "storeDescription",
+        business_license_number: "storeBusinessLicenseNumber",
+      };
+      const setStoreFormValues = (data) => {
+        Object.entries(storeFieldIds).forEach(([key, id]) => {
+          const field = document.getElementById(id);
+          if (data[key] !== undefined && data[key] !== null)
+            field.value = data[key];
+        });
+      };
+      const renderStoreApplication = (application, fallbackUser) => {
+        const status = (
+          application?.status ||
+          fallbackUser?.storeStatus ||
+          "NOT_SUBMITTED"
+        ).toUpperCase();
+        const statusInfo = {
+          NOT_SUBMITTED: [
+            "Chưa đăng ký",
+            "status-badge--booked",
+            "Điền thông tin và tải giấy phép kinh doanh để gửi hồ sơ xét duyệt.",
+          ],
+          PENDING: [
+            "Đang chờ duyệt",
+            "status-badge--booked",
+            "Hồ sơ cửa hàng đã được gửi và đang chờ RideHub xét duyệt.",
+          ],
+          APPROVED: [
+            "Đã duyệt",
+            "status-badge--available",
+            "Cửa hàng đã được duyệt và có thể sử dụng các chức năng dành cho chủ cửa hàng.",
+          ],
+          REJECTED: [
+            "Cần bổ sung",
+            "status-badge--rejected",
+            application?.reject_reason ||
+              fallbackUser?.storeReason ||
+              "Hồ sơ chưa đạt yêu cầu. Vui lòng kiểm tra và gửi lại thông tin, giấy phép.",
+          ],
+        };
+        const [label, badgeClass, message] =
+          statusInfo[status] || statusInfo.NOT_SUBMITTED;
+        const notice = document.getElementById("storeStatusNotice");
+        const badge = document.getElementById("storeStatusBadge");
+        const noticeMessage = document.getElementById("storeStatusMessage");
+        notice.hidden = false;
+        notice.dataset.status = status.toLowerCase();
+        badge.className = `status-badge ${badgeClass}`;
+        badge.textContent = label;
+        noticeMessage.textContent = message;
+        storeRegistrationForm.hidden =
+          status === "PENDING" || status === "APPROVED";
+        if (application) setStoreFormValues(application);
+        else if (fallbackUser) {
+          setStoreFormValues({
+            name: fallbackUser.storeName,
+            phone: fallbackUser.storePhone || fallbackUser.phone,
+            email: fallbackUser.storeEmail || fallbackUser.email,
+            business_license_number: fallbackUser.taxCode,
+          });
+        }
+      };
+      const requestStoreApi = async (endpoint, options = {}) => {
+        const config = window.RIDEHUB_CONFIG;
+        if (!config?.API_BASE_URL)
+          throw new Error("Chưa cấu hình địa chỉ máy chủ RideHub.");
+        const headers = new Headers(options.headers || {});
+        const token = localStorage.getItem("ridehub_auth_token");
+        if (token) headers.set("Authorization", `Bearer ${token}`);
+        const response = await fetch(
+          `${config.API_BASE_URL.replace(/\/$/, "")}/${endpoint.replace(/^\//, "")}`,
+          {
+            ...options,
+            headers,
+            credentials: "include",
+          },
+        );
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || result.success === false) {
+          throw new Error(
+            result.message ||
+              result.detail ||
+              `Không thể hoàn tất yêu cầu (${response.status}).`,
+          );
+        }
+        return result;
+      };
+      const loadStoreApplication = async () => {
+        const user = AuthRBAC.getCurrentUser();
+        if (!user) return;
+        setStoreFormValues({
+          phone: user.storePhone || user.phone,
+          email: user.storeEmail || user.email,
+          name: user.storeName,
+          business_license_number: user.taxCode,
+        });
+        try {
+          const result = await requestStoreApi("stores/mine");
+          renderStoreApplication(result.data, result.data ? user : null);
+          if (result.data) {
+            AuthRBAC.updateProfile({
+              storeId: result.data.id,
+              storeName: result.data.name,
+              storeStatus: result.data.status.toLowerCase(),
+              storeReason: result.data.reject_reason || "",
+            });
+          }
+        } catch (error) {
+          renderStoreApplication(null, user);
+          document.getElementById("storeStatusMessage").textContent =
+            user.storeStatus
+              ? "Đang hiển thị trạng thái đã lưu trên thiết bị; chưa thể xác nhận trạng thái mới từ máy chủ."
+              : "Chưa có hồ sơ đăng ký. Để gửi hồ sơ, vui lòng đăng nhập vào máy chủ RideHub.";
+          if (error.message && user.storeStatus)
+            document.getElementById("storeStatusMessage").textContent +=
+              ` (${error.message})`;
+        }
+      };
+      storeRegistrationForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!storeRegistrationForm.reportValidity()) return;
+        const fileInput = document.getElementById("storeBusinessLicenseFile");
+        const file = fileInput.files[0];
+        const allowedExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
+        const extension = file?.name
+          .slice(file.name.lastIndexOf("."))
+          .toLowerCase();
+        if (
+          !file ||
+          !allowedExtensions.includes(extension) ||
+          file.size > 5 * 1024 * 1024
+        ) {
+          showRideHubToast(
+            "Vui lòng chọn giấy phép kinh doanh PDF, JPG hoặc PNG, tối đa 5MB.",
+            true,
+          );
+          return;
+        }
+
+        const submitButton = document.getElementById("storeRegistrationSubmit");
+        submitButton.disabled = true;
+        submitButton.textContent = "Đang gửi hồ sơ...";
+        try {
+          const formData = new FormData(storeRegistrationForm);
+          const result = await requestStoreApi("stores/register", {
+            method: "POST",
+            body: formData,
+          });
+          const user = AuthRBAC.getCurrentUser();
+          const application = result.data;
+          if (user && application) {
+            AuthRBAC.updateProfile({
+              storeId: application.id,
+              storeName: application.name,
+              storeStatus: application.status.toLowerCase(),
+              storeReason: "",
+            });
+          }
+          renderStoreApplication(application, user);
+          fileInput.value = "";
+          showRideHubToast(
+            result.message || "Đã gửi hồ sơ cửa hàng để xét duyệt.",
+          );
+        } catch (error) {
+          showRideHubToast(
+            error.message || "Không thể gửi hồ sơ cửa hàng.",
+            true,
+          );
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = "Gửi đăng ký xét duyệt";
+        }
+      });
       const kycImageFields = [
         {
           inputId: "profCccdFront",
           previewId: "profCccdFrontPreview",
+          stateId: "stateCccdFront",
           userKey: "cccdFrontPhotoUrl",
         },
         {
           inputId: "profCccdBack",
           previewId: "profCccdBackPreview",
+          stateId: "stateCccdBack",
           userKey: "cccdBackPhotoUrl",
         },
         {
           inputId: "profLicFront",
           previewId: "profLicFrontPreview",
+          stateId: "stateLicFront",
           userKey: "licenseFrontPhotoUrl",
           legacyKey: "licensePhotoUrl",
         },
         {
           inputId: "profLicBack",
           previewId: "profLicBackPreview",
+          stateId: "stateLicBack",
           userKey: "licenseBackPhotoUrl",
         },
       ];
       const kycImages = {};
       const renderKycImage = (previewId, url) => {
         const preview = document.getElementById(previewId);
+        if (!preview) return;
         preview.replaceChildren();
+        const stateEl = stateId ? document.getElementById(stateId) : null;
+
         if (!url) {
-          const placeholder = document.createElement("span");
-          placeholder.className = "kyc-upload-placeholder";
-          placeholder.innerHTML = "＋<small>Tải ảnh</small>";
-          preview.append(placeholder);
+          if (stateEl) {
+            stateEl.textContent = "Chưa chọn ảnh";
+            stateEl.classList.remove("has-file");
+          }
+          const isLic = previewId.includes("Lic");
+          const isFront = previewId.includes("Front");
+          const icon = isLic ? "🚗" : "📷";
+          const title = `Tải lên mặt ${isFront ? "trước" : "sau"} ${isLic ? "GPLX" : "CCCD"}`;
+          const content = document.createElement("div");
+          content.className = "kyc-dropzone-content";
+          content.innerHTML = `
+            <div class="kyc-icon-circle">${icon}</div>
+            <div class="kyc-dropzone-title">${title}</div>
+            <div class="kyc-dropzone-sub">Bấm vào đây để chọn ảnh</div>
+          `;
+          preview.append(content);
           return;
         }
+
+        if (stateEl) {
+          stateEl.textContent = "✓ Đã tải ảnh";
+          stateEl.classList.add("has-file");
+        }
+
         const image = document.createElement("img");
         image.src = url;
         image.alt = "Ảnh giấy tờ đã tải lên";
-        preview.append(image);
+
+        const overlay = document.createElement("div");
+        overlay.className = "kyc-image-overlay";
+        overlay.innerHTML = `<button type="button" class="kyc-overlay-btn">Đổi ảnh khác</button>`;
+
+        preview.append(image, overlay);
+      };
+      const renderFaceScan = (scan, url) => {
+        const image = document.getElementById(scan.previewId);
+        image.src = url || "";
+        image.hidden = !url;
+        document.getElementById(scan.placeholderId).hidden = Boolean(url);
+        document.getElementById(scan.startId).textContent = url
+          ? "Quét lại khuôn mặt"
+          : "Bắt đầu quét";
+        document
+          .getElementById(scan.containerId)
+          .classList.remove("is-input-error");
       };
       const renderKycStatus = (user) => {
         const status = user.kycStatus || "not_submitted";
@@ -645,18 +1335,22 @@
           not_submitted: [
             "Chưa nộp",
             "status-badge--booked",
-            "Tải đủ ảnh hai mặt CCCD và GPLX để gửi hồ sơ xác minh.",
+            "Điền và lưu riêng thông tin CCCD và GPLX, kèm ảnh hai mặt của từng giấy tờ.",
           ],
         };
         const [label, badgeClass, message] =
           statusMap[status] || statusMap.not_submitted;
-        const badge = document.getElementById("licStatusBadge");
-        badge.className = `status-badge ${badgeClass}`;
-        badge.textContent = label;
-        const notice = document.getElementById("kycStatusNotice");
-        notice.textContent = message;
-        notice.hidden = false;
-        notice.dataset.status = status;
+        ["licStatusBadge", "licStatusBadgeGplx"].forEach((id) => {
+          const badge = document.getElementById(id);
+          badge.className = `status-badge ${badgeClass}`;
+          badge.textContent = label;
+        });
+        ["kycStatusNotice", "kycStatusNoticeGplx"].forEach((id) => {
+          const notice = document.getElementById(id);
+          notice.textContent = message;
+          notice.hidden = false;
+          notice.dataset.status = status;
+        });
       };
 
       const renderUser = () => {
@@ -675,16 +1369,39 @@
         else av.textContent = (u.name || "U").trim().slice(-1).toUpperCase();
 
         document.getElementById("profCccdNum").value = u.cccdNumber || "";
+        document.getElementById("profCccdName").value =
+          u.cccdName || u.name || "";
+        document.getElementById("profCccdDob").value = u.cccdDob || u.dob || "";
+        document.getElementById("profCccdGender").value = u.cccdGender || "";
+        document.getElementById("profCccdHometown").value =
+          u.cccdHometown || "";
+        document.getElementById("profCccdAddress").value =
+          u.cccdAddress || u.address || "";
+        document.getElementById("profCccdIssueDate").value =
+          u.cccdIssueDate || "";
+        document.getElementById("profCccdIssuer").value = u.cccdIssuer || "";
+        document.getElementById("profCccdExpiryDate").value =
+          u.cccdExpiryDate || "";
         document.getElementById("profLicNum").value = u.licenseNumber || "";
         document.getElementById("profLicName").value =
           u.licenseName || u.name || "";
         document.getElementById("profLicDob").value =
           u.licenseDob || u.dob || "";
+        document.getElementById("profLicClass").value = u.licenseClass || "";
+        document.getElementById("profLicIssueDate").value =
+          u.licenseIssueDate || "";
+        document.getElementById("profLicExpiryDate").value =
+          u.licenseExpiryDate || "";
+        document.getElementById("profLicIssuer").value = u.licenseIssuer || "";
         renderKycStatus(u);
-        kycImageFields.forEach(({ previewId, userKey, legacyKey }) => {
+        kycImageFields.forEach(({ previewId, stateId, userKey, legacyKey }) => {
           const url = u[userKey] || (legacyKey ? u[legacyKey] : "") || "";
           kycImages[userKey] = url;
-          renderKycImage(previewId, url);
+          renderKycImage(previewId, url, stateId);
+        });
+        faceScanFields.forEach((scan) => {
+          kycImages[scan.userKey] = u[scan.userKey] || "";
+          renderFaceScan(scan, kycImages[scan.userKey]);
         });
       };
       document.addEventListener("DOMContentLoaded", renderUser);
@@ -725,10 +1442,10 @@
           reader.readAsDataURL(file);
         });
 
-      kycImageFields.forEach(({ inputId, previewId, userKey }) => {
+      kycImageFields.forEach(({ inputId, previewId, stateId, userKey }) => {
         document
           .getElementById(inputId)
-          .addEventListener("change", async (event) => {
+          ?.addEventListener("change", async (event) => {
             const input = event.currentTarget;
             const file = input.files?.[0];
             if (!file) return;
@@ -747,9 +1464,9 @@
               const dataUrl = await imageToDataUrl(file);
               kycImages[userKey] = dataUrl;
               input
-                .closest(".kyc-upload-card")
-                .classList.remove("is-input-error");
-              renderKycImage(previewId, dataUrl);
+                .closest(".kyc-upload-box")
+                ?.classList.remove("is-input-error");
+              renderKycImage(previewId, dataUrl, stateId);
             } catch (error) {
               input.value = "";
               showRideHubToast(
@@ -760,54 +1477,207 @@
           });
       });
 
-      document
-        .getElementById("licenseForm")
-        ?.addEventListener("submit", (e) => {
-          e.preventDefault();
-          const cccdEl = document.getElementById("profCccdNum");
-          const numEl = document.getElementById("profLicNum");
-          const nameEl = document.getElementById("profLicName");
-          const dobEl = document.getElementById("profLicDob");
-          const requiredFields = [cccdEl, numEl, nameEl, dobEl];
+      faceScanFields.forEach((scan) => {
+        const video = document.getElementById(scan.videoId);
+        const preview = document.getElementById(scan.previewId);
+        const placeholder = document.getElementById(scan.placeholderId);
+        const startButton = document.getElementById(scan.startId);
+        const captureButton = document.getElementById(scan.captureId);
+        const stopButton = document.getElementById(scan.stopId);
+        const container = document.getElementById(scan.containerId);
+
+        startButton.addEventListener("click", async () => {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showRideHubToast(
+              "Trình duyệt không hỗ trợ camera. Hãy dùng trình duyệt mới và mở trang qua HTTPS.",
+              true,
+            );
+            return;
+          }
+          stopFaceCamera();
+          const requestId = faceScanRequestId;
+          startButton.disabled = true;
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: { ideal: "user" } },
+              audio: false,
+            });
+            if (
+              requestId !== faceScanRequestId ||
+              container.closest("[data-prof-panel]").hidden
+            ) {
+              stream.getTracks().forEach((track) => track.stop());
+              return;
+            }
+            activeFaceScan = { ...scan, stream };
+            video.srcObject = stream;
+            video.hidden = false;
+            preview.hidden = true;
+            placeholder.hidden = true;
+            startButton.hidden = true;
+            captureButton.hidden = false;
+            stopButton.hidden = false;
+            await video.play();
+          } catch (error) {
+            if (requestId !== faceScanRequestId) return;
+            stopFaceCamera();
+            const message =
+              error.name === "NotAllowedError"
+                ? "Bạn cần cho phép truy cập camera để quét khuôn mặt."
+                : error.name === "NotFoundError"
+                  ? "Không tìm thấy camera trên thiết bị."
+                  : error.name === "NotReadableError"
+                    ? "Camera đang được ứng dụng khác sử dụng."
+                    : "Không thể mở camera. Vui lòng kiểm tra quyền truy cập và thử lại.";
+            showRideHubToast(message, true);
+          } finally {
+            startButton.disabled = false;
+          }
+        });
+
+        captureButton.addEventListener("click", () => {
+          if (!video.videoWidth || !video.videoHeight) {
+            showRideHubToast("Camera chưa sẵn sàng. Vui lòng thử lại.", true);
+            return;
+          }
+          try {
+            const scale = Math.min(
+              1,
+              1000 / Math.max(video.videoWidth, video.videoHeight),
+            );
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(video.videoWidth * scale);
+            canvas.height = Math.round(video.videoHeight * scale);
+            const context = canvas.getContext("2d");
+            if (!context) {
+              showRideHubToast(
+                "Trình duyệt không thể xử lý ảnh khuôn mặt.",
+                true,
+              );
+              return;
+            }
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            kycImages[scan.userKey] = canvas.toDataURL("image/jpeg", 0.82);
+            container.classList.remove("is-input-error");
+            stopFaceCamera();
+            renderFaceScan(scan, kycImages[scan.userKey]);
+          } catch (error) {
+            showRideHubToast(
+              "Không thể chụp ảnh khuôn mặt. Vui lòng thử lại.",
+              true,
+            );
+          }
+        });
+
+        stopButton.addEventListener("click", stopFaceCamera);
+      });
+      window.addEventListener("pagehide", stopFaceCamera);
+
+      const readKycField = (id) => document.getElementById(id).value.trim();
+      const isKycComplete = (user) =>
+        Boolean(
+          /^\d{12}$/.test(user.cccdNumber || "") &&
+          user.cccdName &&
+          user.cccdDob &&
+          user.cccdGender &&
+          user.cccdHometown &&
+          user.cccdAddress &&
+          user.cccdIssueDate &&
+          user.cccdIssuer &&
+          user.cccdFrontPhotoUrl &&
+          user.cccdBackPhotoUrl &&
+          user.cccdFacePhotoUrl &&
+          user.licenseNumber &&
+          user.licenseName &&
+          user.licenseDob &&
+          user.licenseClass &&
+          user.licenseIssueDate &&
+          user.licenseIssuer &&
+          (!user.cccdExpiryDate || user.cccdExpiryDate >= today) &&
+          (!user.licenseExpiryDate || user.licenseExpiryDate >= today) &&
+          (user.licenseFrontPhotoUrl || user.licensePhotoUrl) &&
+          user.licenseBackPhotoUrl,
+        );
+      const saveDocumentForm = ({
+        formId,
+        fieldIds,
+        imageKeys,
+        faceKey,
+        buildPatch,
+        errorMessage,
+      }) => {
+        document.getElementById(formId).addEventListener("submit", (event) => {
+          event.preventDefault();
+          stopFaceCamera();
+          const currentUser = AuthRBAC.getCurrentUser();
+          if (!currentUser) {
+            showRideHubToast("Bạn chưa đăng nhập.", true);
+            return;
+          }
+
           let invalid = false;
-          requiredFields.forEach((el) => {
-            const isInvalid =
-              !el.value.trim() ||
-              (el === cccdEl && !/^\d{12}$/.test(el.value.trim()));
-            el.classList.toggle("is-input-error", isInvalid);
-            invalid = invalid || isInvalid;
+          fieldIds.forEach((id) => {
+            const field = document.getElementById(id);
+            let fieldInvalid = field.required && !field.value.trim();
+            if (id === "profCccdNum")
+              fieldInvalid =
+                fieldInvalid || !/^\d{12}$/.test(field.value.trim());
+            if (["profCccdDob", "profLicDob"].includes(id))
+              fieldInvalid =
+                fieldInvalid || (field.value && field.value > today);
+            if (["profCccdIssueDate", "profLicIssueDate"].includes(id))
+              fieldInvalid =
+                fieldInvalid || (field.value && field.value > today);
+            if (["profCccdExpiryDate", "profLicExpiryDate"].includes(id)) {
+              const issueDateId =
+                id === "profCccdExpiryDate"
+                  ? "profCccdIssueDate"
+                  : "profLicIssueDate";
+              fieldInvalid =
+                fieldInvalid ||
+                (field.value &&
+                  (field.value < today ||
+                    field.value <= document.getElementById(issueDateId).value));
+            }
+            field.classList.toggle("is-input-error", Boolean(fieldInvalid));
+            invalid = invalid || Boolean(fieldInvalid);
           });
+
           let missingImages = false;
           kycImageFields.forEach(({ inputId, userKey }) => {
             const card = document
               .getElementById(inputId)
               .closest(".kyc-upload-card");
             const missing = !kycImages[userKey];
-            card.classList.toggle("is-input-error", missing);
+            box?.classList.toggle("is-input-error", missing);
             missingImages = missingImages || missing;
           });
+          if (faceKey) {
+            const faceMissing = !kycImages[faceKey];
+            document
+              .getElementById(
+                faceScanFields.find((scan) => scan.userKey === faceKey)
+                  .containerId,
+              )
+              .classList.toggle("is-input-error", faceMissing);
+            missingImages = missingImages || faceMissing;
+          }
           if (invalid || missingImages) {
-            showRideHubToast(
-              invalid
-                ? "Vui lòng nhập đủ thông tin và kiểm tra số CCCD gồm đúng 12 chữ số."
-                : "Vui lòng tải ảnh hai mặt CCCD và GPLX.",
-              true,
-            );
+            showRideHubToast(errorMessage, true);
             return;
           }
-          const patch = {
-            cccdNumber: cccdEl.value.trim(),
-            licenseNumber: numEl.value.trim(),
-            licenseName: nameEl.value.trim(),
-            licenseDob: dobEl.value,
-            kycStatus: "pending",
-            kycReason: "",
-            cccdFrontPhotoUrl: kycImages.cccdFrontPhotoUrl,
-            cccdBackPhotoUrl: kycImages.cccdBackPhotoUrl,
-            licensePhotoUrl: kycImages.licenseFrontPhotoUrl,
-            licenseFrontPhotoUrl: kycImages.licenseFrontPhotoUrl,
-            licenseBackPhotoUrl: kycImages.licenseBackPhotoUrl,
-          };
+
+          const patch = buildPatch();
+          const updatedUser = { ...currentUser, ...patch };
+          if (isKycComplete(updatedUser)) {
+            patch.kycStatus = "pending";
+            patch.kycReason = "";
+          } else {
+            patch.kycStatus =
+              currentUser.kycStatus === "pending"
+                ? "not_submitted"
+                : currentUser.kycStatus || "not_submitted";
+          }
           const result = AuthRBAC.updateProfile(patch);
           if (!result.ok) {
             showRideHubToast(result.message || "Không thể lưu hồ sơ.", true);
@@ -815,8 +1685,83 @@
           }
           renderUser();
           showRideHubToast(
-            "Đã gửi hồ sơ xác minh. Trạng thái: Đang chờ duyệt.",
+            patch.kycStatus === "pending"
+              ? "Đã cập nhật đủ CCCD và GPLX. Hồ sơ đang chờ duyệt."
+              : "Đã lưu thông tin giấy tờ.",
           );
+        });
+      };
+      const currentDate = new Date();
+      const today = [
+        currentDate.getFullYear(),
+        String(currentDate.getMonth() + 1).padStart(2, "0"),
+        String(currentDate.getDate()).padStart(2, "0"),
+      ].join("-");
+      saveDocumentForm({
+        formId: "cccdForm",
+        fieldIds: [
+          "profCccdNum",
+          "profCccdName",
+          "profCccdDob",
+          "profCccdGender",
+          "profCccdHometown",
+          "profCccdAddress",
+          "profCccdIssueDate",
+          "profCccdIssuer",
+          "profCccdExpiryDate",
+        ],
+        imageKeys: ["cccdFrontPhotoUrl", "cccdBackPhotoUrl"],
+        errorMessage:
+          "Vui lòng kiểm tra thông tin CCCD, tải đủ hai mặt giấy tờ và quét khuôn mặt.",
+        buildPatch: () => ({
+          cccdNumber: readKycField("profCccdNum"),
+          cccdName: readKycField("profCccdName"),
+          cccdDob: readKycField("profCccdDob"),
+          cccdGender: readKycField("profCccdGender"),
+          cccdHometown: readKycField("profCccdHometown"),
+          cccdAddress: readKycField("profCccdAddress"),
+          cccdIssueDate: readKycField("profCccdIssueDate"),
+          cccdIssuer: readKycField("profCccdIssuer"),
+          cccdExpiryDate: readKycField("profCccdExpiryDate"),
+          cccdFrontPhotoUrl: kycImages.cccdFrontPhotoUrl,
+          cccdBackPhotoUrl: kycImages.cccdBackPhotoUrl,
+          cccdFacePhotoUrl: kycImages.cccdFacePhotoUrl,
+        }),
+        faceKey: "cccdFacePhotoUrl",
+      });
+      saveDocumentForm({
+        formId: "gplxForm",
+        fieldIds: [
+          "profLicNum",
+          "profLicName",
+          "profLicDob",
+          "profLicClass",
+          "profLicIssueDate",
+          "profLicExpiryDate",
+          "profLicIssuer",
+        ],
+        imageKeys: ["licenseFrontPhotoUrl", "licenseBackPhotoUrl"],
+        errorMessage:
+          "Vui lòng kiểm tra thông tin GPLX, tải đủ hai mặt giấy phép và quét khuôn mặt.",
+        buildPatch: () => ({
+          licenseNumber: readKycField("profLicNum"),
+          licenseName: readKycField("profLicName"),
+          licenseDob: readKycField("profLicDob"),
+          licenseClass: readKycField("profLicClass"),
+          licenseIssueDate: readKycField("profLicIssueDate"),
+          licenseExpiryDate: readKycField("profLicExpiryDate"),
+          licenseIssuer: readKycField("profLicIssuer"),
+          licensePhotoUrl: kycImages.licenseFrontPhotoUrl,
+          licenseFrontPhotoUrl: kycImages.licenseFrontPhotoUrl,
+          licenseBackPhotoUrl: kycImages.licenseBackPhotoUrl,
+        }),
+      });
+      document
+        .querySelectorAll("#cccdForm .form-input, #gplxForm .form-input")
+        .forEach((field) => {
+          const clearError = () => field.classList.remove("is-input-error");
+          field.addEventListener("input", clearError);
+          field.addEventListener("change", clearError);
         });
 
       // Favorite Vehicles (hiển thị dạng thẻ xe + ấn trái tim để bỏ thích)

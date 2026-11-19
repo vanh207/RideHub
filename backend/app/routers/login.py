@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.session import get_db
 from app.core.dependencies import (
     get_current_user,
@@ -34,12 +35,20 @@ from app.utils.response import create_response
 router = APIRouter(prefix="/auth", tags=["Authentication & Login"])
 
 
-def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: str):
-    """Thiết lập Cookie cho JWT token trên trình duyệt."""
+def _set_auth_cookies(
+    response: JSONResponse,
+    access_token: str,
+    refresh_token: str,
+    remember_me: bool = False,
+):
+    """Thiết lập Cookie cho JWT token trên trình duyệt (thời hạn tùy theo remember_me)."""
+    access_max_age = 30 * 24 * 3600 if remember_me else 7 * 24 * 3600
+    refresh_max_age = 90 * 24 * 3600 if remember_me else 30 * 24 * 3600
+
     response.set_cookie(
         key="ridehub_token",
         value=access_token,
-        max_age=7 * 24 * 3600,
+        max_age=access_max_age,
         httponly=False,
         samesite="lax",
         path="/",
@@ -47,7 +56,7 @@ def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: 
     response.set_cookie(
         key="access_token",
         value=access_token,
-        max_age=7 * 24 * 3600,
+        max_age=access_max_age,
         httponly=False,
         samesite="lax",
         path="/",
@@ -55,7 +64,7 @@ def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: 
     response.set_cookie(
         key="ridehub_refresh_token",
         value=refresh_token,
-        max_age=30 * 24 * 3600,
+        max_age=refresh_max_age,
         httponly=False,
         samesite="lax",
         path="/",
@@ -95,7 +104,12 @@ async def register(body: UserCreate, db: Session = Depends(get_db)):
             "token_type": "bearer",
         },
     )
-    _set_auth_cookies(response, access_token, refresh_token)
+    _set_auth_cookies(
+        response,
+        access_token,
+        refresh_token,
+        remember_me=bool(getattr(body, "remember_me", False)),
+    )
     return response
 
 
@@ -122,7 +136,12 @@ async def login(body: UserLogin, db: Session = Depends(get_db)):
             "token_type": "bearer",
         },
     )
-    _set_auth_cookies(response, access_token, refresh_token)
+    _set_auth_cookies(
+        response,
+        access_token,
+        refresh_token,
+        remember_me=bool(getattr(body, "remember_me", False)),
+    )
     return response
 
 
@@ -148,7 +167,12 @@ async def firebase_login(body: FirebaseLoginRequest, db: Session = Depends(get_d
             "token_type": "bearer",
         },
     )
-    _set_auth_cookies(response, access_token, refresh_token)
+    _set_auth_cookies(
+        response,
+        access_token,
+        refresh_token,
+        remember_me=bool(getattr(body, "remember_me", False)),
+    )
     return response
 
 
@@ -274,3 +298,22 @@ async def customer_orders(user: User = Depends(require_roles("customer", "admin"
         message="Truy cập Danh sách đơn thuê khách hàng thành công.",
         data={"access_granted": True, "user_id": user.id, "role": user.role},
     )
+
+
+@router.get("/config", summary="Lấy cấu hình công khai (Firebase Web API Key, v.v.)")
+async def get_public_auth_config():
+    """Trả về cấu hình công khai cho frontend (đọc an toàn từ file .env)."""
+    return create_response(
+        status_code=200,
+        message="Lấy cấu hình hệ thống thành công.",
+        data={
+            "app_name": settings.APP_NAME,
+            "firebase": {
+                "apiKey": settings.FIREBASE_WEB_API_KEY,
+                "projectId": settings.FIREBASE_PROJECT_ID,
+                "authDomain": settings.FIREBASE_AUTH_DOMAIN,
+                "storageBucket": settings.FIREBASE_STORAGE_BUCKET,
+            },
+        },
+    )
+

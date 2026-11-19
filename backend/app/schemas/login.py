@@ -25,6 +25,7 @@ class UserLogin(BaseModel):
     """Đăng nhập bằng email + mật khẩu."""
     email: EmailStr
     password: str
+    remember_me: Optional[bool] = Field(False, description="Ghi nhớ phiên đăng nhập lâu dài")
 
 
 class FirebaseLoginRequest(BaseModel):

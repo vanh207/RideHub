@@ -7,7 +7,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(".env", "backend/.env", "../backend/.env"),
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
     
     APP_NAME: str = "RideHub API"
 
@@ -46,9 +50,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # ---- Firebase Admin SDK ----
+    # ---- Firebase Admin SDK & Web API Key (Được đọc hoàn toàn từ .env) ----
     FIREBASE_CREDENTIALS_PATH: str = "serviceAccountKey.json"
-    FIREBASE_WEB_API_KEY: str = "AIzaSyAeC9Ln5LN9IIlHhuwGoAcwKYp-8HDDyKU"
+    FIREBASE_WEB_API_KEY: str = ""
+    FIREBASE_PROJECT_ID: str = ""
+    FIREBASE_AUTH_DOMAIN: str = ""
+    FIREBASE_STORAGE_BUCKET: str = ""
 
     @property
     def database_url(self) -> str:

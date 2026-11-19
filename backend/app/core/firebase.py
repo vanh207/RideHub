@@ -187,7 +187,7 @@ def send_firebase_verification_email(firebase_uid: str, email: str) -> bool:
         import urllib.request
         import json
 
-        api_key = getattr(settings, "FIREBASE_WEB_API_KEY", "AIzaSyAeC9Ln5LN9IIlHhuwGoAcwKYp-8HDDyKU")
+        api_key = getattr(settings, "FIREBASE_WEB_API_KEY", "")
 
         # 1. Tạo custom token cho user
         token_bytes = fb_auth.create_custom_token(firebase_uid)
@@ -230,7 +230,7 @@ def send_firebase_password_reset_email(email: str) -> bool:
         import urllib.request
         import json
 
-        api_key = getattr(settings, "FIREBASE_WEB_API_KEY", "AIzaSyAeC9Ln5LN9IIlHhuwGoAcwKYp-8HDDyKU")
+        api_key = getattr(settings, "FIREBASE_WEB_API_KEY", "")
         url = f"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={api_key}"
         req = urllib.request.Request(
             url,
