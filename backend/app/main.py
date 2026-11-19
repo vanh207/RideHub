@@ -24,7 +24,6 @@ from app.db.session import Base, engine
 from app.middleware.audit_log import AuditLogMiddleware
 from app.routers import (
     admin_reviews,
-    audit_logs,
     bookings,
     chat,
     delivery,
@@ -94,7 +93,7 @@ app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
 app.include_router(stores.router, prefix="/api")
 app.include_router(admin_reviews.router, prefix="/api")
-app.include_router(audit_logs.router, prefix="/api")
+app.include_router(bookings.router, prefix="/api")
 app.include_router(login.router)
 app.include_router(login.router, prefix="/api")
 

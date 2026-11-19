@@ -39,6 +39,9 @@ from app.schemas.payment import (
 )
 from app.services.payment_gateway import payment_gateway_service
 from app.services.payos_service import payos_service
+from app.services.booking_eligibility import check_customer_can_rent
+from app.models.user import User
+from app.models.vehicle import Vehicle
 
 router = APIRouter(
     prefix="/payments",
@@ -74,6 +77,20 @@ async def create_payos_deposit_payment(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Không tìm thấy đơn đặt xe với ID {request.booking_id}",
+            )
+
+        customer = db.query(User).filter(User.id == booking.customer_id).first()
+        vehicle = db.query(Vehicle).filter(Vehicle.id == booking.vehicle_id).first()
+        if not customer or not vehicle:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Không thể xác thực khách hàng hoặc phương tiện của đơn đặt xe.",
+            )
+        eligibility = check_customer_can_rent(customer, vehicle, booking.start_time)
+        if not eligibility.eligible:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=eligibility.first_reason(),
             )
 
         if booking.status in ("BOOKED", "COMPLETED"):
@@ -284,6 +301,20 @@ def create_payment_transaction(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Không tìm thấy đơn đặt xe với ID {request.booking_id}",
+            )
+
+        customer = db.query(User).filter(User.id == booking.customer_id).first()
+        vehicle = db.query(Vehicle).filter(Vehicle.id == booking.vehicle_id).first()
+        if not customer or not vehicle:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Không thể xác thực khách hàng hoặc phương tiện của đơn đặt xe.",
+            )
+        eligibility = check_customer_can_rent(customer, vehicle, booking.start_time)
+        if not eligibility.eligible:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=eligibility.first_reason(),
             )
 
         # Kiểm tra xem đơn đặt xe đã hoàn tất thanh toán trước đó chưa
