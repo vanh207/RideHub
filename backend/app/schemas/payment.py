@@ -125,6 +125,8 @@ class BookingPaymentStatusResponse(BaseModel):
     payment_status: str
     transaction_code: Optional[str] = None
     amount: Optional[float] = None
+    paid_at: Optional[datetime] = None
+    failure_reason: Optional[str] = None
     qr_code_url: Optional[str] = None
     bank_name: Optional[str] = None
     bin: Optional[str] = None

@@ -3,6 +3,8 @@
 
   const query = new URLSearchParams(window.location.search);
   const rawBookingId = query.get("booking_id");
+  const returnToOrder = query.get("return_to_order") === "1";
+  const retryRequested = query.get("retry") === "1";
   const bookingId =
     rawBookingId && /^[1-9]\d*$/.test(rawBookingId)
       ? Number(rawBookingId)
@@ -364,8 +366,24 @@
     if (!data || Number(data.booking_id) !== bookingId) {
       throw new Error("Phản hồi trạng thái không khớp booking đang mở.");
     }
-    renderDetails(data);
     const status = String(data.payment_status || "").toUpperCase();
+    const isTerminal = [
+      "SUCCESS",
+      "CANCELLED",
+      "EXPIRED",
+      "FAILED",
+      "LATE_PAYMENT",
+      "REFUNDED",
+      "AMOUNT_MISMATCH",
+    ].includes(status);
+    if (isTerminal && !returnToOrder) {
+      stopActivity();
+      window.location.replace(
+        `payment-result.html?booking_id=${encodeURIComponent(bookingId)}`,
+      );
+      return;
+    }
+    renderDetails(data);
     if (status === "SUCCESS") {
       showSuccess();
       return;
@@ -452,6 +470,19 @@
         `/payments/booking/${bookingId}/status`,
       );
       if (current.payment_status === "NOT_STARTED") {
+        await createPayment();
+        const fresh = await apiRequest(
+          `/payments/booking/${bookingId}/status`,
+        );
+        renderStatus(fresh);
+      } else if (
+        retryRequested &&
+        current.payment_status === "FAILED" &&
+        Number(current.remaining_seconds) > 0 &&
+        ["PENDING", "PENDING_PAYMENT"].includes(
+          String(current.booking_status || "").toUpperCase(),
+        )
+      ) {
         await createPayment();
         const fresh = await apiRequest(
           `/payments/booking/${bookingId}/status`,
