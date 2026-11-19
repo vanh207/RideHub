@@ -18,6 +18,11 @@ class PaymentTransactionResponse(PaymentTransactionBase):
     provider_txn_id: Optional[str] = None
     status: str
     qr_code_url: Optional[str] = None
+    bank_name: Optional[str] = None
+    bank_bin: Optional[str] = None
+    account_number: Optional[str] = None
+    account_name: Optional[str] = None
+    beneficiary_source: Optional[str] = None
     paid_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
@@ -121,6 +126,11 @@ class BookingPaymentStatusResponse(BaseModel):
     transaction_code: Optional[str] = None
     amount: Optional[float] = None
     qr_code_url: Optional[str] = None
+    bank_name: Optional[str] = None
+    bin: Optional[str] = None
+    account_number: Optional[str] = None
+    account_name: Optional[str] = None
+    beneficiary_source: Optional[str] = None
     description: Optional[str] = None
     hold_expires_at: Optional[datetime] = None
     remaining_seconds: int
@@ -139,9 +149,11 @@ class PayOSPaymentResponse(BaseModel):
     qr_code: Optional[str] = Field(None, description="Chuỗi dữ liệu VietQR để vẽ mã QR trên frontend hoặc app ngân hàng quét")
     qr_code_url: Optional[str] = Field(None, description="Link ảnh mã QR động sẵn sàng hiển thị thẻ <img>")
     payment_link_id: Optional[str] = Field(None, description="ID phiên thanh toán phía PayOS")
+    bank_name: Optional[str] = Field(None, description="Tên ngân hàng thụ hưởng")
     account_number: Optional[str] = Field(None, description="Số tài khoản ngân hàng thụ hưởng")
     account_name: Optional[str] = Field(None, description="Tên chủ tài khoản ngân hàng thụ hưởng")
     bin: Optional[str] = Field(None, description="Mã định danh ngân hàng (BIN)")
+    beneficiary_source: Optional[str] = Field(None, description="Nguồn thông tin tài khoản thụ hưởng")
     description: str
     hold_expires_at: datetime
     remaining_seconds: int

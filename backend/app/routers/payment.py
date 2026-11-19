@@ -199,6 +199,9 @@ async def create_payos_deposit_payment(
                     status_code=status.HTTP_409_CONFLICT,
                     detail="Giao dịch đang chờ thanh toán có mã không hợp lệ.",
                 ) from exc
+            beneficiary = payos_service.normalize_beneficiary_details(
+                existing_transaction
+            )
             db.commit()
             return PayOSPaymentResponse(
                 transaction_id=existing_transaction.id,
@@ -209,6 +212,11 @@ async def create_payos_deposit_payment(
                 status=existing_transaction.status,
                 qr_code_url=existing_transaction.qr_code_url,
                 payment_link_id=existing_transaction.provider_txn_id,
+                bank_name=beneficiary["bank_name"],
+                bin=beneficiary["bin"],
+                account_number=beneficiary["account_number"],
+                account_name=beneficiary["account_name"],
+                beneficiary_source=beneficiary["beneficiary_source"],
                 description=f"Coc xe don {booking.id}"[:25],
                 hold_expires_at=booking.hold_expires_at,
                 remaining_seconds=_remaining_hold_seconds(booking),
@@ -234,6 +242,7 @@ async def create_payos_deposit_payment(
         # B4. Lưu bản ghi PaymentTransaction vào MySQL qua SQLAlchemy ở trạng thái PENDING
         order_code = payos_data["order_code"]
         transaction_code = f"PAYOS_{order_code}"
+        beneficiary = payos_service.normalize_beneficiary_details(payos_data)
 
         new_transaction = PaymentTransaction(
             booking_id=booking.id,
@@ -244,6 +253,11 @@ async def create_payos_deposit_payment(
             status="PENDING",
             payment_method="QR_CODE",
             qr_code_url=payos_data["qr_code_url"],
+            bank_name=beneficiary["bank_name"],
+            bank_bin=beneficiary["bin"],
+            account_number=beneficiary["account_number"],
+            account_name=beneficiary["account_name"],
+            beneficiary_source=beneficiary["beneficiary_source"],
         )
         db.add(new_transaction)
         db.commit()
@@ -261,9 +275,11 @@ async def create_payos_deposit_payment(
             qr_code=payos_data["qr_code"],
             qr_code_url=payos_data["qr_code_url"],
             payment_link_id=payos_data["payment_link_id"],
-            account_number=payos_data.get("account_number"),
-            account_name=payos_data.get("account_name"),
-            bin=payos_data.get("bin"),
+            bank_name=beneficiary["bank_name"],
+            account_number=beneficiary["account_number"],
+            account_name=beneficiary["account_name"],
+            bin=beneficiary["bin"],
+            beneficiary_source=beneficiary["beneficiary_source"],
             description=payos_data["description"],
             hold_expires_at=booking.hold_expires_at,
             remaining_seconds=_remaining_hold_seconds(booking),
@@ -410,6 +426,11 @@ async def get_booking_payment_status(
     else:
         payment_status = "NOT_STARTED"
 
+    beneficiary = (
+        payos_service.normalize_beneficiary_details(transaction)
+        if transaction
+        else None
+    )
     return BookingPaymentStatusResponse(
         booking_id=booking.id,
         booking_status=booking.status,
@@ -417,6 +438,13 @@ async def get_booking_payment_status(
         transaction_code=transaction.transaction_code if transaction else None,
         amount=float(transaction.amount) if transaction else None,
         qr_code_url=transaction.qr_code_url if transaction else None,
+        bank_name=beneficiary["bank_name"] if beneficiary else None,
+        bin=beneficiary["bin"] if beneficiary else None,
+        account_number=beneficiary["account_number"] if beneficiary else None,
+        account_name=beneficiary["account_name"] if beneficiary else None,
+        beneficiary_source=(
+            beneficiary["beneficiary_source"] if beneficiary else None
+        ),
         description=f"Coc xe don {booking.id}" if transaction else None,
         hold_expires_at=booking.hold_expires_at,
         remaining_seconds=remaining_seconds,

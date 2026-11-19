@@ -19,7 +19,11 @@ from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.routers import payment as payment_router
 from app.routers.payment import router
-from app.services.payos_service import _url_for_booking
+from app.services.payos_service import (
+    PayOSService,
+    _url_for_booking,
+    settings as payos_settings,
+)
 
 
 def test_placeholder_secrets_are_replaced_with_random_values():
@@ -43,6 +47,30 @@ def test_payos_redirect_urls_keep_booking_id():
         "https://ridehub.example/payment?source=payos",
         9401,
     ) == "https://ridehub.example/payment?source=payos&booking_id=9401"
+
+
+def test_payos_beneficiary_details_normalize_aliases_and_config_fallback(monkeypatch):
+    service = PayOSService()
+    details = service.normalize_beneficiary_details(
+        {
+            "bankName": "Test Bank",
+            "accountNumber": "123456789",
+            "accountName": "RIDEHUB TEST",
+        }
+    )
+    assert details["bank_name"] == "Test Bank"
+    assert details["account_number"] == "123456789"
+    assert details["account_name"] == "RIDEHUB TEST"
+    assert details["beneficiary_source"] == "PayOS"
+
+    monkeypatch.setattr(payos_settings, "PAYOS_BANK_NAME", "Local Bank")
+    monkeypatch.setattr(payos_settings, "PAYOS_ACCOUNT_NUMBER", "987654321")
+    monkeypatch.setattr(payos_settings, "PAYOS_ACCOUNT_NAME", "LOCAL HOLDER")
+    fallback = service.normalize_beneficiary_details({})
+    assert fallback["bank_name"] == "Local Bank"
+    assert fallback["account_number"] == "987654321"
+    assert fallback["account_name"] == "LOCAL HOLDER"
+    assert fallback["beneficiary_source"] == "Cấu hình PAYOS_* trong .env"
 
 
 @pytest.fixture()
@@ -162,6 +190,9 @@ def test_payment_creation_uses_booking_and_reuses_pending_transaction(
     assert first.status_code == 201, first.text
     assert first.json()["amount"] == 200000
     assert first.json()["hold_expires_at"]
+    assert first.json()["bank_name"] == "MB Bank"
+    assert first.json()["account_number"] == "123456"
+    assert first.json()["account_name"] == "RideHub"
     assert calls[0]["amount"] == 200000
 
     second = client.post(
@@ -172,7 +203,11 @@ def test_payment_creation_uses_booking_and_reuses_pending_transaction(
     assert second.json()["transaction_id"] == first.json()["transaction_id"]
     assert len(calls) == 1
     with session_factory() as db:
-        assert db.query(payment_router.PaymentTransaction).count() == 1
+        transaction = db.query(payment_router.PaymentTransaction).one()
+        assert transaction.bank_name == "MB Bank"
+        assert transaction.bank_bin == "970422"
+        assert transaction.account_number == "123456"
+        assert transaction.account_name == "RideHub"
 
 
 def test_customer_cannot_simulate_or_refund_payments(payment_client):
@@ -217,6 +252,11 @@ def test_status_polling_syncs_paid_payos_link(payment_client, monkeypatch):
                 status="PENDING",
                 payment_method="QR_CODE",
                 qr_code_url="https://api.qrserver.com/v1/create-qr-code/",
+                bank_name="MB Bank",
+                bank_bin="970422",
+                account_number="123456",
+                account_name="RideHub",
+                beneficiary_source="PayOS (tên ngân hàng suy ra từ BIN)",
             )
         )
         db.commit()
@@ -232,6 +272,10 @@ def test_status_polling_syncs_paid_payos_link(payment_client, monkeypatch):
     response = client.get("/api/payments/booking/9401/status")
     assert response.status_code == 200
     assert response.json()["payment_status"] == "SUCCESS"
+    assert response.json()["bank_name"] == "MB Bank"
+    assert response.json()["bin"] == "970422"
+    assert response.json()["account_number"] == "123456"
+    assert response.json()["account_name"] == "RideHub"
     with session_factory() as db:
         assert db.get(Booking, 9401).status == "BOOKED"
 

@@ -515,6 +515,20 @@
         border-color: var(--success);
         color: white;
       }
+      .btn-copy:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+      .info-value.unavailable {
+        color: var(--gray-400);
+        font-weight: 400;
+      }
+      .beneficiary-source {
+        margin: 7px 2px 0;
+        color: var(--gray-600);
+        font-size: 0.72rem;
+        line-height: 1.4;
+      }
 
       /* ── Status Bar ── */
       .status-bar {
@@ -951,6 +965,7 @@
                 </button>
               </div>
             </div>
+            <p class="beneficiary-source" id="beneficiarySource" role="status" aria-live="polite"></p>
           </div>
 
           <!-- Status bar -->

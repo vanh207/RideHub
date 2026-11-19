@@ -22,6 +22,22 @@ from payos.types import CreatePaymentLinkRequest
 from app.core.config import settings
 
 
+BANK_NAMES_BY_BIN = {
+    "970422": "MB Bank",
+}
+
+
+def _read_field(source: Any, *names: str) -> Any:
+    for name in names:
+        if isinstance(source, dict):
+            value = source.get(name)
+        else:
+            value = getattr(source, name, None)
+        if value is not None and str(value).strip():
+            return value
+    return None
+
+
 def remove_vietnamese_accents(text: str) -> str:
     """Chuyển đổi chuỗi tiếng Việt có dấu thành không dấu."""
     nfkd = unicodedata.normalize("NFKD", text)
@@ -55,6 +71,79 @@ class PayOSService:
         self.checksum_key = checksum_key or settings.PAYOS_CHECKSUM_KEY
         self.return_url = return_url or settings.PAYOS_RETURN_URL
         self.cancel_url = cancel_url or settings.PAYOS_CANCEL_URL
+
+    def normalize_beneficiary_details(
+        self, source: Any
+    ) -> Dict[str, Optional[str]]:
+        """Normalize PayOS beneficiary fields, with optional local env fallbacks."""
+        bank_bin_value = _read_field(source, "bin", "bank_bin", "bankBin")
+        bank_bin = str(bank_bin_value).strip() if bank_bin_value is not None else None
+        payos_bank_name = _read_field(source, "bank_name", "bankName")
+        payos_account_number = _read_field(
+            source, "account_number", "accountNumber", "account_no", "accountNo"
+        )
+        payos_account_name = _read_field(
+            source, "account_name", "accountName"
+        )
+
+        config_fallback_used = False
+        if payos_bank_name is not None:
+            bank_name = str(payos_bank_name).strip()
+        else:
+            bank_name = BANK_NAMES_BY_BIN.get(bank_bin)
+            if not bank_name:
+                bank_name = settings.PAYOS_BANK_NAME.strip() or None
+                config_fallback_used = bank_name is not None
+        if not bank_name and bank_bin:
+            bank_name = f"BIN {bank_bin}"
+
+        account_number = (
+            str(payos_account_number).strip()
+            if payos_account_number is not None
+            else settings.PAYOS_ACCOUNT_NUMBER.strip() or None
+        )
+        account_name = (
+            str(payos_account_name).strip()
+            if payos_account_name is not None
+            else settings.PAYOS_ACCOUNT_NAME.strip() or None
+        )
+        if payos_account_number is None and account_number:
+            config_fallback_used = True
+        if payos_account_name is None and account_name:
+            config_fallback_used = True
+
+        payos_data_present = any(
+            value is not None
+            for value in (
+                payos_bank_name,
+                bank_bin_value,
+                payos_account_number,
+                payos_account_name,
+            )
+        )
+        stored_source = _read_field(source, "beneficiary_source")
+        if config_fallback_used and payos_data_present:
+            beneficiary_source = "PayOS + cấu hình PAYOS_*"
+        elif config_fallback_used:
+            beneficiary_source = "Cấu hình PAYOS_* trong .env"
+        elif stored_source:
+            beneficiary_source = str(stored_source)
+        elif payos_data_present:
+            beneficiary_source = (
+                "PayOS (tên ngân hàng suy ra từ BIN)"
+                if not payos_bank_name and bank_bin
+                else "PayOS"
+            )
+        else:
+            beneficiary_source = "PayOS chưa trả về thông tin thụ hưởng"
+
+        return {
+            "bank_name": bank_name,
+            "bin": bank_bin,
+            "account_number": account_number,
+            "account_name": account_name,
+            "beneficiary_source": beneficiary_source,
+        }
 
     def _get_client(self) -> AsyncPayOS:
         """Khởi tạo và trả về client AsyncPayOS.
@@ -167,6 +256,7 @@ class PayOSService:
         try:
             # 5. Gọi API PayOS bất đồng bộ bằng client.payment_requests.create
             response = await client.payment_requests.create(payment_data)
+            beneficiary_details = self.normalize_beneficiary_details(response)
 
             # 6. Sinh URL ảnh QR động từ chuỗi VietQR để frontend hiển thị thẻ <img>
             encoded_qr = quote_plus(response.qr_code)
@@ -181,9 +271,7 @@ class PayOSService:
                 "qr_code": response.qr_code,
                 "qr_code_url": qr_image_url,
                 "payment_link_id": response.payment_link_id,
-                "bin": getattr(response, "bin", None),
-                "account_number": getattr(response, "account_number", None),
-                "account_name": getattr(response, "account_name", None),
+                **beneficiary_details,
             }
 
         except HTTPException:

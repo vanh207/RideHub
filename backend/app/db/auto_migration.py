@@ -25,6 +25,13 @@ REQUIRED_COLUMNS = {
         ("business_license_file", "VARCHAR(255) NULL"),
         ("logo_file", "VARCHAR(255) NULL"),
     ],
+    "payment_transactions": [
+        ("bank_name", "VARCHAR(100) NULL"),
+        ("bank_bin", "VARCHAR(20) NULL"),
+        ("account_number", "VARCHAR(50) NULL"),
+        ("account_name", "VARCHAR(255) NULL"),
+        ("beneficiary_source", "VARCHAR(100) NULL"),
+    ],
 }
 
 

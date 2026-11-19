@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     PAYOS_CHECKSUM_KEY: str = ""
     PAYOS_RETURN_URL: str = "http://127.0.0.1:8000/frontend/payment-qr.html"
     PAYOS_CANCEL_URL: str = "http://127.0.0.1:8000/frontend/payment-qr.html"
+    PAYOS_BANK_NAME: str = ""
+    PAYOS_ACCOUNT_NUMBER: str = ""
+    PAYOS_ACCOUNT_NAME: str = ""
 
     # ---- Cấu hình Email (SMTP hoặc Mock) ----
     EMAIL_BACKEND: str = "mock"

@@ -2,9 +2,9 @@
 
 Tự động chạy mỗi khi khởi động server:
 Đảm bảo luôn có 3 tài khoản đại diện chuẩn:
-1. Khách thuê:      customer@ridehub.vn / 123456 (Role: customer)
-2. Chủ cửa hàng:    owner@ridehub.vn    / 123456 (Role: store_owner, kèm cửa hàng đã duyệt)
-3. Admin hệ thống:  admin@ridehub.vn    / 123456 (Role: admin)
+1. Khách thuê:      customer@ridehub.vn / password123 (Role: customer)
+2. Chủ cửa hàng:    owner@ridehub.vn    / password123 (Role: store_owner, kèm cửa hàng đã duyệt)
+3. Admin hệ thống:  admin@ridehub.vn    / password123 (Role: admin)
 """
 import logging
 from datetime import datetime

@@ -20,6 +20,7 @@
     amount: document.getElementById("amountDisplay"),
     amountCopy: document.getElementById("amountCopyDisplay"),
     bankName: document.getElementById("bankName"),
+    beneficiarySource: document.getElementById("beneficiarySource"),
     accountName: document.getElementById("accountName"),
     accountNumber: document.getElementById("accountNumber"),
     bookingId: document.getElementById("bookingIdDisplay"),
@@ -235,18 +236,53 @@
       state.transactionCode = String(data.transaction_code);
       ui.receiptTransaction.textContent = state.transactionCode;
     }
-    const bankName = data.bin ? `BIN ${data.bin}` : "";
-    const bankValues = {
-      bankName,
-      accountNumber: data.account_number || "",
-      accountName: data.account_name || "",
-    };
-    Object.entries(bankValues).forEach(([key, value]) => {
+    const bankBin = data.bin || data.bank_bin || data.bankBin || "";
+    const bankValues = [
+      {
+        key: "bankName",
+        label: "ngân hàng",
+        value:
+          data.bank_name ||
+          data.bankName ||
+          (bankBin ? `BIN ${bankBin}` : ""),
+      },
+      {
+        key: "accountNumber",
+        label: "số tài khoản",
+        value:
+          data.account_number ||
+          data.accountNumber ||
+          data.account_no ||
+          data.accountNo ||
+          "",
+      },
+      {
+        key: "accountName",
+        label: "chủ tài khoản",
+        value: data.account_name || data.accountName || "",
+      },
+    ];
+    const missingBeneficiaryFields = [];
+    bankValues.forEach(({ key, label, value }) => {
       const element = ui[key];
       const row = document.getElementById(`${key}Row`);
-      element.textContent = value || "—";
-      if (row) row.hidden = !value;
+      const copyButton = row.querySelector(".btn-copy");
+      element.textContent = value || "Chưa có";
+      element.classList.toggle("unavailable", !value);
+      copyButton.disabled = !value;
+      if (!value) missingBeneficiaryFields.push(label);
     });
+    if (ui.beneficiarySource) {
+      const source =
+        data.beneficiary_source ||
+        (bankValues.some(({ value }) => value)
+          ? "PayOS"
+          : "PayOS chưa trả về thông tin thụ hưởng");
+      const missingText = missingBeneficiaryFields.length
+        ? ` Chưa có ${missingBeneficiaryFields.join(", ")}.`
+        : "";
+      ui.beneficiarySource.textContent = `Nguồn: ${source}.${missingText}`;
+    }
     ui.bookingId.textContent = String(bookingId);
     ui.receiptBookingId.textContent = String(bookingId);
     ui.successBookingId.textContent = String(bookingId);
@@ -455,6 +491,7 @@
 
   async function copyField(event) {
     const button = event.currentTarget;
+    if (button.disabled) return;
     const field = button.dataset.copyField;
     const element = field === "amountRaw" ? null : document.getElementById(field);
     const value =
