@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.session import get_db
 from app.core.dependencies import (
     get_current_user,
@@ -297,3 +298,22 @@ async def customer_orders(user: User = Depends(require_roles("customer", "admin"
         message="Truy cập Danh sách đơn thuê khách hàng thành công.",
         data={"access_granted": True, "user_id": user.id, "role": user.role},
     )
+
+
+@router.get("/config", summary="Lấy cấu hình công khai (Firebase Web API Key, v.v.)")
+async def get_public_auth_config():
+    """Trả về cấu hình công khai cho frontend (đọc an toàn từ file .env)."""
+    return create_response(
+        status_code=200,
+        message="Lấy cấu hình hệ thống thành công.",
+        data={
+            "app_name": settings.APP_NAME,
+            "firebase": {
+                "apiKey": settings.FIREBASE_WEB_API_KEY,
+                "projectId": settings.FIREBASE_PROJECT_ID,
+                "authDomain": settings.FIREBASE_AUTH_DOMAIN,
+                "storageBucket": settings.FIREBASE_STORAGE_BUCKET,
+            },
+        },
+    )
+

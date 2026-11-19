@@ -419,15 +419,39 @@
   // ======================================================================
   // 2. Xử lý Đăng nhập qua Google (Firebase Client Auth + Backend RBAC)
   // ======================================================================
-  const initFirebaseClient = () => {
+  const initFirebaseClient = async () => {
     if (typeof firebase === 'undefined') return null;
     if (!firebase.apps || !firebase.apps.length) {
+      if (window.envConfigPromise) {
+        await window.envConfigPromise.catch(() => {});
+      }
       const storedApiKey = localStorage.getItem('ridehub_firebase_api_key');
+      let currentApiKey = (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE && CONFIG.FIREBASE.apiKey) ? CONFIG.FIREBASE.apiKey : (storedApiKey || "");
+
+      if (!currentApiKey) {
+        try {
+          const cfgRes = await fetch(getApiUrl('auth/config'));
+          if (cfgRes.ok) {
+            const cfgData = await cfgRes.json();
+            if (cfgData?.data?.firebase) {
+              const fb = cfgData.data.firebase;
+              if (fb.apiKey) currentApiKey = fb.apiKey;
+              if (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE) {
+                if (fb.apiKey) CONFIG.FIREBASE.apiKey = fb.apiKey;
+                if (fb.projectId) CONFIG.FIREBASE.projectId = fb.projectId;
+                if (fb.authDomain) CONFIG.FIREBASE.authDomain = fb.authDomain;
+                if (fb.storageBucket) CONFIG.FIREBASE.storageBucket = fb.storageBucket;
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
       const fbConfig = {
-        apiKey: (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE && CONFIG.FIREBASE.apiKey) ? CONFIG.FIREBASE.apiKey : (storedApiKey || ""),
-        projectId: "ridehub-carmoto",
-        authDomain: "ridehub-carmoto.firebaseapp.com",
-        storageBucket: "ridehub-carmoto.appspot.com",
+        apiKey: currentApiKey,
+        projectId: (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE && CONFIG.FIREBASE.projectId) || "ridehub-carmoto",
+        authDomain: (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE && CONFIG.FIREBASE.authDomain) || "ridehub-carmoto.firebaseapp.com",
+        storageBucket: (typeof CONFIG !== 'undefined' && CONFIG.FIREBASE && CONFIG.FIREBASE.storageBucket) || "ridehub-carmoto.appspot.com",
       };
 
       if (!fbConfig.apiKey) {
@@ -463,14 +487,14 @@
     const msg = isFile
       ? "LƯU Ý VỀ ĐĂNG NHẬP GOOGLE FIREBASE:\n\n" +
         "Trang đang được mở bằng file:/// trực tiếp.\n" +
-        "Google & Firebase OAuth bắt buộc chạy qua máy chủ (http://127.0.0.1:8000 hoặc Live Server http://127.0.0.1:5500).\n\n" +
-        "• Chọn [OK]: Chuyển sang máy chủ backend (http://127.0.0.1:8000/frontend/pages/auth.html)\n" +
+        "Google & Firebase OAuth bắt buộc chạy qua máy chủ tên miền localhost (http://localhost:8000 hoặc Live Server http://localhost:5500 / 5501).\n\n" +
+        "• Chọn [OK]: Chuyển sang máy chủ backend (http://localhost:8000/frontend/pages/auth.html)\n" +
         "• Chọn [Cancel]: Dùng thử tài khoản Google mô phỏng (Demo Google Mode) để tiếp tục ngay."
       : "Google OAuth popup bị chặn trong môi trường này. Bạn có muốn dùng tài khoản Google mô phỏng?";
 
     const proceedHttp = confirm(msg);
     if (proceedHttp) {
-      window.location.href = 'http://127.0.0.1:8000/frontend/pages/auth.html';
+      window.location.href = 'http://localhost:8000/frontend/pages/auth.html';
     } else {
       const demoUser = {
         id: 'usr_demo_google_' + Date.now().toString(36),
@@ -509,7 +533,7 @@
     googleBtn.innerHTML = '<span>Đang kết nối Google Firebase...</span>';
 
     try {
-      const app = initFirebaseClient();
+      const app = await initFirebaseClient();
       if (!app || typeof firebase.auth !== 'function') {
         throw new Error('Firebase Auth SDK chưa sẵn sàng.');
       }
@@ -591,6 +615,28 @@
       } else if (err.code === 'auth/configuration-not-found') {
         if (typeof showRideHubToast === 'function') {
           showRideHubToast('Firebase chưa bật Google Sign-In Provider trong Firebase Console.', true);
+        }
+      } else if (err.code === 'auth/unauthorized-domain') {
+        const currentHost = window.location.hostname;
+        if (currentHost === '127.0.0.1') {
+          const localhostUrl = window.location.href.replace('127.0.0.1', 'localhost');
+          const switchLocalhost = confirm(
+            "LỖI TÊN MIỀN FIREBASE (auth/unauthorized-domain):\n\n" +
+            "Firebase Auth mặc định chỉ cho phép tên miền 'localhost', chưa cấp phép cho IP '127.0.0.1'.\n\n" +
+            "• Chọn [OK]: Chuyển ngay sang địa chỉ 'localhost' (" + localhostUrl + ") để đăng nhập Google.\n" +
+            "• Chọn [Cancel]: Dùng thử tài khoản Google mô phỏng (Demo Google Mode) để tiếp tục."
+          );
+          if (switchLocalhost) {
+            window.location.href = localhostUrl;
+            return;
+          } else {
+            handleLocalFileGoogleLogin();
+            return;
+          }
+        } else {
+          if (typeof showRideHubToast === 'function') {
+            showRideHubToast(`Tên miền '${currentHost}' chưa được cấp phép trong Firebase Console. Hãy mở web qua 'localhost' hoặc thêm '${currentHost}' vào Authorized Domains.`, true);
+          }
         }
       } else {
         if (typeof showRideHubToast === 'function') {

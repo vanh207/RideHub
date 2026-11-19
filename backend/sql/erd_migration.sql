@@ -363,3 +363,35 @@ CREATE TABLE IF NOT EXISTS rental_settlements (
     FOREIGN KEY (booking_id) REFERENCES bookings(id),
     FOREIGN KEY (recorded_by) REFERENCES users(id)
 );
+
+-- ==============================================================================
+-- BẢNG NHẬT KÝ KIỂM TOÁN (AUDIT LOGS)
+-- Ghi nhận thao tác duyệt, đổi trạng thái, hoàn tiền (ai, làm gì, lúc nào)
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    user_email VARCHAR(150) NULL,
+    user_role VARCHAR(50) NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent VARCHAR(500) NULL,
+    action VARCHAR(100) NOT NULL,
+    resource_type VARCHAR(100) NOT NULL,
+    resource_id VARCHAR(100) NULL,
+    http_method VARCHAR(10) NOT NULL,
+    endpoint VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    request_payload JSON NULL,
+    response_summary TEXT NULL,
+    status_code INT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'SUCCESS',
+    error_message TEXT NULL,
+    execution_time_ms FLOAT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_audit_logs_user_id (user_id),
+    INDEX idx_audit_logs_user_email (user_email),
+    INDEX idx_audit_logs_action (action),
+    INDEX idx_audit_logs_resource (resource_type, resource_id),
+    INDEX idx_audit_logs_created_at (created_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+);

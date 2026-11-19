@@ -11,9 +11,19 @@
 (function (global) {
   'use strict';
 
+  const getInitialBaseUrl = () => {
+    if (typeof global.CONFIG !== 'undefined' && global.CONFIG.API_BASE_URL) {
+      return global.CONFIG.API_BASE_URL;
+    }
+    if (typeof window !== 'undefined' && window.location) {
+      if (window.location.port === '8000') return `${window.location.origin}/api`;
+    }
+    return 'http://127.0.0.1:8000/api';
+  };
+
   // Config mặc định
   const DEFAULT_CONFIG = {
-    baseUrl: 'https://api.ridehub.vn/v1',
+    baseUrl: getInitialBaseUrl(),
     timeoutMs: 8000,
     mockMode: true, // Mặc định bật Mock fallback để ứng dụng chạy độc lập
     storageUserKey: 'ridehub_current_user',
@@ -128,7 +138,10 @@
       } = options;
 
       // Xây dựng URL & query params
-      let url = endpoint.startsWith('http') ? endpoint : `${this.config.baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+      const activeBaseUrl = (typeof global.CONFIG !== 'undefined' && global.CONFIG.API_BASE_URL)
+        ? global.CONFIG.API_BASE_URL
+        : this.config.baseUrl;
+      let url = endpoint.startsWith('http') ? endpoint : `${activeBaseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
       if (params && Object.keys(params).length > 0) {
         const query = new URLSearchParams();
         Object.entries(params).forEach(([k, v]) => {

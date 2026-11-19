@@ -25,6 +25,7 @@ class User(Base):
     identity_documents = relationship("IdentityDocument", back_populates="user")
     driver_licenses = relationship("DriverLicense", back_populates="user")
     stores = relationship("Store", back_populates="owner")
+    audit_logs = relationship("AuditLog", back_populates="user")
 
     @property
     def role(self) -> str:

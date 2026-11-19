@@ -19,9 +19,12 @@ from app.core.store_errors import (
     store_http_exception_handler,
 )
 from app.core.firebase import init_firebase
+from app.db.seed_data import seed_default_accounts
 from app.db.session import Base, engine
+from app.middleware.audit_log import AuditLogMiddleware
 from app.routers import (
     admin_reviews,
+    bookings,
     chat,
     delivery,
     faq,
@@ -47,6 +50,8 @@ async def lifespan(app: FastAPI):
     try:
         Base.metadata.create_all(bind=engine)
         print(f"[DB] Đã kết nối MySQL {settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}")
+        # Tự động nạp dữ liệu mẫu (3 tài khoản đại diện: Khách thuê, Chủ cửa hàng, Admin)
+        seed_default_accounts()
     except OperationalError as error:
         print("[DB] KHÔNG kết nối được MySQL! Kiểm tra MySQL đã bật chưa và file .env.")
         if "Unknown database" in str(error.orig):
@@ -64,14 +69,19 @@ app.add_exception_handler(HTTPException, store_http_exception_handler)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Audit Log Middleware: Ghi vết kiểm toán cho các thao tác duyệt, đổi trạng thái, hoàn tiền
+app.add_middleware(AuditLogMiddleware)
+
 # Mọi API đều bắt đầu bằng /api. Thêm router mới thì include ở đây.
 app.include_router(health.router, prefix="/api")
 app.include_router(items.router, prefix="/api")
+app.include_router(bookings.router, prefix="/api")
 app.include_router(payment.router, prefix="/api")
 
 app.include_router(chat.router, prefix="/api")
@@ -83,6 +93,7 @@ app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
 app.include_router(stores.router, prefix="/api")
 app.include_router(admin_reviews.router, prefix="/api")
+app.include_router(bookings.router, prefix="/api")
 app.include_router(login.router)
 app.include_router(login.router, prefix="/api")
 

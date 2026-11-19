@@ -1,0 +1,95 @@
+.dt-picker-modal {
+  width: min(460px, 95vw);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dt-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dt-picker-header h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+.dt-picker-close {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.dt-picker-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.dt-picker-summary-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dt-picker-summary-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--green-700);
+  display: grid;
+  place-items: center;
+}
+
+.dt-picker-summary-right {
+  text-align: right;
+}
+
+.dt-picker-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dt-picker-summary-right strong {
+  font-size: 13px;
+  color: var(--green-700);
+}
+
+.dt-picker-time-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dt-picker-time-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dt-picker-time-head label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dt-picker-time-input {
+  width: auto;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dt-picker-done {
+  width: 100%;
+}
+
+.dt-cal-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
