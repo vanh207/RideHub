@@ -1,0 +1,81 @@
+.footer-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.footer-logo {
+  height: 34px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+.footer-brand-name {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.footer-brand-desc {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #d1fae5;
+  margin: 0 0 14px;
+}
+
+.footer-contact {
+  font-size: 12.5px;
+  color: #a7f3d0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.footer-contact a {
+  color: var(--green-300);
+  text-decoration: none;
+}
+
+.footer-commitments {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12.5px;
+  color: #d1fae5;
+  line-height: 1.55;
+}
+
+.footer-commitment {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.footer-commitment > span:first-child {
+  color: var(--green-400);
+  font-weight: 800;
+}
+
+.footer-bottom-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.footer-bottom-links a {
+  color: #a7f3d0;
+  text-decoration: none;
+}
+
+.footer-badge {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.15);
+  color: var(--green-300);
+  font-size: 11px;
+  font-weight: 700;
+}

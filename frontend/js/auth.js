@@ -487,14 +487,14 @@
     const msg = isFile
       ? "LƯU Ý VỀ ĐĂNG NHẬP GOOGLE FIREBASE:\n\n" +
         "Trang đang được mở bằng file:/// trực tiếp.\n" +
-        "Google & Firebase OAuth bắt buộc chạy qua máy chủ (http://127.0.0.1:8000 hoặc Live Server http://127.0.0.1:5500).\n\n" +
-        "• Chọn [OK]: Chuyển sang máy chủ backend (http://127.0.0.1:8000/frontend/pages/auth.html)\n" +
+        "Google & Firebase OAuth bắt buộc chạy qua máy chủ tên miền localhost (http://localhost:8000 hoặc Live Server http://localhost:5500 / 5501).\n\n" +
+        "• Chọn [OK]: Chuyển sang máy chủ backend (http://localhost:8000/frontend/pages/auth.html)\n" +
         "• Chọn [Cancel]: Dùng thử tài khoản Google mô phỏng (Demo Google Mode) để tiếp tục ngay."
       : "Google OAuth popup bị chặn trong môi trường này. Bạn có muốn dùng tài khoản Google mô phỏng?";
 
     const proceedHttp = confirm(msg);
     if (proceedHttp) {
-      window.location.href = 'http://127.0.0.1:8000/frontend/pages/auth.html';
+      window.location.href = 'http://localhost:8000/frontend/pages/auth.html';
     } else {
       const demoUser = {
         id: 'usr_demo_google_' + Date.now().toString(36),
@@ -615,6 +615,28 @@
       } else if (err.code === 'auth/configuration-not-found') {
         if (typeof showRideHubToast === 'function') {
           showRideHubToast('Firebase chưa bật Google Sign-In Provider trong Firebase Console.', true);
+        }
+      } else if (err.code === 'auth/unauthorized-domain') {
+        const currentHost = window.location.hostname;
+        if (currentHost === '127.0.0.1') {
+          const localhostUrl = window.location.href.replace('127.0.0.1', 'localhost');
+          const switchLocalhost = confirm(
+            "LỖI TÊN MIỀN FIREBASE (auth/unauthorized-domain):\n\n" +
+            "Firebase Auth mặc định chỉ cho phép tên miền 'localhost', chưa cấp phép cho IP '127.0.0.1'.\n\n" +
+            "• Chọn [OK]: Chuyển ngay sang địa chỉ 'localhost' (" + localhostUrl + ") để đăng nhập Google.\n" +
+            "• Chọn [Cancel]: Dùng thử tài khoản Google mô phỏng (Demo Google Mode) để tiếp tục."
+          );
+          if (switchLocalhost) {
+            window.location.href = localhostUrl;
+            return;
+          } else {
+            handleLocalFileGoogleLogin();
+            return;
+          }
+        } else {
+          if (typeof showRideHubToast === 'function') {
+            showRideHubToast(`Tên miền '${currentHost}' chưa được cấp phép trong Firebase Console. Hãy mở web qua 'localhost' hoặc thêm '${currentHost}' vào Authorized Domains.`, true);
+          }
         }
       } else {
         if (typeof showRideHubToast === 'function') {

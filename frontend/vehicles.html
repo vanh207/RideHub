@@ -10,6 +10,10 @@
   <link rel="stylesheet" href="css/variables.css" />
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/components/date-time-picker.css" />
+  <link rel="stylesheet" href="css/components/site-footer.css" />
+  <link rel="stylesheet" href="css/components/chat-widget.css" />
+  <link rel="stylesheet" href="css/pages/search.css" />
 </head>
 <body>
   <div class="noise-overlay" aria-hidden="true"></div>
@@ -54,7 +58,7 @@
 
   <section class="subpage-hero">
     <div class="aurora-bg" aria-hidden="true"></div>
-    <div class="container" style="position:relative;z-index:2;">
+    <div class="container search-hero-content">
       <span class="eyebrow">Khám phá phương tiện</span>
       <h1 class="section-title" data-reveal="text-mask">Tìm kiếm phương tiện khả dụng theo thời gian thực</h1>
       <p class="section-subtitle">Tự động đối soát lịch trống, đảm bảo phương tiện sẵn sàng và đạt chuẩn an toàn.</p>
@@ -101,10 +105,10 @@
         </div>
       </div>
     </div>
-    <div class="container two-col-layout">
-      <!-- Filter Sidebar -->
-      <aside class="panel-card">
-        <h2 style="margin:0 0 16px;font-size:1.1rem;">Bộ lọc tìm kiếm</h2>
+
+    <div class="container two-col-layout search-layout">
+      <aside class="panel-card search-filters">
+        <h2 class="search-filter-title">Bộ lọc tìm kiếm</h2>
 
         <div class="filter-group">
           <label class="filter-label" for="cityFilter">Thành phố</label>
@@ -117,15 +121,15 @@
 
         <div class="filter-group">
           <label class="filter-label" for="filterScheduleInput">Nhận xe — Trả xe (<span id="filterDurationText">3 ngày</span>)</label>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input id="filterScheduleInput" class="form-input" type="text" value="12/11 21:00 → 15/11 11:00" placeholder="VD: 12/11 21:00 → 15/11 11:00" style="flex:1;font-weight:700;color:var(--green-800);" />
-            <button id="openFilterDateTimeBtn" class="btn btn-soft" style="min-height:42px;padding:6px 12px;font-size:12px;" type="button">Lịch</button>
+          <div class="search-schedule-row">
+            <input id="filterScheduleInput" class="form-input search-schedule-input" type="text" placeholder="VD: 12/11 21:00 → 15/11 11:00" />
+            <button id="openFilterDateTimeBtn" class="btn btn-soft search-schedule-btn" type="button">Lịch</button>
           </div>
         </div>
 
         <div class="filter-group">
           <span class="filter-label">Loại phương tiện</span>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div class="search-pill-row">
             <label class="pill-check"><input type="radio" name="vType" value="all" checked /> Tất cả</label>
             <label class="pill-check"><input type="radio" name="vType" value="moto" /> Xe máy</label>
             <label class="pill-check"><input type="radio" name="vType" value="car" /> Ô tô</label>
@@ -134,28 +138,29 @@
 
         <div class="filter-group">
           <span class="filter-label">Hộp số &amp; Nhiên liệu</span>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <label class="pill-check"><input type="checkbox" id="chkFuelEco" checked /> Điện / Xanh</label>
+          <div class="search-pill-row">
+            <label class="pill-check"><input type="checkbox" id="chkFuelEco" /> Điện / Xanh</label>
             <label class="pill-check"><input type="checkbox" id="chkTransAuto" /> Tự động</label>
             <label class="pill-check"><input type="checkbox" id="chkTransManual" /> Xe số</label>
           </div>
         </div>
 
         <div class="filter-group">
-          <label class="filter-label" for="priceFilter">Giá tối đa / ngày: <strong id="priceCapLabel">1.500.000đ</strong></label>
-          <input id="priceFilter" type="range" min="100000" max="2000000" step="50000" value="2000000" style="width:100%;accent-color:var(--green-500);" oninput="document.getElementById('priceCapLabel').textContent=Number(this.value).toLocaleString('vi-VN')+'đ'" />
+          <label class="filter-label" for="priceFilter">Giá tối đa / ngày: <strong id="priceCapLabel">2.000.000đ</strong></label>
+          <input id="priceFilter" class="search-price-range" type="range" min="100000" max="2000000" step="50000" value="2000000" />
         </div>
 
-        <button id="applyFilterBtn" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button">Áp dụng bộ lọc</button>
+        <button id="applyFilterBtn" class="btn btn-primary btn-premium btn-shine search-apply-btn" type="button">Áp dụng bộ lọc</button>
       </aside>
 
-      <!-- Results Area -->
-      <div>
-        <div class="panel-card" style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-          <div><strong id="resultsCount">24 phương tiện</strong> khả dụng • <span id="resultsDateSummary" style="color:var(--green-700);font-weight:700;">12/11 21:00 &rarr; 15/11 11:00</span></div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span style="font-size:13px;color:var(--text-muted);">Sắp xếp:</span>
-            <select id="sortResults" class="form-select" style="width:auto;">
+      <div class="search-results">
+        <div class="panel-card search-toolbar">
+          <div class="search-summary">
+            <strong id="resultsCount" aria-live="polite">24 phương tiện</strong> khả dụng • <span id="resultsDateSummary" class="search-date-summary"></span>
+          </div>
+          <div class="search-sort-wrap">
+            <span class="search-sort-label">Sắp xếp:</span>
+            <select id="sortResults" class="form-select search-sort-select">
               <option value="featured">Phổ biến nhất</option>
               <option value="price-asc">Giá thấp → cao</option>
               <option value="price-desc">Giá cao → thấp</option>
@@ -164,33 +169,33 @@
           </div>
         </div>
 
-        <!-- Search Loader -->
-        <div id="filterLoader" hidden class="panel-card" style="margin-bottom:20px;text-align:center;">
-          <div style="font-weight:700;color:var(--green-700);margin-bottom:8px;">Đang kiểm tra lịch trống &amp; thời gian đệm...</div>
-          <div style="height:34px;position:relative;overflow:hidden;border-bottom:2px dashed var(--green-300);max-width:360px;margin:0 auto;">
-            <div style="position:absolute;left:0;bottom:2px;width:48px;animation:loaderMotoZoom 1.1s var(--ease-in-out) infinite;">
+        <div id="filterLoader" hidden class="panel-card search-loader">
+          <div class="search-loader-text">Đang kiểm tra lịch trống &amp; thời gian đệm...</div>
+          <div class="search-loader-track">
+            <div class="search-loader-moto">
               <svg viewBox="0 0 110 64" width="48" height="28"><path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#22c55e"/><circle cx="27" cy="45" r="10" fill="#132a1c"/><circle cx="81" cy="45" r="10" fill="#132a1c"/></svg>
             </div>
           </div>
         </div>
 
-        <!-- 3 cards per row, 9 cards per page -->
-        <div id="vehiclesGrid" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:20px;"></div>
+        <div id="vehiclesGrid" class="vehicles-grid"></div>
 
-        <!-- Pagination Controls -->
-        <div id="vehiclesPagination" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:28px;flex-wrap:wrap;padding:16px;background:var(--bg-surface-soft);border-radius:14px;border:1px solid var(--green-100);">
-          <button id="prevPageBtn" class="btn btn-soft" style="min-height:36px;padding:6px 14px;font-size:13px;" type="button">&larr; Trước</button>
-          <div id="paginationNumbers" style="display:flex;gap:6px;"></div>
-          <button id="nextPageBtn" class="btn btn-soft" style="min-height:36px;padding:6px 14px;font-size:13px;" type="button">Sau &rarr;</button>
-          <span id="paginationInfo" style="font-size:13px;font-weight:600;color:var(--text-muted);margin-left:10px;">Trang 1 / 3 (24 xe)</span>
+        <div id="emptyState" class="panel-card search-empty" hidden>
+          <strong>Không tìm thấy phương tiện phù hợp</strong>
+          <p>Hãy thử mở rộng khoảng giá, bỏ bớt bộ lọc hoặc chọn thành phố khác.</p>
+          <button id="resetFiltersBtn" class="btn btn-primary" type="button">Đặt lại bộ lọc</button>
+        </div>
+
+        <div id="vehiclesPagination" class="search-pagination">
+          <button id="prevPageBtn" class="btn btn-soft search-page-btn" type="button">&larr; Trước</button>
+          <div id="paginationNumbers" class="search-page-numbers"></div>
+          <button id="nextPageBtn" class="btn btn-soft search-page-btn" type="button">Sau &rarr;</button>
+          <span id="paginationInfo" class="search-pagination-info">Trang 1 / 3 (24 xe)</span>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- ======================================================================
-       FOOTER (CHUNG TOÀN HỆ THỐNG RIDEHUB)
-       ====================================================================== -->
   <footer class="site-footer">
     <div class="footer-road-edge">
       <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Nền tảng thuê xe thông minh">
@@ -199,22 +204,20 @@
     </div>
     <div class="container">
       <div class="footer-grid">
-        <!-- Cột 1: Về RideHub -->
         <div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-            <img src="assets/logo-rh.png" alt="RideHub Logo" style="height:34px;width:auto;filter:brightness(0) invert(1);" />
-            <span style="font-family:var(--font-display);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">RideHub</span>
+          <div class="footer-brand-row">
+            <img src="assets/logo-rh.png" alt="RideHub Logo" class="footer-logo" />
+            <span class="footer-brand-name">RideHub</span>
           </div>
-          <p style="font-size:13px;line-height:1.65;color:#d1fae5;margin:0 0 14px;">
+          <p class="footer-brand-desc">
             Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
           </p>
-          <div style="font-size:12.5px;color:#a7f3d0;display:flex;flex-direction:column;gap:5px;">
-            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868" style="color:var(--green-300);text-decoration:none;">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn" style="color:var(--green-300);text-decoration:none;">support@ridehub.vn</a></div>
+          <div class="footer-contact">
+            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn">support@ridehub.vn</a></div>
             <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
           </div>
         </div>
 
-        <!-- Cột 2: Khám phá & Dịch vụ -->
         <div>
           <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
           <ul class="footer-links-list">
@@ -226,7 +229,6 @@
           </ul>
         </div>
 
-        <!-- Cột 3: Quản trị & Đối tác -->
         <div>
           <div class="footer-col-title">Dành cho Đối tác</div>
           <ul class="footer-links-list">
@@ -238,22 +240,12 @@
           </ul>
         </div>
 
-        <!-- Cột 4: Cam kết an tâm & Tiêu chuẩn -->
         <div>
           <div class="footer-col-title">Cam kết &amp; An toàn</div>
-          <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#d1fae5;line-height:1.55;">
-            <div style="display:flex;align-items:flex-start;gap:8px;">
-              <span style="color:var(--green-400);font-weight:800;">✓</span>
-              <span><strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt Face Match.</span>
-            </div>
-            <div style="display:flex;align-items:flex-start;gap:8px;">
-              <span style="color:var(--green-400);font-weight:800;">✓</span>
-              <span><strong>Minh bạch bàn giao:</strong> Quay video toàn cảnh 360°, ảnh biên bản &amp; ảnh ODO thực tế.</span>
-            </div>
-            <div style="display:flex;align-items:flex-start;gap:8px;">
-              <span style="color:var(--green-400);font-weight:800;">✓</span>
-              <span><strong>Hoàn tiền cọc tự động:</strong> Hoàn 100% trước 24h khi khách hủy theo chính sách.</span>
-            </div>
+          <div class="footer-commitments">
+            <div class="footer-commitment"><span>✓</span><span><strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt Face Match.</span></div>
+            <div class="footer-commitment"><span>✓</span><span><strong>Minh bạch bàn giao:</strong> Quay video toàn cảnh 360°, ảnh biên bản &amp; ảnh ODO thực tế.</span></div>
+            <div class="footer-commitment"><span>✓</span><span><strong>Hoàn tiền cọc tự động:</strong> Hoàn 100% trước 24h khi khách hủy theo chính sách.</span></div>
           </div>
         </div>
       </div>
@@ -476,6 +468,7 @@
     </div>
   </div>
 
+  <script src="js/components.js"></script>
   <script src="js/vehicle-anim.js"></script>
   <script src="js/effects.js"></script>
   <script src="js/auth-rbac.js"></script>
@@ -1060,25 +1053,25 @@
   </button>
 
   <div id="chatWindow" class="chat-window" role="dialog" aria-label="Trợ lý AI RideHub">
-    <div style="padding:14px 16px;background:linear-gradient(135deg, var(--green-600), var(--green-700));color:#ffffff;display:flex;justify-content:space-between;align-items:center;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="width:10px;height:10px;border-radius:50%;background:#86efac;display:inline-block;box-shadow:0 0 8px #86efac;"></span>
+    <div class="chat-window-header">
+      <div class="chat-window-title">
+        <span class="chat-status-dot"></span>
         <strong>Trợ lý AI Tìm &amp; Thuê xe</strong>
       </div>
-      <button id="chatCloseBtn" style="border:0;background:transparent;color:#ffffff;font-size:16px;font-weight:800;cursor:pointer;" type="button">✕</button>
+      <button id="chatCloseBtn" class="chat-close-btn" type="button">✕</button>
     </div>
     <div id="chatMessages" class="chat-messages">
       <div class="chat-msg chat-msg--bot">Xin chào! Tôi có thể giúp bạn tìm xe máy hoặc ô tô phù hợp, tư vấn chính sách cọc hay kiểm tra xe trống lịch hôm nay.</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <div class="chat-quick-row">
         <button class="chat-quick-pill" data-reply="Gợi ý: VinFast Feliz S (160k/ngày) đang có sẵn gần bạn." type="button">Tìm xe máy giá rẻ</button>
         <button class="chat-quick-pill" data-reply="VinFast VF 5 Plus (750k/ngày) và Mazda 3 (850k/ngày) đang có sẵn trống lịch." type="button">Tìm ô tô tự lái</button>
         <button class="chat-quick-pill" data-reply="Bạn chỉ cần hoàn tất eKYC (CCCD + GPLX hợp lệ) là được Miễn thế chấp tiền cọc!" type="button">Miễn cọc eKYC?</button>
         <button class="chat-quick-pill" data-handoff="true" data-reply="Đã chuyển yêu cầu hỗ trợ sang Nhân viên trực tiếp. Mã phiên: #RH-2026-889." type="button">Gặp nhân viên hỗ trợ</button>
       </div>
     </div>
-    <div style="padding:10px;display:flex;gap:8px;border-top:1px solid var(--green-100);">
-      <input id="chatInput" type="text" placeholder="Hỏi tìm xe, giá thuê, địa điểm..." style="flex:1;padding:8px 12px;border-radius:99px;border:1.5px solid var(--green-200);outline:none;font-size:13px;" />
-      <button id="chatSendBtn" class="btn btn-primary" style="min-height:36px;padding:6px 14px;" type="button">Gửi</button>
+    <div class="chat-input-row">
+      <input id="chatInput" type="text" placeholder="Hỏi tìm xe, giá thuê, địa điểm..." />
+      <button id="chatSendBtn" class="btn btn-primary chat-send-btn" type="button">Gửi</button>
     </div>
   </div>
   <!-- Modal: Bổ sung CCCD và Bằng lái xe (GPLX) -->

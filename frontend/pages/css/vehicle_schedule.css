@@ -1,0 +1,324 @@
+:root {
+  --green-50: #f0fdf4;
+  --green-100: #dcfce7;
+  --green-200: #bbf7d0;
+  --green-400: #4ade80;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --green-700: #15803d;
+  --green-800: #166534;
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-soft: #f4f8f5;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --border-card: rgba(22, 163, 74, 0.16);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --font-display: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 0.18s;
+}
+
+/* 2. THIẾT LẬP CƠ BẢN */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 32px 16px;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 1140px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 3. NÚT BẤM (BUTTONS) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+  padding: 8px 16px;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--green-600), var(--green-700));
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--green-500), var(--green-600));
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
+}
+
+.btn-soft {
+  background: var(--bg-surface-soft);
+  color: var(--text-primary);
+  border: 1px solid var(--green-100);
+}
+
+.btn-soft:hover {
+  background: var(--green-50);
+  border-color: var(--green-400);
+  color: var(--green-800);
+}
+
+/* 4. THẺ PANEL & CHIA CỘT (SPLIT LAYOUT) */
+.split-layout {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.panel-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: 0 4px 20px -6px rgba(19, 42, 28, 0.05);
+}
+
+/* 5. HUY HIỆU TRẠNG THÁI (STATUS BADGE & PILLS) */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.status-badge--available {
+  background: var(--green-100);
+  color: var(--green-800);
+  border: 1px solid var(--green-200);
+}
+
+.rh-cal-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.rh-cal-pill--pickup {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.rh-cal-pill--return {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.rh-cal-pill--maint {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* 6. LƯỚI LỊCH THÁNG (MONTH VIEW) */
+.rh-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.rh-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.rh-cal-cell {
+  min-height: 82px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--green-100);
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.18s var(--ease-out), background-color 0.18s var(--ease-out), transform 0.15s var(--ease-out);
+}
+
+.rh-cal-cell:hover:not(:disabled) {
+  border-color: var(--green-400);
+  background: var(--green-50);
+  transform: translateY(-1px);
+}
+
+.rh-cal-cell.is-selected {
+  border-color: var(--green-600);
+  background: var(--green-50);
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+}
+
+.rh-cal-cell.is-today .rh-cal-day {
+  background: var(--green-600);
+  color: #ffffff;
+}
+
+.rh-cal-cell.is-empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+.rh-cal-day {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.rh-cal-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* 7. LƯỚI LỊCH TUẦN (WEEK VIEW GRID - 7 NGÀY) */
+.week-view-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(110px, 1fr));
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.week-day-col {
+  background: var(--bg-surface-soft);
+  border: 1px solid var(--green-100);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 280px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out);
+}
+
+.week-day-col:hover {
+  border-color: var(--green-400);
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.08);
+}
+
+.week-day-col.is-active {
+  border-color: var(--green-600);
+  background: #ffffff;
+  box-shadow: 0 0 0 2px var(--green-500);
+}
+
+.week-day-col.is-today {
+  background: var(--green-50);
+  border-color: var(--green-400);
+}
+
+.week-day-header {
+  text-align: center;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--green-200);
+}
+
+.week-day-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.week-day-num {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.week-ev-card {
+  font-size: 11.5px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(22, 163, 74, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.week-ev-card.pickup {
+  border-left: 3px solid var(--green-600);
+}
+
+.week-ev-card.return {
+  border-left: 3px solid #0284c7;
+}
+
+.week-ev-card.maint {
+  border-left: 3px solid #ea580c;
+}
+
+/* 8. THẺ SỰ KIỆN CHI TIẾT TRONG NGÀY (CỘT PHẢI) */
+.event-detail-card {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-soft);
+  border: 1px solid var(--green-100);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.event-detail-card:hover {
+  transform: translateX(2px);
+  border-color: var(--green-400);
+}
+
+/* 9. RESPONSIVE TRÊN THIẾT BỊ DI ĐỘNG */
+@media (max-width: 900px) {
+  .split-layout {
+    grid-template-columns: 1fr;
+  }
+}
