@@ -1,6 +1,8 @@
 from app.schemas.booking import (
     BookingBase,
     BookingCreate,
+    BookingHoldCreate,
+    BookingHoldResponse,
     BookingResponse,
 )
 

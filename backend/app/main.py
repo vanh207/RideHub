@@ -25,6 +25,7 @@ from app.middleware.audit_log import AuditLogMiddleware
 from app.routers import (
     admin_reviews,
     audit_logs,
+    bookings,
     chat,
     delivery,
     faq,
@@ -81,6 +82,7 @@ app.add_middleware(AuditLogMiddleware)
 # Mọi API đều bắt đầu bằng /api. Thêm router mới thì include ở đây.
 app.include_router(health.router, prefix="/api")
 app.include_router(items.router, prefix="/api")
+app.include_router(bookings.router, prefix="/api")
 app.include_router(payment.router, prefix="/api")
 
 app.include_router(chat.router, prefix="/api")
