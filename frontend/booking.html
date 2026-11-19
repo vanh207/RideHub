@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tạo đơn thuê xe — RideHub</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        color: #172033;
+        background: #f3f7f5;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; }
+      main {
+        width: min(680px, calc(100% - 32px));
+        margin: 48px auto;
+        padding: 28px;
+        border-radius: 20px;
+        background: white;
+        box-shadow: 0 12px 40px rgb(15 23 42 / 10%);
+      }
+      h1 { margin: 0 0 8px; font-size: 1.65rem; }
+      .intro, .hint { color: #526170; line-height: 1.55; }
+      .field { display: grid; gap: 7px; margin: 20px 0; }
+      label { font-weight: 650; }
+      input, select, button {
+        width: 100%;
+        min-height: 46px;
+        padding: 10px 12px;
+        border: 1px solid #cbd5d1;
+        border-radius: 10px;
+        font: inherit;
+      }
+      button {
+        border: 0;
+        background: #15803d;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button:disabled { opacity: 0.6; cursor: wait; }
+      #message {
+        min-height: 24px;
+        margin: 16px 0;
+        color: #9a3412;
+        white-space: pre-wrap;
+      }
+      .links { display: flex; gap: 16px; flex-wrap: wrap; }
+      a { color: #166534; }
+      @media (max-width: 520px) {
+        main { margin: 16px auto; padding: 20px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Tạo đơn thuê xe</h1>
+      <p class="intro">
+        Chọn xe và thời gian thuê. Backend sẽ kiểm tra xe còn trống, tính giá/cọc
+        và giữ chỗ trước khi mở trang thanh toán.
+      </p>
+      <form id="bookingForm">
+        <div class="field">
+          <label for="vehicleId">Xe khả dụng trên hệ thống</label>
+          <select id="vehicleId" required disabled>
+            <option value="">Đang tải danh sách xe…</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="startTime">Thời gian nhận xe</label>
+          <input id="startTime" type="datetime-local" required />
+        </div>
+        <div class="field">
+          <label for="endTime">Thời gian trả xe</label>
+          <input id="endTime" type="datetime-local" required />
+        </div>
+        <p class="hint">Tiền thuê và tiền cọc do backend tự tính, không lấy từ trình duyệt.</p>
+        <button id="submitBooking" type="submit" disabled>Tạo đơn và tiếp tục thanh toán</button>
+      </form>
+      <p id="message" role="status" aria-live="polite"></p>
+      <div class="links">
+        <a href="vehicles.html">Quay lại danh sách xe</a>
+        <a href="pages/auth.html">Đăng nhập / đăng ký</a>
+      </div>
+    </main>
+    <script src="js/config.js"></script>
+    <script src="js/booking.js" defer></script>
+  </body>
+</html>

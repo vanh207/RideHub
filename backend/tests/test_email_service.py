@@ -12,53 +12,54 @@ class TestEmailService(unittest.TestCase):
         success = self.email_service.send_booking_confirmation(
             to_email="test@ridehub.vn",
             customer_name="Nguyễn Văn A",
-            booking_code="RH-12345",
+            booking_id="RH-12345",
             vehicle_name="VinFast VF5 Plus",
-            start_date="15/11/2026",
-            end_date="17/11/2026",
+            start_time="15/11/2026",
+            end_time="17/11/2026",
             total_amount=1500000.0,
             deposit_amount=500000.0
         )
         self.assertTrue(success)
-        self.assertEqual(len(self.mock_sender.sent_emails), 1)
-        sent = self.mock_sender.sent_emails[0]
-        self.assertEqual(sent["to"], "test@ridehub.vn")
-        self.assertIn("RH-12345", sent["subject"])
+        self.assertEqual(len(self.mock_sender.sent_history), 1)
+        sent = self.mock_sender.get_last_sent()
+        self.assertEqual(sent.to_email, "test@ridehub.vn")
+        self.assertIn("RH-12345", sent.subject)
 
-    def test_send_booking_cancellation(self):
-        success = self.email_service.send_booking_cancellation(
+    def test_send_deposit_refund_notification(self):
+        success = self.email_service.send_deposit_refund_notification(
             to_email="test@ridehub.vn",
             customer_name="Nguyễn Văn A",
-            booking_code="RH-12345",
-            reason="Hết xe cùng phân khúc",
-            refund_amount=500000.0
+            booking_id="RH-12345",
+            refund_amount=500000.0,
         )
         self.assertTrue(success)
-        self.assertEqual(len(self.mock_sender.sent_emails), 1)
-        sent = self.mock_sender.sent_emails[0]
-        self.assertIn("Hủy", sent["subject"])
+        self.assertEqual(len(self.mock_sender.sent_history), 1)
+        sent = self.mock_sender.get_last_sent()
+        self.assertIn("hoàn tiền cọc", sent.subject.lower())
 
-    def test_send_handover_report(self):
-        success = self.email_service.send_handover_report(
+    def test_send_handover_protocol_notification(self):
+        success = self.email_service.send_handover_protocol_notification(
             to_email="test@ridehub.vn",
             customer_name="Nguyễn Văn A",
             protocol_code="BB-20261113-1001",
+            booking_id="RH-12345",
             vehicle_name="VinFast VF5 Plus",
             license_plate="51K-889.92",
-            protocol_type="CHECK_OUT"
+            protocol_type="CHECK_OUT",
+            odo_reading=12000,
+            fuel_level="FULL",
         )
         self.assertTrue(success)
-        self.assertEqual(len(self.mock_sender.sent_emails), 1)
+        self.assertEqual(len(self.mock_sender.sent_history), 1)
 
-    def test_send_settlement_receipt(self):
-        success = self.email_service.send_settlement_receipt(
+    def test_send_raw_uses_injected_sender(self):
+        success = self.email_service.send_raw(
             to_email="test@ridehub.vn",
-            customer_name="Nguyễn Văn A",
-            protocol_code="BB-20261113-1001",
-            refund_amount=4500000.0,
-            surcharge_total=500000.0
+            subject="Test",
+            html_content="<p>Test email</p>",
         )
         self.assertTrue(success)
+        self.assertEqual(self.mock_sender.get_last_sent().subject, "Test")
 
 if __name__ == "__main__":
     unittest.main()

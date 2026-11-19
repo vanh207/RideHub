@@ -2,8 +2,10 @@
 
 Muốn thêm cấu hình mới: thêm 1 dòng vào class Settings + thêm vào .env.example.
 """
+import secrets
 from decimal import Decimal
 from urllib.parse import quote_plus
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,15 +28,20 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "*"
 
     # Cổng thanh toán Sandbox (Mock Payment Gateway - TF19E3D)
-    PAYMENT_GATEWAY_SECRET: str = "ridehub_mock_secret_key_2026_tf19e3d"
+    PAYMENT_GATEWAY_SECRET: str = Field(
+        default_factory=lambda: secrets.token_urlsafe(48)
+    )
     PAYMENT_MOCK_BASE_URL: str = "https://sandbox.ridehub.vn"
 
     # ---- Cổng thanh toán PayOS (Thanh toán tiền cọc - TF19EFA) ----
     PAYOS_CLIENT_ID: str = ""
     PAYOS_API_KEY: str = ""
     PAYOS_CHECKSUM_KEY: str = ""
-    PAYOS_RETURN_URL: str = "http://localhost:3000/payment/success"
-    PAYOS_CANCEL_URL: str = "http://localhost:3000/payment/cancel"
+    PAYOS_RETURN_URL: str = "http://127.0.0.1:8000/frontend/payment-qr.html"
+    PAYOS_CANCEL_URL: str = "http://127.0.0.1:8000/frontend/payment-qr.html"
+    PAYOS_BANK_NAME: str = ""
+    PAYOS_ACCOUNT_NUMBER: str = ""
+    PAYOS_ACCOUNT_NAME: str = ""
 
     # ---- Cấu hình Email (SMTP hoặc Mock) ----
     EMAIL_BACKEND: str = "mock"
@@ -47,7 +54,7 @@ class Settings(BaseSettings):
     SMTP_TLS: bool = True
 
     # ---- JWT Cấu hình ----
-    JWT_SECRET_KEY: str = "CHANGE_ME_replace_with_a_strong_random_key"
+    JWT_SECRET_KEY: str = Field(default_factory=lambda: secrets.token_urlsafe(48))
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
@@ -77,6 +84,19 @@ class Settings(BaseSettings):
     # Thử lại khi MySQL báo deadlock (1213) hoặc lock wait timeout (1205).
     BOOKING_LOCK_RETRY_ATTEMPTS: int = 3
     BOOKING_LOCK_RETRY_BASE_DELAY_SECONDS: float = 0.05
+
+    @field_validator("PAYMENT_GATEWAY_SECRET", "JWT_SECRET_KEY", mode="before")
+    @classmethod
+    def replace_placeholder_secrets(cls, value: str) -> str:
+        placeholders = {
+            "",
+            "change_me_replace_with_a_strong_random_key",
+            "your_strong_random_jwt_secret_here",
+            "your_mock_webhook_secret_here",
+        }
+        if not isinstance(value, str) or value.strip().lower() in placeholders:
+            return secrets.token_urlsafe(48)
+        return value
 
     @property
     def database_url(self) -> str:

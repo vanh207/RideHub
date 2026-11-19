@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Any
+from typing import Any, Literal, Optional
 from datetime import datetime
 
 # --- 1. Schema cho Giao dịch thanh toán (PaymentTransaction) ---
@@ -18,6 +18,11 @@ class PaymentTransactionResponse(PaymentTransactionBase):
     provider_txn_id: Optional[str] = None
     status: str
     qr_code_url: Optional[str] = None
+    bank_name: Optional[str] = None
+    bank_bin: Optional[str] = None
+    account_number: Optional[str] = None
+    account_name: Optional[str] = None
+    beneficiary_source: Optional[str] = None
     paid_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
@@ -60,8 +65,7 @@ class PaymentWebhookLogCreate(BaseModel):
 # --- 4. Schema mở rộng cho Flow Tích hợp Cổng thanh toán Sandbox (TF19E3D) ---
 class PaymentCreateRequest(BaseModel):
     """Schema Client gửi lên để khởi tạo giao dịch đặt cọc / thanh toán."""
-    booking_id: int = Field(..., description="ID đơn đặt xe cần thanh toán cọc")
-    amount: Optional[float] = Field(None, gt=0, description="Số tiền thanh toán (bỏ trống để tự lấy tiền cọc từ Booking)")
+    booking_id: int = Field(..., gt=0, description="ID đơn đặt xe cần thanh toán cọc")
     provider: str = Field(default="MOCK_PAY", max_length=50, description="Cổng thanh toán (MOCK_PAY, VNPAY, MOMO...)")
     payment_method: Optional[str] = Field(default="QR_CODE", max_length=50, description="Phương thức: QR_CODE, ATM, CREDIT_CARD...")
 
@@ -78,6 +82,7 @@ class PaymentCreateResponse(BaseModel):
     payment_url: str = Field(..., description="Đường dẫn chuyển hướng đến trang thanh toán giả lập")
     qr_code_url: Optional[str] = Field(None, description="Mã QR động để quét thanh toán")
     expires_at: Optional[datetime] = Field(None, description="Thời gian hết hạn giao dịch (mặc định 15 phút)")
+    hold_expires_at: Optional[datetime] = Field(None, description="Thời hạn giữ chỗ của booking từ backend")
     message: str = Field(default="Khởi tạo giao dịch thanh toán thành công")
 
 
@@ -95,7 +100,7 @@ class PaymentWebhookPayload(BaseModel):
 
 class PaymentRefundRequest(BaseModel):
     """Yêu cầu hoàn tiền cho đơn đặt xe / giao dịch."""
-    booking_id: Optional[int] = Field(None, description="ID đơn đặt xe cần hoàn tiền")
+    booking_id: Optional[int] = Field(None, gt=0, description="ID đơn đặt xe cần hoàn tiền")
     transaction_code: Optional[str] = Field(None, description="Mã giao dịch cần hoàn tiền (nếu biết)")
     amount: Optional[float] = Field(None, gt=0, description="Số tiền muốn hoàn (bỏ trống để hoàn toàn bộ giao dịch)")
     reason: Optional[str] = Field("Khách hàng hủy đặt xe hợp lệ", description="Lý do hoàn tiền")
@@ -104,18 +109,32 @@ class PaymentRefundRequest(BaseModel):
 class PaymentSimulateRequest(BaseModel):
     """Yêu cầu giả lập thanh toán nhanh qua Swagger (Simulator tool)."""
     transaction_code: str = Field(..., description="Mã giao dịch cần mô phỏng")
-    status: str = Field(default="SUCCESS", description="Trạng thái mong muốn mô phỏng: SUCCESS hoặc FAILED")
+    status: Literal["SUCCESS", "FAILED"] = Field(default="SUCCESS", description="Trạng thái mong muốn mô phỏng: SUCCESS hoặc FAILED")
     message: Optional[str] = Field("Mô phỏng thanh toán sandbox thành công", description="Ghi chú giả lập")
 
 
 # --- 5. Schema Tích hợp Cổng thanh toán PayOS (TF19EFA) ---
 class PayOSPaymentCreateRequest(BaseModel):
     """Yêu cầu tạo link thanh toán cọc và mã QR động qua PayOS."""
-    booking_id: int = Field(..., description="ID đơn đặt xe cần thanh toán cọc")
-    amount: Optional[float] = Field(None, gt=0, description="Số tiền cọc (bỏ trống để tự lấy deposit_amount từ Booking)")
-    description: Optional[str] = Field(None, max_length=25, description="Nội dung thanh toán (tối đa 25 ký tự theo quy định VietQR/PayOS)")
-    return_url: Optional[str] = Field(None, description="URL frontend chuyển hướng khi thanh toán thành công")
-    cancel_url: Optional[str] = Field(None, description="URL frontend chuyển hướng khi người dùng bấm hủy")
+    booking_id: int = Field(..., gt=0, description="ID đơn đặt xe cần thanh toán cọc")
+
+
+class BookingPaymentStatusResponse(BaseModel):
+    booking_id: int
+    booking_status: str
+    payment_status: str
+    transaction_code: Optional[str] = None
+    amount: Optional[float] = None
+    qr_code_url: Optional[str] = None
+    bank_name: Optional[str] = None
+    bin: Optional[str] = None
+    account_number: Optional[str] = None
+    account_name: Optional[str] = None
+    beneficiary_source: Optional[str] = None
+    description: Optional[str] = None
+    hold_expires_at: Optional[datetime] = None
+    remaining_seconds: int
+    hold_duration_seconds: int
 
 
 class PayOSPaymentResponse(BaseModel):
@@ -126,13 +145,18 @@ class PayOSPaymentResponse(BaseModel):
     booking_id: int = Field(..., description="ID đơn đặt xe")
     amount: int = Field(..., description="Số tiền thanh toán cọc (VNĐ)")
     status: str = Field(..., description="Trạng thái giao dịch (PENDING)")
-    checkout_url: str = Field(..., description="Link mở trang thanh toán chuẩn của PayOS")
-    qr_code: str = Field(..., description="Chuỗi dữ liệu VietQR để vẽ mã QR trên frontend hoặc app ngân hàng quét")
+    checkout_url: Optional[str] = Field(None, description="Link mở trang thanh toán chuẩn của PayOS")
+    qr_code: Optional[str] = Field(None, description="Chuỗi dữ liệu VietQR để vẽ mã QR trên frontend hoặc app ngân hàng quét")
     qr_code_url: Optional[str] = Field(None, description="Link ảnh mã QR động sẵn sàng hiển thị thẻ <img>")
-    payment_link_id: str = Field(..., description="ID phiên thanh toán phía PayOS")
+    payment_link_id: Optional[str] = Field(None, description="ID phiên thanh toán phía PayOS")
+    bank_name: Optional[str] = Field(None, description="Tên ngân hàng thụ hưởng")
     account_number: Optional[str] = Field(None, description="Số tài khoản ngân hàng thụ hưởng")
     account_name: Optional[str] = Field(None, description="Tên chủ tài khoản ngân hàng thụ hưởng")
     bin: Optional[str] = Field(None, description="Mã định danh ngân hàng (BIN)")
+    beneficiary_source: Optional[str] = Field(None, description="Nguồn thông tin tài khoản thụ hưởng")
+    description: str
+    hold_expires_at: datetime
+    remaining_seconds: int
     message: str = Field(default="Tạo link thanh toán cọc và mã QR động PayOS thành công")
 
 

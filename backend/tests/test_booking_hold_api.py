@@ -19,6 +19,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app import models  # noqa: F401 - đăng ký toàn bộ model với metadata
+from app.core.dependencies import get_current_user
 from app.db.session import Base, get_db
 from app.models.booking import Booking
 from app.models.delivery import DeliveryPoint
@@ -251,6 +252,10 @@ def client_and_session():
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = lambda: User(
+        id=8202,
+        status="active",
+    )
     with TestClient(app) as client:
         yield client, testing_session
 
@@ -319,7 +324,7 @@ def test_create_booking_hold_success_and_amounts(client_and_session):
             start=start,
             end=end,
             delivery_point_id=8401,
-            customer_id=8202,
+            customer_id=8201,
             # Client gửi tiền sai vẫn phải bị bỏ qua.
             rental_amount=1,
             total_amount=1,
@@ -460,8 +465,8 @@ def test_inactive_delivery_point_returns_422(client_and_session):
     assert response.status_code == 422
 
 
-def test_unknown_customer_returns_422(client_and_session):
-    client, _ = client_and_session
+def test_client_cannot_choose_booking_customer(client_and_session):
+    client, session_factory = client_and_session
     start = _now() + timedelta(days=20)
     response = client.post(
         URL,
@@ -471,8 +476,10 @@ def test_unknown_customer_returns_422(client_and_session):
             customer_id=9999,
         ),
     )
-    assert response.status_code == 422
-    assert "customer_id" in response.json()["detail"]
+    assert response.status_code == 201
+    with session_factory() as db:
+        booking = db.get(Booking, response.json()["id"])
+        assert booking.customer_id == 8202
 
 
 def test_overlapping_confirmed_booking_returns_409(client_and_session):

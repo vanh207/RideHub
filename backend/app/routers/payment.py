@@ -17,15 +17,23 @@ Các tính năng cốt lõi:
 9. POST /api/payments/simulate: Giả lập cổng thanh toán bắn Webhook trực tiếp từ Swagger UI.
 """
 from datetime import datetime
+from math import ceil
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.dependencies import get_current_admin, get_current_user
+from app.core.config import settings
 from app.db.session import get_db
 from app.models.booking import Booking
 from app.models.payment import PaymentTransaction, PaymentWebhookLog, Refund
+from app.models.user import User
+from app.models.vehicle import Vehicle
+from app.models.vehicle_reservation import VehicleReservation
+from app.models.vehicle_schedule import VehicleSchedule
 from app.schemas.payment import (
+    BookingPaymentStatusResponse,
     PayOSPaymentCreateRequest,
     PayOSPaymentResponse,
     PayOSWebhookPayload,
@@ -40,13 +48,58 @@ from app.schemas.payment import (
 from app.services.payment_gateway import payment_gateway_service
 from app.services.payos_service import payos_service
 from app.services.booking_eligibility import check_customer_can_rent
-from app.models.user import User
-from app.models.vehicle import Vehicle
 
 router = APIRouter(
     prefix="/payments",
     tags=["Payments - Thanh toán & Cổng PayOS / Sandbox"],
 )
+
+PENDING_BOOKING_STATUSES = {"PENDING_PAYMENT", "PENDING"}
+
+
+def _get_owned_booking(db: Session, booking_id: int, current_user: User) -> Booking:
+    booking = (
+        db.query(Booking)
+        .filter(Booking.id == booking_id)
+        .with_for_update()
+        .first()
+    )
+    if not booking or booking.customer_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Không tìm thấy đơn đặt xe.",
+        )
+    return booking
+
+
+def _release_booking_hold(db: Session, booking: Booking) -> None:
+    booking.status = "CANCELLED"
+    db.query(VehicleReservation).filter(
+        VehicleReservation.booking_id == booking.id,
+        VehicleReservation.status == "ACTIVE",
+    ).update(
+        {VehicleReservation.status: "CANCELLED"},
+        synchronize_session=False,
+    )
+    db.query(VehicleSchedule).filter(
+        VehicleSchedule.booking_id == booking.id,
+        VehicleSchedule.status == "ACTIVE",
+    ).update(
+        {VehicleSchedule.status: "CANCELLED"},
+        synchronize_session=False,
+    )
+
+
+def _remaining_hold_seconds(booking: Booking, now: Optional[datetime] = None) -> int:
+    if not booking.hold_expires_at:
+        return 0
+    return max(0, ceil((booking.hold_expires_at - (now or datetime.now())).total_seconds()))
+
+
+def _hold_duration_seconds(booking: Booking) -> int:
+    if booking.created_at and booking.hold_expires_at:
+        return max(1, ceil((booking.hold_expires_at - booking.created_at).total_seconds()))
+    return settings.BOOKING_HOLD_MINUTES * 60
 
 
 # ==============================================================================
@@ -69,15 +122,11 @@ router = APIRouter(
 async def create_payos_deposit_payment(
     request: PayOSPaymentCreateRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     try:
         # B1. Kiểm tra đơn đặt xe (Booking)
-        booking = db.query(Booking).filter(Booking.id == request.booking_id).first()
-        if not booking:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Không tìm thấy đơn đặt xe với ID {request.booking_id}",
-            )
+        booking = _get_owned_booking(db, request.booking_id, current_user)
 
         customer = db.query(User).filter(User.id == booking.customer_id).first()
         vehicle = db.query(Vehicle).filter(Vehicle.id == booking.vehicle_id).first()
@@ -95,23 +144,87 @@ async def create_payos_deposit_payment(
 
         if booking.status in ("BOOKED", "COMPLETED"):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_409_CONFLICT,
                 detail="Đơn đặt xe này đã được xác nhận thanh toán thành công trước đó.",
             )
         elif booking.status == "CANCELLED":
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_409_CONFLICT,
                 detail="Đơn đặt xe đã bị hủy, không thể tạo thanh toán cọc.",
+            )
+        elif booking.status not in PENDING_BOOKING_STATUSES:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Trạng thái đơn đặt xe hiện không thể thanh toán.",
+            )
+
+        now = datetime.now()
+        if booking.hold_expires_at is None or booking.hold_expires_at <= now:
+            pending_transaction = (
+                db.query(PaymentTransaction)
+                .filter(
+                    PaymentTransaction.booking_id == booking.id,
+                    PaymentTransaction.status == "PENDING",
+                )
+                .with_for_update()
+                .first()
+            )
+            if pending_transaction:
+                pending_transaction.status = "EXPIRED"
+            _release_booking_hold(db, booking)
+            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail="Thời gian giữ chỗ đã hết hạn. Vui lòng đặt xe lại.",
+            )
+
+        existing_transaction = (
+            db.query(PaymentTransaction)
+            .filter(
+                PaymentTransaction.booking_id == booking.id,
+                PaymentTransaction.provider == "PAYOS",
+                PaymentTransaction.status == "PENDING",
+            )
+            .order_by(PaymentTransaction.id.desc())
+            .with_for_update()
+            .first()
+        )
+        if existing_transaction:
+            try:
+                order_code = int(
+                    existing_transaction.transaction_code.removeprefix("PAYOS_")
+                )
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Giao dịch đang chờ thanh toán có mã không hợp lệ.",
+                ) from exc
+            beneficiary = payos_service.normalize_beneficiary_details(
+                existing_transaction
+            )
+            db.commit()
+            return PayOSPaymentResponse(
+                transaction_id=existing_transaction.id,
+                transaction_code=existing_transaction.transaction_code,
+                order_code=order_code,
+                booking_id=booking.id,
+                amount=int(existing_transaction.amount),
+                status=existing_transaction.status,
+                qr_code_url=existing_transaction.qr_code_url,
+                payment_link_id=existing_transaction.provider_txn_id,
+                bank_name=beneficiary["bank_name"],
+                bin=beneficiary["bin"],
+                account_number=beneficiary["account_number"],
+                account_name=beneficiary["account_name"],
+                beneficiary_source=beneficiary["beneficiary_source"],
+                description=f"Coc xe don {booking.id}"[:25],
+                hold_expires_at=booking.hold_expires_at,
+                remaining_seconds=_remaining_hold_seconds(booking),
+                message="Đang sử dụng lại giao dịch thanh toán hiện có.",
             )
 
         # B2. Xác định số tiền cọc (VNĐ)
-        deposit_amount = request.amount
-        if deposit_amount is None:
-            deposit_amount = (
-                float(booking.deposit_amount)
-                if float(booking.deposit_amount) > 0
-                else float(booking.total_amount)
-            )
+        deposit_amount = float(booking.deposit_amount)
 
         if deposit_amount <= 0:
             raise HTTPException(
@@ -123,14 +236,13 @@ async def create_payos_deposit_payment(
         payos_data = await payos_service.create_deposit_payment_link(
             booking_id=booking.id,
             amount=deposit_amount,
-            description=request.description,
-            return_url=request.return_url,
-            cancel_url=request.cancel_url,
+            description=f"Coc xe don {booking.id}",
         )
 
         # B4. Lưu bản ghi PaymentTransaction vào MySQL qua SQLAlchemy ở trạng thái PENDING
         order_code = payos_data["order_code"]
         transaction_code = f"PAYOS_{order_code}"
+        beneficiary = payos_service.normalize_beneficiary_details(payos_data)
 
         new_transaction = PaymentTransaction(
             booking_id=booking.id,
@@ -141,6 +253,11 @@ async def create_payos_deposit_payment(
             status="PENDING",
             payment_method="QR_CODE",
             qr_code_url=payos_data["qr_code_url"],
+            bank_name=beneficiary["bank_name"],
+            bank_bin=beneficiary["bin"],
+            account_number=beneficiary["account_number"],
+            account_name=beneficiary["account_name"],
+            beneficiary_source=beneficiary["beneficiary_source"],
         )
         db.add(new_transaction)
         db.commit()
@@ -158,9 +275,14 @@ async def create_payos_deposit_payment(
             qr_code=payos_data["qr_code"],
             qr_code_url=payos_data["qr_code_url"],
             payment_link_id=payos_data["payment_link_id"],
-            account_number=payos_data.get("account_number"),
-            account_name=payos_data.get("account_name"),
-            bin=payos_data.get("bin"),
+            bank_name=beneficiary["bank_name"],
+            account_number=beneficiary["account_number"],
+            account_name=beneficiary["account_name"],
+            bin=beneficiary["bin"],
+            beneficiary_source=beneficiary["beneficiary_source"],
+            description=payos_data["description"],
+            hold_expires_at=booking.hold_expires_at,
+            remaining_seconds=_remaining_hold_seconds(booking),
             message="Khởi tạo giao dịch thanh toán cọc và sinh mã QR PayOS thành công.",
         )
 
@@ -170,8 +292,8 @@ async def create_payos_deposit_payment(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Lỗi hệ thống khi tạo giao dịch PayOS: {str(exc)}",
-        )
+            detail="Lỗi hệ thống khi tạo giao dịch PayOS.",
+        ) from exc
 
 
 @router.get(
@@ -182,29 +304,46 @@ async def create_payos_deposit_payment(
 async def get_payos_order_status(
     order_code: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     try:
-        # Gọi SDK tra cứu đơn hàng từ PayOS
-        order_info = await payos_service.get_payment_link_information(order_code=order_code)
-
-        # Kiểm tra và đồng bộ trạng thái giao dịch trong CSDL
         transaction_code = f"PAYOS_{order_code}"
         txn = (
             db.query(PaymentTransaction)
             .filter(PaymentTransaction.transaction_code == transaction_code)
             .first()
         )
+        if not txn:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Không tìm thấy giao dịch thanh toán.",
+            )
+        booking = _get_owned_booking(db, txn.booking_id, current_user)
+        txn = (
+            db.query(PaymentTransaction)
+            .filter(PaymentTransaction.id == txn.id)
+            .with_for_update()
+            .first()
+        )
+
+        # Gọi SDK tra cứu đơn hàng từ PayOS sau khi đã xác thực quyền sở hữu.
+        order_info = await payos_service.get_payment_link_information(order_code=order_code)
 
         status_str = getattr(order_info, "status", None)
-        if txn and status_str == "PAID" and txn.status != "SUCCESS":
-            txn.status = "SUCCESS"
-            txn.paid_at = datetime.now()
-
-            # Khóa lịch xe khi thanh toán thành công
-            booking = db.query(Booking).filter(Booking.id == txn.booking_id).first()
-            if booking:
+        if status_str == "PAID" and txn.status == "PENDING":
+            paid_amount = getattr(order_info, "amountPaid", None)
+            if paid_amount != int(txn.amount):
+                txn.status = "AMOUNT_MISMATCH"
+            elif (
+                booking.status in PENDING_BOOKING_STATUSES
+                and booking.hold_expires_at is not None
+                and booking.hold_expires_at > datetime.now()
+            ):
+                txn.status = "SUCCESS"
+                txn.paid_at = datetime.now()
                 booking.status = "BOOKED"
-
+            else:
+                txn.status = "LATE_PAYMENT"
             db.commit()
 
         return order_info
@@ -214,8 +353,148 @@ async def get_payos_order_status(
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Lỗi khi tra cứu đơn hàng PayOS #{order_code}: {str(exc)}",
+            detail=f"Lỗi khi tra cứu đơn hàng PayOS #{order_code}.",
+        ) from exc
+
+
+@router.get(
+    "/booking/{booking_id}/status",
+    response_model=BookingPaymentStatusResponse,
+    summary="Lấy trạng thái thanh toán và hạn giữ chỗ",
+)
+async def get_booking_payment_status(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    booking = _get_owned_booking(db, booking_id, current_user)
+    transaction = (
+        db.query(PaymentTransaction)
+        .filter(PaymentTransaction.booking_id == booking.id)
+        .order_by(PaymentTransaction.id.desc())
+        .with_for_update()
+        .first()
+    )
+    now = datetime.now()
+    hold_expired = (
+        booking.hold_expires_at is None or booking.hold_expires_at <= now
+    )
+
+    if transaction and transaction.status == "PENDING" and transaction.provider == "PAYOS":
+        try:
+            order_code = int(transaction.transaction_code.removeprefix("PAYOS_"))
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Mã giao dịch PayOS không hợp lệ.",
+            ) from exc
+        order_info = await payos_service.get_payment_link_information(order_code)
+        provider_status = getattr(order_info, "status", None)
+        if provider_status == "PAID":
+            paid_amount = getattr(order_info, "amountPaid", None)
+            if paid_amount != int(transaction.amount):
+                transaction.status = "AMOUNT_MISMATCH"
+            elif (
+                booking.status in PENDING_BOOKING_STATUSES
+                and not hold_expired
+            ):
+                transaction.status = "SUCCESS"
+                transaction.paid_at = now
+                booking.status = "BOOKED"
+            else:
+                transaction.status = "LATE_PAYMENT"
+                transaction.paid_at = now
+        elif provider_status in ("CANCELLED", "EXPIRED"):
+            transaction.status = provider_status
+            _release_booking_hold(db, booking)
+
+    expired_now = booking.status in PENDING_BOOKING_STATUSES and hold_expired
+    if expired_now:
+        if transaction and transaction.status == "PENDING":
+            if transaction.provider == "PAYOS":
+                order_code = int(transaction.transaction_code.removeprefix("PAYOS_"))
+                await payos_service.cancel_payment_link(order_code)
+            transaction.status = "EXPIRED"
+        _release_booking_hold(db, booking)
+    db.commit()
+
+    remaining_seconds = _remaining_hold_seconds(booking, now)
+    if transaction:
+        payment_status = transaction.status
+    elif booking.status == "CANCELLED":
+        payment_status = "EXPIRED" if expired_now or hold_expired else "CANCELLED"
+    else:
+        payment_status = "NOT_STARTED"
+
+    beneficiary = (
+        payos_service.normalize_beneficiary_details(transaction)
+        if transaction
+        else None
+    )
+    return BookingPaymentStatusResponse(
+        booking_id=booking.id,
+        booking_status=booking.status,
+        payment_status=payment_status,
+        transaction_code=transaction.transaction_code if transaction else None,
+        amount=float(transaction.amount) if transaction else None,
+        qr_code_url=transaction.qr_code_url if transaction else None,
+        bank_name=beneficiary["bank_name"] if beneficiary else None,
+        bin=beneficiary["bin"] if beneficiary else None,
+        account_number=beneficiary["account_number"] if beneficiary else None,
+        account_name=beneficiary["account_name"] if beneficiary else None,
+        beneficiary_source=(
+            beneficiary["beneficiary_source"] if beneficiary else None
+        ),
+        description=f"Coc xe don {booking.id}" if transaction else None,
+        hold_expires_at=booking.hold_expires_at,
+        remaining_seconds=remaining_seconds,
+        hold_duration_seconds=_hold_duration_seconds(booking),
+    )
+
+
+@router.post(
+    "/booking/{booking_id}/cancel",
+    summary="Hủy giao dịch và giải phóng booking đang giữ chỗ",
+)
+async def cancel_booking_payment(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    booking = _get_owned_booking(db, booking_id, current_user)
+    if booking.status in ("BOOKED", "COMPLETED"):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Đơn đã thanh toán/xác nhận, không thể hủy giao dịch tại đây.",
         )
+    if booking.status == "CANCELLED":
+        return {"booking_id": booking.id, "status": "CANCELLED"}
+
+    transaction = (
+        db.query(PaymentTransaction)
+        .filter(
+            PaymentTransaction.booking_id == booking.id,
+            PaymentTransaction.status == "PENDING",
+        )
+        .order_by(PaymentTransaction.id.desc())
+        .with_for_update()
+        .first()
+    )
+    if transaction and transaction.provider == "PAYOS":
+        try:
+            order_code = int(transaction.transaction_code.removeprefix("PAYOS_"))
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Mã giao dịch PayOS không hợp lệ.",
+            ) from exc
+        await payos_service.cancel_payment_link(order_code)
+
+    if transaction:
+        transaction.status = "CANCELLED"
+    _release_booking_hold(db, booking)
+    db.commit()
+    return {"booking_id": booking.id, "status": "CANCELLED"}
 
 
 # ==============================================================================
@@ -293,15 +572,11 @@ async def process_payos_webhook(
 def create_payment_transaction(
     request: PaymentCreateRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     try:
         # B1. Kiểm tra đơn đặt xe (Booking)
-        booking = db.query(Booking).filter(Booking.id == request.booking_id).first()
-        if not booking:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Không tìm thấy đơn đặt xe với ID {request.booking_id}",
-            )
+        booking = _get_owned_booking(db, request.booking_id, current_user)
 
         customer = db.query(User).filter(User.id == booking.customer_id).first()
         vehicle = db.query(Vehicle).filter(Vehicle.id == booking.vehicle_id).first()
@@ -324,10 +599,35 @@ def create_payment_transaction(
                 detail="Đơn đặt xe này đã được xác nhận thanh toán thành công trước đó.",
             )
 
-        # B2. Xác định số tiền thanh toán (amount)
-        payment_amount = request.amount
-        if payment_amount is None:
-            payment_amount = float(booking.deposit_amount) if float(booking.deposit_amount) > 0 else float(booking.total_amount)
+        if booking.status not in PENDING_BOOKING_STATUSES:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Trạng thái đơn đặt xe hiện không thể thanh toán.",
+            )
+        if booking.hold_expires_at is None or booking.hold_expires_at <= datetime.now():
+            _release_booking_hold(db, booking)
+            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail="Thời gian giữ chỗ đã hết hạn. Vui lòng đặt xe lại.",
+            )
+
+        pending_transaction = (
+            db.query(PaymentTransaction)
+            .filter(
+                PaymentTransaction.booking_id == booking.id,
+                PaymentTransaction.status == "PENDING",
+            )
+            .first()
+        )
+        if pending_transaction:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Đơn này đã có giao dịch đang chờ thanh toán.",
+            )
+
+        # Số tiền luôn được lấy từ Booking, không từ request của client.
+        payment_amount = float(booking.deposit_amount)
 
         # Kiểm tra số tiền hợp lệ > 0 (TF1B039-TC003)
         if payment_amount <= 0:
@@ -371,6 +671,7 @@ def create_payment_transaction(
             payment_url=session_data["payment_url"],
             qr_code_url=new_transaction.qr_code_url,
             expires_at=session_data["expires_at"],
+            hold_expires_at=booking.hold_expires_at,
             message="Khởi tạo giao dịch thanh toán cọc thành công.",
         )
 
@@ -380,8 +681,8 @@ def create_payment_transaction(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Lỗi hệ thống khi khởi tạo giao dịch thanh toán: {str(exc)}",
-        )
+            detail="Lỗi hệ thống khi khởi tạo giao dịch thanh toán.",
+        ) from exc
 
 
 # ==============================================================================
@@ -460,8 +761,29 @@ def process_payment_webhook(
                 detail=f"Không tìm thấy mã giao dịch {payload.transaction_code}",
             )
 
+        booking = (
+            db.query(Booking)
+            .filter(Booking.id == transaction.booking_id)
+            .with_for_update()
+            .first()
+        )
+        transaction = (
+            db.query(PaymentTransaction)
+            .filter(PaymentTransaction.id == transaction.id)
+            .with_for_update()
+            .first()
+        )
+
         # B3. Cơ chế chống lặp Webhook - Idempotency (TF1B039-TC007)
-        if transaction.status in ("SUCCESS", "REFUNDED"):
+        if transaction.status in (
+            "SUCCESS",
+            "REFUNDED",
+            "FAILED",
+            "CANCELLED",
+            "EXPIRED",
+            "LATE_PAYMENT",
+            "AMOUNT_MISMATCH",
+        ):
             idempotent_log = PaymentWebhookLog(
                 provider_txn_id=payload.provider_txn_id,
                 transaction_code=payload.transaction_code,
@@ -502,13 +824,39 @@ def process_payment_webhook(
 
         # B5. Phân nhánh xử lý trạng thái Webhook
         if payload.status == "SUCCESS" and payload.response_code == "00":
-            # === Giao dịch thành công (TF1B039-TC005) ===
-            transaction.status = "SUCCESS"
-            transaction.paid_at = datetime.now()
             transaction.provider_txn_id = payload.provider_txn_id
 
-            # Cập nhật đơn đặt xe sang BOOKED (khóa lịch xe)
-            booking = db.query(Booking).filter(Booking.id == transaction.booking_id).first()
+            if (
+                booking
+                and (
+                    booking.status not in PENDING_BOOKING_STATUSES
+                    or booking.hold_expires_at is None
+                    or booking.hold_expires_at <= datetime.now()
+                )
+            ):
+                transaction.status = "LATE_PAYMENT"
+                transaction.paid_at = datetime.now()
+                late_log = PaymentWebhookLog(
+                    provider_txn_id=payload.provider_txn_id,
+                    transaction_code=payload.transaction_code,
+                    payload=raw_payload_dict,
+                    signature_valid="VALID",
+                    process_result="LATE_PAYMENT",
+                    queue_reason="Thanh toán nhận được sau khi booking hết hạn hoặc bị hủy.",
+                    processed_at=datetime.now(),
+                )
+                db.add(late_log)
+                db.commit()
+                return {
+                    "status": "OK",
+                    "message": "Thanh toán đến sau khi giữ chỗ hết hạn; cần xử lý hoàn tiền.",
+                    "transaction_code": transaction.transaction_code,
+                    "booking_id": transaction.booking_id,
+                    "booking_status": booking.status,
+                }
+
+            transaction.status = "SUCCESS"
+            transaction.paid_at = datetime.now()
             if booking:
                 booking.status = "BOOKED"
 
@@ -563,8 +911,8 @@ def process_payment_webhook(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Lỗi khi xử lý dữ liệu Webhook: {str(exc)}",
-        )
+            detail="Lỗi hệ thống khi xử lý dữ liệu Webhook.",
+        ) from exc
 
 
 # ==============================================================================
@@ -585,12 +933,18 @@ def process_payment_webhook(
 def process_payment_refund(
     request: PaymentRefundRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
 ):
     try:
         # B1. Tìm kiếm giao dịch cần hoàn tiền
         query = db.query(PaymentTransaction)
         if request.transaction_code:
-            transaction = query.filter(PaymentTransaction.transaction_code == request.transaction_code).first()
+            transaction = (
+                query.filter(
+                    PaymentTransaction.transaction_code == request.transaction_code
+                )
+                .first()
+            )
         elif request.booking_id:
             transaction = (
                 query.filter(PaymentTransaction.booking_id == request.booking_id)
@@ -608,6 +962,19 @@ def process_payment_refund(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Không tìm thấy thông tin giao dịch thanh toán.",
             )
+
+        booking = (
+            db.query(Booking)
+            .filter(Booking.id == transaction.booking_id)
+            .with_for_update()
+            .first()
+        )
+        transaction = (
+            db.query(PaymentTransaction)
+            .filter(PaymentTransaction.id == transaction.id)
+            .with_for_update()
+            .first()
+        )
 
         # B2. Kiểm tra điều kiện hoàn tiền (TF1B039-TC011)
         if transaction.status != "SUCCESS":
@@ -651,7 +1018,7 @@ def process_payment_refund(
             amount=refund_amount,
             reason=request.reason or "Khách hàng hủy lịch hợp lệ",
             status="SUCCESS",
-            processed_by=None,
+            processed_by=current_user.id,
             processed_at=datetime.now(),
         )
         db.add(refund_record)
@@ -659,9 +1026,8 @@ def process_payment_refund(
         # B6. Cập nhật trạng thái giao dịch sang REFUNDED và giải phóng xe
         transaction.status = "REFUNDED"
 
-        booking = db.query(Booking).filter(Booking.id == transaction.booking_id).first()
         if booking:
-            booking.status = "CANCELLED"  # Giải phóng xe khi hủy/hoàn tiền
+            _release_booking_hold(db, booking)
 
         db.commit()
         db.refresh(refund_record)
@@ -684,8 +1050,8 @@ def process_payment_refund(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Lỗi hệ thống khi xử lý hoàn tiền: {str(exc)}",
-        )
+            detail="Lỗi hệ thống khi xử lý hoàn tiền.",
+        ) from exc
 
 
 # ==============================================================================
@@ -699,6 +1065,7 @@ def process_payment_refund(
 def get_payment_by_code(
     transaction_code: str,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Lấy thông tin chi tiết một giao dịch thanh toán để Frontend kiểm tra trạng thái."""
     transaction = (
@@ -711,6 +1078,7 @@ def get_payment_by_code(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Không tìm thấy giao dịch với mã {transaction_code}",
         )
+    _get_owned_booking(db, transaction.booking_id, current_user)
     return transaction
 
 
@@ -722,8 +1090,10 @@ def get_payment_by_code(
 def get_payments_by_booking(
     booking_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Liệt kê toàn bộ lịch sử các giao dịch thanh toán phát sinh từ một đơn đặt xe."""
+    _get_owned_booking(db, booking_id, current_user)
     transactions = (
         db.query(PaymentTransaction)
         .filter(PaymentTransaction.booking_id == booking_id)
@@ -748,6 +1118,7 @@ def get_payments_by_booking(
 def simulate_payment_webhook(
     request: PaymentSimulateRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
 ):
     # 1. Tìm giao dịch
     transaction = (

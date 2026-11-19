@@ -134,6 +134,7 @@
         params = null,
         timeout = this.config.timeoutMs,
         useMock = this.config.mockMode,
+        mockFallback = true,
         skipAuth = false
       } = options;
 
@@ -201,6 +202,9 @@
           if (error.name === 'AbortError') {
             this.notify('Yêu cầu hết thời gian chờ (Timeout).', 'error');
             return { ok: false, status: 408, message: 'Request Timeout' };
+          }
+          if (!mockFallback) {
+            return { ok: false, status: 0, message: 'Không thể kết nối máy chủ.' };
           }
           console.warn('[RideHubAPI] Fetch thất bại, chuyển sang Mock fallback:', error.message);
           // Rơi xuống mock router
@@ -469,7 +473,22 @@
       const self = this;
       return {
         async create(bookingData) {
-          return self.post('bookings', bookingData);
+          const result = await self.post('bookings', bookingData, {
+            useMock: false,
+            mockFallback: false
+          });
+          if (!result.ok) return result;
+
+          const bookingId = Number(result.data && result.data.id);
+          if (!Number.isSafeInteger(bookingId) || bookingId <= 0) {
+            return { ok: false, status: 502, message: 'Backend không trả về booking_id hợp lệ.' };
+          }
+
+          const paymentPage = window.location.port === '8000'
+            ? '/frontend/payment-qr.html'
+            : '/payment-qr.html';
+          window.location.assign(`${paymentPage}?booking_id=${encodeURIComponent(bookingId)}`);
+          return result;
         },
 
         async getMyBookings() {

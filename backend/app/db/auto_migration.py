@@ -25,6 +25,13 @@ REQUIRED_COLUMNS = {
         ("business_license_file", "VARCHAR(255) NULL"),
         ("logo_file", "VARCHAR(255) NULL"),
     ],
+    "payment_transactions": [
+        ("bank_name", "VARCHAR(100) NULL"),
+        ("bank_bin", "VARCHAR(20) NULL"),
+        ("account_number", "VARCHAR(50) NULL"),
+        ("account_name", "VARCHAR(255) NULL"),
+        ("beneficiary_source", "VARCHAR(100) NULL"),
+    ],
 }
 
 
@@ -50,8 +57,11 @@ def auto_migrate_missing_columns() -> None:
                         conn.execute(
                             text(f"ALTER TABLE `{table_name}` ADD COLUMN `{col_name}` {col_def}")
                         )
-                        print(f"[DB Auto-Migration] Đã bổ sung cột `{table_name}.{col_name}` thành công.")
-                        logger.info(f"[DB Auto-Migration] Added column {table_name}.{col_name}")
+                        logger.info(
+                            "[DB Auto-Migration] Added column %s.%s",
+                            table_name,
+                            col_name,
+                        )
 
     except Exception as exc:
-        logger.warning(f"[DB Auto-Migration] Bỏ qua kiểm tra cột (Có thể CSDL chưa sẵn sàng): {exc}")
+        logger.warning("[DB Auto-Migration] Column migration failed: %s", exc)

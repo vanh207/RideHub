@@ -13,7 +13,7 @@ import re
 import unicodedata
 from datetime import datetime
 from typing import Any, Dict, Optional
-from urllib.parse import quote_plus
+from urllib.parse import parse_qsl, quote_plus, urlencode, urlsplit, urlunsplit
 
 from fastapi import HTTPException, status
 from payos import AsyncPayOS
@@ -22,11 +22,36 @@ from payos.types import CreatePaymentLinkRequest
 from app.core.config import settings
 
 
+BANK_NAMES_BY_BIN = {
+    "970422": "MB Bank",
+}
+
+
+def _read_field(source: Any, *names: str) -> Any:
+    for name in names:
+        if isinstance(source, dict):
+            value = source.get(name)
+        else:
+            value = getattr(source, name, None)
+        if value is not None and str(value).strip():
+            return value
+    return None
+
+
 def remove_vietnamese_accents(text: str) -> str:
     """Chuyển đổi chuỗi tiếng Việt có dấu thành không dấu."""
     nfkd = unicodedata.normalize("NFKD", text)
     no_accent = "".join([c for c in nfkd if not unicodedata.combining(c)])
     return no_accent.replace("đ", "d").replace("Đ", "D")
+
+
+def _url_for_booking(url: str, booking_id: int) -> str:
+    parts = urlsplit(url)
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    query["booking_id"] = str(booking_id)
+    return urlunsplit(
+        (parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment)
+    )
 
 
 class PayOSService:
@@ -46,6 +71,79 @@ class PayOSService:
         self.checksum_key = checksum_key or settings.PAYOS_CHECKSUM_KEY
         self.return_url = return_url or settings.PAYOS_RETURN_URL
         self.cancel_url = cancel_url or settings.PAYOS_CANCEL_URL
+
+    def normalize_beneficiary_details(
+        self, source: Any
+    ) -> Dict[str, Optional[str]]:
+        """Normalize PayOS beneficiary fields, with optional local env fallbacks."""
+        bank_bin_value = _read_field(source, "bin", "bank_bin", "bankBin")
+        bank_bin = str(bank_bin_value).strip() if bank_bin_value is not None else None
+        payos_bank_name = _read_field(source, "bank_name", "bankName")
+        payos_account_number = _read_field(
+            source, "account_number", "accountNumber", "account_no", "accountNo"
+        )
+        payos_account_name = _read_field(
+            source, "account_name", "accountName"
+        )
+
+        config_fallback_used = False
+        if payos_bank_name is not None:
+            bank_name = str(payos_bank_name).strip()
+        else:
+            bank_name = BANK_NAMES_BY_BIN.get(bank_bin)
+            if not bank_name:
+                bank_name = settings.PAYOS_BANK_NAME.strip() or None
+                config_fallback_used = bank_name is not None
+        if not bank_name and bank_bin:
+            bank_name = f"BIN {bank_bin}"
+
+        account_number = (
+            str(payos_account_number).strip()
+            if payos_account_number is not None
+            else settings.PAYOS_ACCOUNT_NUMBER.strip() or None
+        )
+        account_name = (
+            str(payos_account_name).strip()
+            if payos_account_name is not None
+            else settings.PAYOS_ACCOUNT_NAME.strip() or None
+        )
+        if payos_account_number is None and account_number:
+            config_fallback_used = True
+        if payos_account_name is None and account_name:
+            config_fallback_used = True
+
+        payos_data_present = any(
+            value is not None
+            for value in (
+                payos_bank_name,
+                bank_bin_value,
+                payos_account_number,
+                payos_account_name,
+            )
+        )
+        stored_source = _read_field(source, "beneficiary_source")
+        if config_fallback_used and payos_data_present:
+            beneficiary_source = "PayOS + cấu hình PAYOS_*"
+        elif config_fallback_used:
+            beneficiary_source = "Cấu hình PAYOS_* trong .env"
+        elif stored_source:
+            beneficiary_source = str(stored_source)
+        elif payos_data_present:
+            beneficiary_source = (
+                "PayOS (tên ngân hàng suy ra từ BIN)"
+                if not payos_bank_name and bank_bin
+                else "PayOS"
+            )
+        else:
+            beneficiary_source = "PayOS chưa trả về thông tin thụ hưởng"
+
+        return {
+            "bank_name": bank_name,
+            "bin": bank_bin,
+            "account_number": account_number,
+            "account_name": account_name,
+            "beneficiary_source": beneficiary_source,
+        }
 
     def _get_client(self) -> AsyncPayOS:
         """Khởi tạo và trả về client AsyncPayOS.
@@ -137,8 +235,14 @@ class PayOSService:
         desc_to_use = self.clean_description(description or default_desc, max_length=25)
 
         # 3. URL chuyển hướng
-        ret_url = return_url or self.return_url or "http://localhost:3000/payment/success"
-        can_url = cancel_url or self.cancel_url or "http://localhost:3000/payment/cancel"
+        ret_url = _url_for_booking(
+            return_url or self.return_url,
+            booking_id,
+        )
+        can_url = _url_for_booking(
+            cancel_url or self.cancel_url,
+            booking_id,
+        )
 
         # 4. Đóng gói request cho PayOS SDK
         payment_data = CreatePaymentLinkRequest(
@@ -152,6 +256,7 @@ class PayOSService:
         try:
             # 5. Gọi API PayOS bất đồng bộ bằng client.payment_requests.create
             response = await client.payment_requests.create(payment_data)
+            beneficiary_details = self.normalize_beneficiary_details(response)
 
             # 6. Sinh URL ảnh QR động từ chuỗi VietQR để frontend hiển thị thẻ <img>
             encoded_qr = quote_plus(response.qr_code)
@@ -166,9 +271,7 @@ class PayOSService:
                 "qr_code": response.qr_code,
                 "qr_code_url": qr_image_url,
                 "payment_link_id": response.payment_link_id,
-                "bin": getattr(response, "bin", None),
-                "account_number": getattr(response, "account_number", None),
-                "account_name": getattr(response, "account_name", None),
+                **beneficiary_details,
             }
 
         except HTTPException:
@@ -189,6 +292,21 @@ class PayOSService:
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=f"Lỗi khi tra cứu đơn hàng PayOS #{order_code}: {str(exc)}",
             )
+
+    async def cancel_payment_link(
+        self,
+        order_code: int,
+        reason: str = "Booking hold cancelled",
+    ) -> Any:
+        """Hủy link PayOS đang chờ thanh toán."""
+        client = self._get_client()
+        try:
+            return await client.cancelPaymentLink(order_code, reason)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Không thể hủy liên kết thanh toán PayOS.",
+            ) from exc
 
     def verify_payment_webhook_data(self, webhook_body: Dict[str, Any]) -> Any:
         """Xác thực chữ ký dữ liệu Webhook từ PayOS."""
@@ -293,8 +411,28 @@ class PayOSService:
                     detail=f"Không tìm thấy giao dịch PayOS với mã {transaction_code}",
                 )
 
+            booking = (
+                db.query(Booking)
+                .filter(Booking.id == transaction.booking_id)
+                .with_for_update()
+                .first()
+            )
+            transaction = (
+                db.query(PaymentTransaction)
+                .filter(PaymentTransaction.id == transaction.id)
+                .with_for_update()
+                .first()
+            )
+
             # B5. Idempotency - bỏ qua nếu đã xử lý xong
-            if transaction.status in ("SUCCESS", "REFUNDED"):
+            if transaction.status in (
+                "SUCCESS",
+                "REFUNDED",
+                "FAILED",
+                "CANCELLED",
+                "EXPIRED",
+                "LATE_PAYMENT",
+            ):
                 webhook_log.process_result = "IDEMPOTENT_IGNORED"
                 webhook_log.queue_reason = (
                     f"Giao dịch {transaction_code} đã ở trạng thái {transaction.status}. "
@@ -315,22 +453,64 @@ class PayOSService:
             )
 
             if is_success:
+                reported_amount = data_block.get("amount")
+                try:
+                    amount_matches = (
+                        not isinstance(reported_amount, bool)
+                        and float(reported_amount) == float(transaction.amount)
+                    )
+                except (TypeError, ValueError):
+                    amount_matches = False
+
+                if not amount_matches:
+                    transaction.status = "AMOUNT_MISMATCH"
+                    transaction.paid_at = datetime.now()
+                    webhook_log.process_result = "AMOUNT_MISMATCH"
+                    webhook_log.queue_reason = (
+                        "Số tiền PayOS báo không khớp số tiền của giao dịch."
+                    )
+                    db.commit()
+                    return {
+                        "status": "OK",
+                        "message": "Số tiền thanh toán không khớp; cần xử lý thủ công.",
+                        "transaction_code": transaction_code,
+                        "booking_id": transaction.booking_id,
+                    }
+
                 # === Thanh toán THÀNH CÔNG ===
-                transaction.status = "SUCCESS"
-                transaction.paid_at = datetime.now()
                 transaction.provider_txn_id = (
                     data_block.get("reference")
                     or data_block.get("paymentLinkId")
                 )
 
                 # Cập nhật đơn đặt xe sang BOOKED (khóa xe)
-                booking = (
-                    db.query(Booking)
-                    .filter(Booking.id == transaction.booking_id)
-                    .first()
-                )
+                if (
+                    booking
+                    and (
+                        booking.status not in {"PENDING_PAYMENT", "PENDING"}
+                        or booking.hold_expires_at is None
+                        or booking.hold_expires_at <= datetime.now()
+                    )
+                ):
+                    transaction.status = "LATE_PAYMENT"
+                    transaction.paid_at = datetime.now()
+                    webhook_log.process_result = "LATE_PAYMENT"
+                    webhook_log.queue_reason = (
+                        "PayOS báo đã thanh toán sau khi booking hết hạn hoặc bị hủy."
+                    )
+                    db.commit()
+                    return {
+                        "status": "OK",
+                        "message": "Thanh toán đến sau khi giữ chỗ hết hạn; cần xử lý hoàn tiền.",
+                        "transaction_code": transaction_code,
+                        "booking_id": transaction.booking_id,
+                        "booking_status": booking.status,
+                    }
+
                 if booking:
                     booking.status = "BOOKED"
+                transaction.status = "SUCCESS"
+                transaction.paid_at = datetime.now()
 
                 webhook_log.process_result = "SUCCESS"
                 webhook_log.queue_reason = (

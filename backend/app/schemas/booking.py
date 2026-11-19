@@ -8,7 +8,7 @@ class BookingHoldCreate(BaseModel):
 
     model_config = ConfigDict(extra="ignore")
 
-    customer_id: int = Field(..., gt=0)
+    customer_id: Optional[int] = Field(None, gt=0)
     vehicle_id: int = Field(..., gt=0)
     start_time: datetime
     end_time: datetime
