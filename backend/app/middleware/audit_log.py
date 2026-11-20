@@ -116,6 +116,21 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
             "default_action": "BOOKING_STATUS_CHANGE",
             "resource_type": "booking",
         },
+        # Cửa hàng duyệt đơn / từ chối đơn đặt xe (TF1A595)
+        {
+            "pattern": re.compile(r"^/api/bookings/(?P<resource_id>[^/]+)/(?P<action_verb>confirm|reject)$"),
+            "methods": {"POST"},
+            "category": "REVIEW",
+            "default_action": "STORE_ORDER_REVIEW",
+            "resource_type": "booking",
+        },
+        {
+            "pattern": re.compile(r"^/api/stores/(?P<store_id>[^/]+)/orders/(?P<resource_id>[^/]+)/(?P<action_verb>confirm|reject)$"),
+            "methods": {"POST"},
+            "category": "REVIEW",
+            "default_action": "STORE_ORDER_REVIEW",
+            "resource_type": "booking",
+        },
         # Quyết toán / Hoàn tất bàn giao xe (Handover settlement)
         {
             "pattern": re.compile(r"^/api/handover/(?P<resource_id>[^/]+)/settlement$"),

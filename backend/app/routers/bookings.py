@@ -1,6 +1,7 @@
 from types import SimpleNamespace
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -9,7 +10,7 @@ from app.crud.booking import (
     BookingConflictError,
     BookingNotFoundError,
     BookingUnavailableError,
-    BookingValidationError,
+    BookingValidationError as BookingHoldValidationError,
     create_booking_with_hold,
 )
 from app.crud.booking_cancellation import (
@@ -20,6 +21,12 @@ from app.crud.booking_cancellation import (
     BookingStateError,
     cancel_booking,
 )
+from app.crud.store_order_review import (
+    BookingValidationError as StoreOrderValidationError,
+    get_store_orders_list,
+    store_confirm_booking,
+    store_reject_booking,
+)
 from app.db.session import get_db
 from app.models.user import User
 from app.models.vehicle import Vehicle
@@ -28,10 +35,16 @@ from app.schemas.booking import (
     BookingCancelResponse,
     BookingHoldCreate,
     BookingHoldResponse,
+    StoreOrderConfirmRequest,
+    StoreOrderConfirmResponse,
+    StoreOrderListResponse,
+    StoreOrderRejectRequest,
+    StoreOrderRejectResponse,
 )
 from app.services.booking_eligibility import check_customer_can_rent
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
+
 
 
 @router.post("", response_model=BookingHoldResponse, status_code=status.HTTP_201_CREATED)
@@ -52,7 +65,7 @@ def create_booking_hold(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except BookingUnavailableError as exc:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
-    except BookingValidationError as exc:
+    except BookingHoldValidationError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
 
 
@@ -148,3 +161,133 @@ def cancel_booking_endpoint(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
+
+
+# ==============================================================================
+# ENDPOINTS DÀNH RIÊNG CHO CỬA HÀNG DUYỆT / TỪ CHỐI ĐƠN ĐẶT XE (TF1A595)
+# ==============================================================================
+
+@router.post(
+    "/{booking_id}/confirm",
+    response_model=StoreOrderConfirmResponse,
+    summary="Cửa hàng duyệt xác nhận đơn đặt xe (TF1A595)",
+    description="Chuyển trạng thái đơn sang CONFIRMED, khóa lịch phương tiện và gửi email thông báo cho khách.",
+)
+def confirm_booking_endpoint(
+    booking_id: int,
+    payload: StoreOrderConfirmRequest = StoreOrderConfirmRequest(),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return store_confirm_booking(
+            db,
+            booking_id=booking_id,
+            user=current_user,
+            note=payload.note,
+        )
+    except BookingCancelNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except BookingPermissionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    except BookingStateError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+    except StoreOrderValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    except BookingCancellationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+
+@router.post(
+    "/{booking_id}/reject",
+    response_model=StoreOrderRejectResponse,
+    summary="Cửa hàng từ chối nhận đơn đặt xe kèm lý do (TF1A595)",
+    description="Hủy đơn kèm lý do bắt buộc, giải phóng phương tiện và tự động kích hoạt hoàn 100% tiền cọc cho khách.",
+)
+def reject_booking_endpoint(
+    booking_id: int,
+    payload: StoreOrderRejectRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return store_reject_booking(
+            db,
+            booking_id=booking_id,
+            user=current_user,
+            reason=payload.reason,
+            note=payload.note,
+        )
+    except BookingCancelNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except BookingPermissionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    except BookingStateError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+    except StoreOrderValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    except BookingCancellationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+
+@router.get(
+    "/store/orders",
+    response_model=StoreOrderListResponse,
+    summary="Danh sách đơn đặt xe và chỉ số KPI cho Cửa hàng (TF1A595)",
+    description="Lấy danh sách các đơn đặt xe thuộc cửa hàng của tài khoản đang đăng nhập, hỗ trợ lọc, tìm kiếm và phân trang.",
+)
+def get_store_orders_endpoint(
+    status: str = Query("all", description="Bộ lọc trạng thái: all, pending, approved, cancelled, in_progress"),
+    search: Optional[str] = Query(None, description="Từ khóa tìm kiếm (mã đơn, tên, sđt)"),
+    page: int = Query(1, ge=1, description="Số trang"),
+    page_size: int = Query(20, ge=1, le=100, description="Số bản ghi mỗi trang"),
+    store_id: Optional[int] = Query(None, description="ID cửa hàng (chỉ Admin mới được chọn tuỳ ý)"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return get_store_orders_list(
+            db,
+            user=current_user,
+            store_id=store_id,
+            status_filter=status,
+            search=search,
+            page=page,
+            page_size=page_size,
+        )
+    except BookingPermissionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+
