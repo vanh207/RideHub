@@ -14,3 +14,9 @@ from app.models.faq import FAQ
 from app.models.handover import HandoverProtocol  
 from app.models.vehicle_reservation import VehicleReservation
 from app.models.vehicle_schedule import VehicleSchedule
+from app.models.feedback import (
+    Review,
+    Complaint,
+    ComplaintEvidence,
+    ComplaintStatusHistory,
+)
