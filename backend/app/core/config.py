@@ -2,12 +2,19 @@
 
 Muốn thêm cấu hình mới: thêm 1 dòng vào class Settings + thêm vào .env.example.
 """
+import secrets
+from decimal import Decimal
 from urllib.parse import quote_plus
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(".env", "backend/.env", "../backend/.env"),
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
     
     APP_NAME: str = "RideHub API"
 
@@ -21,15 +28,20 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "*"
 
     # Cổng thanh toán Sandbox (Mock Payment Gateway - TF19E3D)
-    PAYMENT_GATEWAY_SECRET: str = "ridehub_mock_secret_key_2026_tf19e3d"
+    PAYMENT_GATEWAY_SECRET: str = Field(
+        default_factory=lambda: secrets.token_urlsafe(48)
+    )
     PAYMENT_MOCK_BASE_URL: str = "https://sandbox.ridehub.vn"
 
     # ---- Cổng thanh toán PayOS (Thanh toán tiền cọc - TF19EFA) ----
     PAYOS_CLIENT_ID: str = ""
     PAYOS_API_KEY: str = ""
     PAYOS_CHECKSUM_KEY: str = ""
-    PAYOS_RETURN_URL: str = "http://localhost:3000/payment/success"
-    PAYOS_CANCEL_URL: str = "http://localhost:3000/payment/cancel"
+    PAYOS_RETURN_URL: str = "http://127.0.0.1:8000/frontend/payment-result.html"
+    PAYOS_CANCEL_URL: str = "http://127.0.0.1:8000/frontend/payment-result.html"
+    PAYOS_BANK_NAME: str = ""
+    PAYOS_ACCOUNT_NUMBER: str = ""
+    PAYOS_ACCOUNT_NAME: str = ""
 
     # ---- Cấu hình Email (SMTP hoặc Mock) ----
     EMAIL_BACKEND: str = "mock"
@@ -42,13 +54,60 @@ class Settings(BaseSettings):
     SMTP_TLS: bool = True
 
     # ---- JWT Cấu hình ----
-    JWT_SECRET_KEY: str = "CHANGE_ME_replace_with_a_strong_random_key"
+    JWT_SECRET_KEY: str = Field(default_factory=lambda: secrets.token_urlsafe(48))
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # ---- Firebase Admin SDK ----
+    # ---- Firebase Admin SDK & Web API Key (Được đọc hoàn toàn từ .env) ----
     FIREBASE_CREDENTIALS_PATH: str = "serviceAccountKey.json"
-    FIREBASE_WEB_API_KEY: str = "AIzaSyAeC9Ln5LN9IIlHhuwGoAcwKYp-8HDDyKU"
+    FIREBASE_WEB_API_KEY: str = ""
+    FIREBASE_PROJECT_ID: str = ""
+    FIREBASE_AUTH_DOMAIN: str = ""
+    FIREBASE_STORAGE_BUCKET: str = ""
+
+    # ---- Đặt xe & giữ chỗ (TF197DE) ----
+    # FR-30: giữ chỗ mặc định 30 phút.
+    BOOKING_HOLD_MINUTES: int = 30
+    # BR-07: đệm 60 phút trước/sau mỗi lượt thuê.
+    BOOKING_BUFFER_MINUTES: int = 60
+    # BR-02: thời lượng thuê tối thiểu 4 giờ, tối đa 30 ngày.
+    BOOKING_MIN_DURATION_HOURS: int = 4
+    BOOKING_MAX_DURATION_DAYS: int = 30
+    # BR-03: cọc 30% tiền thuê, tối thiểu 200.000đ, tối đa 1.000.000đ.
+    BOOKING_DEPOSIT_RATE: Decimal = Decimal("0.30")
+    BOOKING_DEPOSIT_MIN: Decimal = Decimal("200000")
+    BOOKING_DEPOSIT_MAX: Decimal = Decimal("1000000")
+    # SRS không nêu khoảng tối thiểu trước giờ nhận; đặt 0 phút.
+    BOOKING_MIN_START_LEAD_MINUTES: int = 0
+    # Thuê dưới 24 giờ thì dùng giá giờ nếu xe có cấu hình.
+    BOOKING_HOURLY_MAX_HOURS: int = 24
+    # Thử lại khi MySQL báo deadlock (1213) hoặc lock wait timeout (1205).
+    BOOKING_LOCK_RETRY_ATTEMPTS: int = 3
+    BOOKING_LOCK_RETRY_BASE_DELAY_SECONDS: float = 0.05
+
+    # ---- Hủy đơn & hoàn tiền ----
+    BOOKING_CANCEL_FREE_HOURS: int = 24
+    BOOKING_CANCEL_PARTIAL_HOURS: int = 6
+    BOOKING_CANCEL_PARTIAL_RATE: Decimal = Decimal("0.5")
+    BOOKING_CANCEL_STORE_FAULT_RATE: Decimal = Decimal("1.0")
+
+    # ---- Job tự hủy đơn hết hạn giữ chỗ ----
+    BOOKING_EXPIRY_JOB_ENABLED: bool = True
+    BOOKING_EXPIRY_JOB_INTERVAL_SECONDS: int = 60
+    BOOKING_EXPIRY_JOB_BATCH_SIZE: int = 100
+
+    @field_validator("PAYMENT_GATEWAY_SECRET", "JWT_SECRET_KEY", mode="before")
+    @classmethod
+    def replace_placeholder_secrets(cls, value: str) -> str:
+        placeholders = {
+            "",
+            "change_me_replace_with_a_strong_random_key",
+            "your_strong_random_jwt_secret_here",
+            "your_mock_webhook_secret_here",
+        }
+        if not isinstance(value, str) or value.strip().lower() in placeholders:
+            return secrets.token_urlsafe(48)
+        return value
 
     @property
     def database_url(self) -> str:
@@ -65,6 +124,10 @@ class Settings(BaseSettings):
             return [
                 "http://localhost:5500",
                 "http://127.0.0.1:5500",
+                "http://localhost:5501",
+                "http://127.0.0.1:5501",
+                "http://localhost:5502",
+                "http://127.0.0.1:5502",
                 "http://localhost:3000",
                 "http://localhost:8000",
                 "http://127.0.0.1:8000",

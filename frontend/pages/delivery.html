@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản lý Điểm Giao Nhận &amp; Phí — RideHub</title>
+  <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS chung của RideHub -->
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+
+  <!-- CSS riêng của trang điểm giao nhận -->
+  <link rel="stylesheet" href="css/delivery.css" />
+</head>
+<body style="background: var(--bg-page); min-height: 100vh; padding-bottom: 60px;">
+
+  <!-- Hiệu ứng nền nhận diện thương hiệu -->
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <div class="blob-layer" aria-hidden="true" data-pause-offscreen>
+    <div class="morph-blob morph-blob--1"></div>
+    <div class="morph-blob morph-blob--2"></div>
+  </div>
+
+  <!-- Thanh Navbar dùng chung -->
+  <header id="mainNavbar" class="navbar is-scrolled" style="margin-bottom: 24px;">
+    <div class="container navbar-inner">
+      <a href="../index.html" class="brand-logo" style="display: flex; align-items: center; text-decoration: none;">
+        <img src="../assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;" />
+        <span style="font-weight: 800; font-size: 1.25rem; color: var(--green-800); margin-left: 8px;">RideHub</span>
+      </a>
+      <nav class="nav-links">
+        <a href="../index.html" class="nav-link">Trang chủ</a>
+        <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+        <a href="delivery.html" class="nav-link is-active" style="color: var(--green-700); font-weight: 700;">Điểm giao nhận &amp; Phí</a>
+        <a href="profile.html" class="nav-link">Hồ sơ cá nhân</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Nội dung trang -->
+  <main class="container delivery-main" style="padding-top: 80px;">
+
+    <!-- Tiêu đề trang -->
+    <div class="delivery-header">
+      <h1 class="section-title delivery-title">Quản Lý Điểm Giao Nhận Xe &amp; Biểu Phí</h1>
+      <p class="delivery-subtitle">Thiết lập bãi xe, cấu hình phí giao tận nơi theo khu vực và đối soát đơn thuê phương tiện</p>
+    </div>
+
+    <!-- KHU VỰC 1: CẤU HÌNH BIỂU PHÍ (Admin & Cửa hàng) -->
+    <div class="panel-card delivery-card">
+      <div class="delivery-card-header">
+        <h2 class="delivery-card-title">1. Cấu hình mức phí nền tảng &amp; Địa chỉ bãi xe</h2>
+        <span class="status-badge status-badge--transit delivery-badge">Quản trị biểu phí</span>
+      </div>
+
+      <div style="background: var(--bg-surface-soft); padding: 18px; border-radius: var(--radius-md);">
+        <div style="font-size: 13.5px; font-weight: 700; color: var(--green-800); margin-bottom: 12px;">Tham số biểu phí áp dụng cho đơn thuê:</div>
+        <div class="delivery-form-grid">
+          <div class="delivery-field-box">
+            <label class="filter-label" style="font-size: 11.5px; font-weight: 700;">Phí giao xe tận nơi cơ bản (VNĐ)</label>
+            <input id="cfgBaseFee" class="form-input" type="number" value="30000" step="5000" style="font-weight: 800; color: var(--green-800);" />
+          </div>
+
+          <div class="delivery-field-box">
+            <label class="filter-label" style="font-size: 11.5px; font-weight: 700;">Phụ phí giao xe ngoài giờ 22h-06h (VNĐ)</label>
+            <input id="cfgNightFee" class="form-input" type="number" value="25000" step="5000" style="font-weight: 800; color: var(--green-800);" />
+          </div>
+
+          <div class="delivery-field-box">
+            <label class="filter-label" style="font-size: 11.5px; font-weight: 700;">Địa chỉ bãi xe chính (Nhận xe 0đ)</label>
+            <input id="cfgDefaultHub" class="form-input" type="text" value="45 Lê Duẩn, Phường Bến Nghé, Quận 1, TP.HCM" />
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary btn-premium btn-shine" style="margin-top: 16px; padding: 10px 24px; font-weight: 700;" onclick="handleSaveConfig()">
+          💾 Lưu cấu hình biểu phí
+        </button>
+      </div>
+    </div>
+
+    <!-- KHU VỰC 2: MÔ PHỎNG & TÍNH PHÍ (Khách hàng) -->
+    <div class="panel-card delivery-card">
+      <div class="delivery-card-header">
+        <h2 class="delivery-card-title">2. Kiểm tra tính phí giao nhận khi khách đặt xe</h2>
+        <span class="status-badge status-badge--available delivery-badge">Mô phỏng Đặt xe</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="delivery-mode-group">
+          <div class="filter-label" style="margin: 0; font-weight: 700;">Chọn hình thức nhận xe:</div>
+          <div class="delivery-btn-grid">
+            <button id="btnSelfPickup" type="button" class="btn btn-primary" style="width: 100%; font-weight: 700;">Tôi tự đến lấy xe (0đ)</button>
+            <button id="btnDelivery" type="button" class="btn btn-soft" style="width: 100%; font-weight: 700;">Giao xe tận nơi (+30.000đ)</button>
+          </div>
+          <div id="pickupAddressNote" class="delivery-note-pickup">
+            📍 Bãi xe nhận miễn phí: 45 Lê Duẩn, Phường Bến Nghé, Quận 1, TP.HCM
+          </div>
+          <div id="deliveryAddressWrap" hidden>
+            <label class="filter-label" for="deliveryAddressInput" style="font-size: 12.5px; margin-bottom: 4px;">Nhập địa chỉ giao xe đến:</label>
+            <input id="deliveryAddressInput" class="form-input" type="text" placeholder="VD: Khách sạn Rex, 141 Nguyễn Huệ..." value="120 Nguyễn Huệ, Phường Bến Nghé, Quận 1" />
+          </div>
+        </div>
+
+        <div class="delivery-night-box">
+          <div>
+            <label class="pill-check" style="cursor: pointer; font-weight: 600;">
+              <input type="checkbox" id="chkNightDelivery" class="addon-chk" />
+              <span>Giao nhận ngoài giờ (22:00 - 06:00)</span>
+            </label>
+            <div style="font-size: 12px; color: var(--text-muted); margin-left: 24px;">Phụ phí trực đêm bàn giao phương tiện</div>
+          </div>
+          <strong style="color: var(--green-800); font-size: 14px;">+25.000đ</strong>
+        </div>
+
+        <div class="delivery-calc-summary">
+          <div class="delivery-summary-row">
+            <span>Hình thức nhận:</span>
+            <strong id="dispMode">Tôi tự đến lấy xe</strong>
+          </div>
+          <div class="delivery-summary-row">
+            <span>Địa điểm giao nhận:</span>
+            <span id="dispAddress" style="color: var(--green-800); font-weight: 600;">45 Lê Duẩn, Quận 1</span>
+          </div>
+          <div class="delivery-summary-row delivery-summary-total">
+            <span style="font-size: 15px;">Tổng phụ phí giao nhận:</span>
+            <strong id="dispTotalFee" style="color: var(--green-700); font-size: 18px; font-weight: 800;">0đ</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KHU VỰC 3: ĐỐI SOÁT ĐƠN (Cửa hàng) -->
+    <div class="panel-card delivery-card">
+      <div class="delivery-card-header">
+        <h2 class="delivery-card-title">3. Thông tin điểm giao nhận trong đơn thuê xe</h2>
+        <span class="status-badge status-badge--maintenance delivery-badge">Đối soát Trạm xe</span>
+      </div>
+
+      <div class="delivery-store-box">
+        <div class="delivery-store-info">
+          <div><strong>Mã đơn thuê:</strong> <span style="color: var(--green-700); font-weight: 800;">#RH-8842</span> (VinFast Feliz S)</div>
+          <div><strong>Khách hàng:</strong> Nguyễn Văn An • 0901 234 567</div>
+          <div style="background: var(--bg-surface-soft); padding: 10px 14px; border-radius: 8px; margin: 10px 0;">
+            <strong>Địa điểm bàn giao:</strong> <span id="storeViewDelivery">Tôi tự đến lấy xe • 45 Lê Duẩn, Quận 1</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-top: 1px dashed #e2e8f0; padding-top: 8px;">
+            <span>Phí giao nhận thu của khách:</span>
+            <strong id="storeViewFee" style="color: var(--green-700); font-size: 15px;">0đ (Khách nhận tại bãi)</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Nạp file Javascript chung và logic riêng của trang -->
+  <script src="../js/components.js"></script>
+  <script src="../js/delivery.js"></script>
+</body>
+</html>

@@ -1,17 +1,23 @@
+# Environments
+.env
+.env*.local
+
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
 .venv/
 venv/
 env/
 
-# Cấu hình bí mật
-.env
-.env.example
+# Firebase Service Account
 serviceAccountKey.json
 backend/serviceAccountKey.json
+private_uploads/
 
-# IDE
+# IDE & OS
 .vscode/
 .idea/
-serviceAccountKey.json
+.DS_Store
+Thumbs.db

@@ -4,13 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Đăng nhập &amp; Đăng ký — RideHub</title>
-  <link rel="icon" type="image/png" href="../assets/images/logo-rh.png" />
+  <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/variables.css" />
   <link rel="stylesheet" href="../css/styles.css" />
   <link rel="stylesheet" href="../css/animations.css" />
+  <style>
+    /* Ẩn triệt để toàn bộ Avatar, Chuông thông báo & Menu vai trò ở trang Đăng nhập / Đăng ký */
+    #rbacUserPill,
+    #rbacAvatarBtn,
+    #rbacNotifWrap,
+    #rbacNotifBtn,
+    #rbacAvatarDropdown,
+    #rbacNotifDropdown,
+    #rhUserWrap,
+    #rhNotifWrap,
+    #rhAvatarBtn,
+    #rhNotifBtn,
+    #rhAvatarDropdown,
+    #rhNotifDropdown,
+    #mainNavbar .nav-links,
+    .user-avatar-trigger,
+    .user-avatar-circle,
+    .user-avatar-dropdown,
+    .user-menu-wrap,
+    .notif-wrap {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+    }
+  </style>
 </head>
 <body>
   <div class="noise-overlay" aria-hidden="true"></div>
@@ -21,34 +52,22 @@
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
   <header id="mainNavbar" class="navbar is-scrolled">
-    <div class="container navbar-inner">
-      <a href="index.html" class="brand-logo">
-        <img src="../assets/images/logo-rh.png" alt="RideHub" style="height:34px;width:auto;object-fit:contain;" />
+    <div class="container navbar-inner" style="display:flex;justify-content:space-between;align-items:center;">
+      <a href="../index.html" class="brand-logo">
+        <img src="../assets/logo-rh.png" alt="RideHub" style="height:34px;width:auto;object-fit:contain;" />
         <span>RideHub</span>
       </a>
-      <nav class="nav-links">
-        <a href="index.html" class="nav-link">Trang chủ</a>
-        <a href="vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
-        <a href="trips.html" class="nav-link">Chuyến đi</a>
-        <a href="index.html#storySection" class="nav-link">Hướng dẫn thuê xe</a>
-        <a href="store-portal.html" class="nav-link">Cửa hàng</a>
-        <a href="admin-ops.html" class="nav-link">Vận hành &amp; Admin</a>
-      </nav>
       <div class="nav-actions">
-        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
-          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
-        </button>
+        <a href="../index.html" class="btn btn-soft" style="min-height:36px;padding:4px 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Về trang chủ</span>
+        </a>
       </div>
     </div>
   </header>
 
   <aside id="mobileDrawer" class="mobile-drawer">
-    <a href="index.html">Trang chủ</a>
-    <a href="vehicles.html">Tìm &amp; Thuê xe</a>
-    <a href="trips.html">Chuyến đi</a>
-    <a href="index.html#storySection">Hướng dẫn thuê xe</a>
-    <a href="store-portal.html">Cổng Cửa hàng</a>
-    <a href="admin-ops.html">Vận hành &amp; Admin</a>
+    <a href="../index.html">Về trang chủ</a>
   </aside>
 
   <!-- Cảnh xe chạy toàn màn hình làm nền phía sau -->
@@ -81,22 +100,24 @@
     <div style="width:min(440px,100%);">
       <div data-tab-panel="login">
         <div class="panel-card spotlight-card" data-reveal style="box-shadow:0 24px 60px -16px rgba(19,42,28,0.22);background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);">
-          <div style="width:76px;height:76px;border-radius:50%;background:var(--green-100);display:grid;place-items:center;margin:0 auto 12px;box-shadow:var(--shadow-soft);">
-            <img src="../assets/images/logo-rh.png" alt="RideHub" style="height:44px;width:44px;object-fit:contain;" />
+          <div style="text-align:center;margin-bottom:18px;">
+            <div id="authBrandLogoWrap" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg, #dcfce7, #bbf7d0);border:2px solid #86efac;display:grid;place-items:center;margin:0 auto 12px;box-shadow:0 8px 20px -4px rgba(22,163,74,0.22);">
+              <img src="../assets/logo-rh.png" alt="RideHub" style="height:42px;width:42px;object-fit:contain;" />
+            </div>
+            <div style="font-size:11px;font-weight:800;color:var(--green-700);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Cổng xác thực RideHub</div>
+            <h2 id="authCardTitle" style="text-align:center;margin:0;font-family:var(--font-display);font-size:1.35rem;">Đăng nhập</h2>
           </div>
-
-          <h2 id="authCardTitle" style="text-align:center;margin:0 0 18px;font-family:var(--font-display);font-size:1.35rem;">Đăng nhập</h2>
 
           <!-- Login Form (Chỉ đăng nhập bằng Email) -->
           <form id="loginForm" novalidate>
             <div class="filter-group">
               <label class="filter-label" for="loginEmailInput">Email đăng nhập</label>
-              <input id="loginEmailInput" class="form-input" type="email" placeholder="Nhập email của bạn..." value="an.nguyen@ridehub.vn" required />
+              <input id="loginEmailInput" class="form-input" type="email" placeholder="Nhập email của bạn..." required />
             </div>
             <div class="filter-group">
-              <label class="filter-label" for="loginPassInput">Mật khẩu (mặc định: 123456)</label>
+              <label class="filter-label" for="loginPassInput">Mật khẩu</label>
               <div style="position:relative;">
-                <input id="loginPassInput" class="form-input" type="password" placeholder="Nhập mật khẩu..." value="123456" required style="padding-right:76px;" />
+                <input id="loginPassInput" class="form-input" type="password" placeholder="Nhập mật khẩu..." required style="padding-right:76px;" />
                 <button type="button" class="btn btn-soft toggle-pass-btn" data-target="loginPassInput" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);min-height:30px;padding:4px 10px;font-size:11px;">Hiện</button>
               </div>
             </div>
@@ -108,6 +129,18 @@
               <button id="goToForgotLink" type="button" style="border:0;background:none;padding:0;color:var(--green-700);font-weight:700;text-decoration:underline;">Quên mật khẩu?</button>
             </div>
             <button class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="submit">Đăng nhập ngay</button>
+
+            <!-- Tiếp tục với Google qua Firebase -->
+            <div style="display:flex;align-items:center;margin:16px 0 12px;color:var(--text-muted);font-size:11.5px;">
+              <div style="flex:1;height:1px;background:var(--green-200);"></div>
+              <span style="padding:0 10px;font-weight:700;letter-spacing:0.5px;">HOẶC ĐĂNG NHẬP VỚI</span>
+              <div style="flex:1;height:1px;background:var(--green-200);"></div>
+            </div>
+            <button id="googleLoginBtn" class="btn btn-soft" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700;background:#ffffff;border:1px solid #cbd5e1;box-shadow:0 1px 3px rgba(0,0,0,0.06);" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+              <span>Đăng nhập với Google</span>
+            </button>
+
             <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-secondary);">
               Chưa có tài khoản?
               <button id="goToRegisterLink" type="button" style="border:0;background:none;padding:0;color:var(--green-700);font-weight:800;text-decoration:underline;">Đăng ký</button>
@@ -158,7 +191,7 @@
 
             <label id="regTermsWrap" style="display:flex;align-items:flex-start;gap:8px;font-size:13px;margin-bottom:14px;cursor:pointer;">
               <input id="regAgreeTerms" type="checkbox" style="margin-top:3px;accent-color:var(--green-600);" />
-              <span>Tôi đồng ý với <strong>Điều khoản dịch vụ</strong> và <strong>Chính sách bảo mật</strong> của RideHub.</span>
+              <span>Tôi đồng ý với <strong>Điều khoản dịch vụ</strong> và <a href="privacy-policy.html" target="_blank" style="color:var(--green-700);text-decoration:underline;font-weight:700;">Chính sách bảo mật</a> của RideHub.</span>
             </label>
 
             <button class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="submit">Hoàn tất đăng ký</button>
@@ -170,64 +203,27 @@
 
           <!-- Forgot / Reset Password by Email Form -->
           <form id="forgotForm" hidden novalidate>
-            <!-- Bước 1: Nhập Email -->
             <div id="forgotStep1">
               <div class="filter-group">
                 <label class="filter-label" for="forgotEmailInput">Email tài khoản</label>
                 <input id="forgotEmailInput" class="form-input" type="email" placeholder="Nhập email đã đăng ký..." required />
               </div>
               <div id="forgotErr1" style="font-size:12px;font-weight:700;color:#e11d48;min-height:18px;margin-bottom:8px;"></div>
-              <button id="forgotSendOtpBtn" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button">Gửi mã OTP qua Email</button>
+              <button id="forgotSendOtpBtn" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button">Gửi link đặt lại mật khẩu qua Email</button>
             </div>
 
-            <!-- Bước 2: Xác thực OTP Email -->
-            <div id="forgotStep2" hidden>
-              <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">
-                Nhập mã OTP 6 số đã gửi tới <strong id="forgotEmailDisplay"></strong>
+            <!-- Trạng thái sau khi gửi email reset -->
+            <div id="forgotStep2" hidden style="text-align:center;padding:10px 0;">
+              <span class="status-badge status-badge--available" style="margin-bottom:10px;padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:700;">
+                ✓ Đã gửi email khôi phục mật khẩu
+              </span>
+              <p style="font-size:13px;color:var(--text-secondary);margin:10px 0 14px;line-height:1.5;">
+                Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu tới:<br />
+                <strong id="forgotEmailDisplay" style="color:var(--green-800);"></strong>
+              </p>
+              <div style="padding:10px;border-radius:10px;background:#f0fdf4;border:1px solid var(--green-200);font-size:12px;color:var(--text-secondary);text-align:left;margin-bottom:14px;line-height:1.6;">
+                Vui lòng kiểm tra hộp thư của bạn (kể cả thư mục <em>Spam / Rác</em>) và bấm vào liên kết do Google Firebase gửi để tạo mật khẩu mới.
               </div>
-              <div class="otp-row" style="justify-content:center;">
-                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 1" />
-                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 2" />
-                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 3" />
-                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 4" />
-                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 5" />
-                <input class="otp-box forgot-otp-box" maxlength="1" inputmode="numeric" aria-label="OTP 6" />
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin:8px 0;">
-                <span id="forgotOtpStatus" style="color:var(--text-muted);">Hết hạn sau 05:00</span>
-                <button id="forgotResendBtn" type="button" class="btn btn-soft" style="min-height:28px;padding:2px 10px;font-size:11px;" disabled>Gửi lại (60s)</button>
-              </div>
-              <div id="forgotErr2" style="font-size:12px;font-weight:700;color:#e11d48;min-height:18px;margin-bottom:8px;"></div>
-              <button id="forgotBackEmailBtn" type="button" class="btn btn-soft" style="width:100%;">Đổi email khác</button>
-            </div>
-
-            <!-- Bước 3: Đặt lại mật khẩu mới -->
-            <div id="forgotStep3" hidden>
-              <div class="filter-group" style="margin-bottom:8px;">
-                <label class="filter-label" for="forgotNewPassInput">Mật khẩu mới</label>
-                <div style="position:relative;">
-                  <input id="forgotNewPassInput" class="form-input" type="password" placeholder="Nhập mật khẩu mới..." required style="padding-right:76px;" />
-                  <button type="button" class="btn btn-soft toggle-pass-btn" data-target="forgotNewPassInput" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);min-height:30px;padding:4px 10px;font-size:11px;">Hiện</button>
-                </div>
-              </div>
-              <div style="margin-bottom:12px;">
-                <div style="height:6px;border-radius:99px;background:var(--green-100);overflow:hidden;margin-bottom:6px;">
-                  <div id="forgotStrengthBar" style="height:100%;width:0%;background:#fb7185;transition:width 0.3s var(--ease-out),background-color 0.3s var(--ease-out);"></div>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
-                  <span style="color:var(--text-muted);">Độ mạnh mật khẩu:</span>
-                  <strong id="forgotStrengthLabel" style="color:var(--text-muted);">Chưa nhập</strong>
-                </div>
-              </div>
-              <div class="filter-group" style="margin-bottom:6px;">
-                <label class="filter-label" for="forgotNewPassConfirm">Nhập lại mật khẩu mới</label>
-                <div style="position:relative;">
-                  <input id="forgotNewPassConfirm" class="form-input" type="password" placeholder="Nhập lại mật khẩu mới..." required style="padding-right:76px;" />
-                  <button type="button" class="btn btn-soft toggle-pass-btn" data-target="forgotNewPassConfirm" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);min-height:30px;padding:4px 10px;font-size:11px;">Hiện</button>
-                </div>
-              </div>
-              <div id="forgotMatchMsg" style="font-size:12px;font-weight:700;min-height:18px;margin-bottom:10px;"></div>
-              <button id="forgotSaveBtn" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="submit">Xác nhận tạo lại mật khẩu</button>
             </div>
 
             <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-secondary);">
@@ -235,6 +231,42 @@
               <button id="forgotToLoginLink" type="button" style="border:0;background:none;padding:0;color:var(--green-700);font-weight:800;text-decoration:underline;">Quay lại đăng nhập</button>
             </div>
           </form>
+
+          <!-- Phòng chờ xác thực tài khoản (Waiting Room - Firebase Email Verification) -->
+          <div id="waitingRoomView" hidden style="text-align:center;padding:8px 0;">
+            <span class="status-badge status-badge--transit" style="display:inline-flex;margin-bottom:10px;padding:6px 16px;border-radius:8px;font-size:12.5px;font-weight:700;">
+              <span class="status-dot status-dot-pulse" style="background:#22c55e;"></span>
+              Đã gửi email xác thực Firebase
+            </span>
+
+            <h3 style="font-size:1.3rem;margin:0 0 6px;font-family:var(--font-display);color:var(--text-primary);">
+              Xác thực email tài khoản
+            </h3>
+            
+            <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;line-height:1.5;">
+              Hệ thống đã gửi liên kết kích hoạt chính thức từ Google Firebase tới email:<br />
+              <strong id="waitingUserEmail" style="color:var(--green-800);font-size:14px;word-break:break-all;"></strong>
+            </p>
+
+            <!-- Hướng dẫn các bước xác thực thực tế -->
+            <div style="padding:12px 14px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;text-align:left;font-size:12px;line-height:1.7;margin-bottom:14px;">
+              <div style="font-weight:700;color:#0f172a;margin-bottom:4px;">Các bước kích hoạt tài khoản:</div>
+              <div>1. Mở hòm thư Gmail/Email của bạn (kiểm tra cả mục <strong>Spam / Rác</strong>).</div>
+              <div>2. Tìm thư gửi từ <strong>Firebase (noreply@ridehub-carmoto.firebaseapp.com)</strong>.</div>
+              <div>3. Nhấp vào liên kết xác thực trong email để kích hoạt.</div>
+            </div>
+
+            <!-- Trạng thái tự động lắng nghe kích hoạt -->
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-radius:10px;background:#f0fdf4;border:1px solid #bbf7d0;font-size:12px;color:var(--green-800);margin-bottom:14px;">
+              <span class="status-dot status-dot-pulse" style="background:#22c55e;"></span>
+              <span>Đang tự động chờ bạn nhấp vào liên kết trong email...</span>
+            </div>
+
+            <!-- Nút gửi lại email xác thực duy nhất -->
+            <button id="waitingResendEmailBtn" class="btn btn-soft" style="width:100%;min-height:42px;font-size:13px;font-weight:700;border:1px solid var(--green-300);color:var(--green-900);" type="button" disabled>
+              Gửi lại email xác thực (<span id="waitingTimerSpan">60</span>s)
+            </button>
+          </div>
         </div>
       </div>
 
@@ -315,10 +347,214 @@
     </div>
   </main>
 
-  <script src="../js/pages/vehicle-anim.js"></script>
-  <script src="../js/pages/effects.js"></script>
-  <script src="../js/pages/auth-rbac.js"></script>
-  <script src="../js/pages/auth.js"></script>
+  <!-- Modal: Phòng chờ xác thực eKYC CCCD & Khuôn mặt sau khi Đăng ký -->
+  <div id="ekycWaitingRoomModal" class="modal-backdrop" role="dialog" aria-modal="true" style="display:none !important;">
+    <div class="modal-dialog" style="max-width:580px;max-height:94vh;overflow-y:auto;position:relative;">
+      <canvas id="ekycConfettiCanvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:20;"></canvas>
+
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+        <div>
+          <span class="status-badge status-badge--transit">Xác thực danh tính điện tử eKYC</span>
+          <h3 id="ekycModalTitle" style="margin:6px 0 2px;font-family:var(--font-display);font-size:1.25rem;">Phòng chờ xác thực &amp; Kích hoạt tài khoản</h3>
+          <div style="font-size:12px;color:var(--text-muted);">Hoàn tất xác thực CCCD và khuôn mặt để được duyệt tài khoản &amp; miễn cọc</div>
+        </div>
+        <button type="button" id="closeEkycModalBtn" style="background:transparent;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);">&times;</button>
+      </div>
+
+      <!-- Stepper -->
+      <div class="ekyc-stepper">
+        <div class="ekyc-step-item is-active" id="eStepTag1">
+          <div class="ekyc-step-circle">1</div>
+          <span>Quét CCCD</span>
+        </div>
+        <div class="ekyc-step-item" id="eStepTag2">
+          <div class="ekyc-step-circle">2</div>
+          <span>Khuôn mặt</span>
+        </div>
+        <div class="ekyc-step-item" id="eStepTag3">
+          <div class="ekyc-step-circle">3</div>
+          <span>Phòng chờ AI</span>
+        </div>
+        <div class="ekyc-step-item" id="eStepTag4">
+          <div class="ekyc-step-circle">4</div>
+          <span>Kích hoạt</span>
+        </div>
+      </div>
+
+      <!-- BƯỚC 1: XÁC THỰC CCCD GẮN CHIP -->
+      <div id="ekycPanelStep1">
+        <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft);border:1px solid var(--green-100);margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <strong style="font-size:13px;color:var(--text-primary);">Chụp hoặc tải ảnh CCCD 2 mặt (Gắn chip)</strong>
+            <button type="button" id="btnAutoFillCCCD" class="btn btn-soft" style="min-height:28px;padding:2px 10px;font-size:11px;color:var(--green-800);background:#fff;border:1px solid var(--green-300);">⚡ Quét mẫu tự động</button>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+            <!-- Mặt trước -->
+            <label for="cccdFrontInput" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:120px;border:1.5px dashed var(--green-400);border-radius:12px;background:#fff;cursor:pointer;position:relative;overflow:hidden;text-align:center;padding:8px;">
+              <div id="cccdFrontScanline" class="laser-scanline" style="display:none;"></div>
+              <img id="cccdFrontImg" src="" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;display:none;" />
+              <div id="cccdFrontPlaceholder">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--green-700);margin:0 auto 4px;"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="11" r="2.5"/><path d="M14 9h4M14 13h4M6 16c0-1.5 1.5-2 3-2s3 .5 3 2"/></svg>
+                <div style="font-size:12px;font-weight:700;color:var(--green-800);">Mặt trước CCCD</div>
+                <div style="font-size:10px;color:var(--text-muted);">Bấm để chụp/tải ảnh</div>
+              </div>
+            </label>
+            <input id="cccdFrontInput" type="file" accept="image/*" hidden />
+
+            <!-- Mặt sau -->
+            <label for="cccdBackInput" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:120px;border:1.5px dashed var(--green-400);border-radius:12px;background:#fff;cursor:pointer;position:relative;overflow:hidden;text-align:center;padding:8px;">
+              <div id="cccdBackScanline" class="laser-scanline" style="display:none;"></div>
+              <img id="cccdBackImg" src="" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;display:none;" />
+              <div id="cccdBackPlaceholder">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--green-700);margin:0 auto 4px;"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="16" cy="12" r="3"/><path d="M6 9h4M6 12h4M6 15h4"/></svg>
+                <div style="font-size:12px;font-weight:700;color:var(--green-800);">Mặt sau (Có Chip)</div>
+                <div style="font-size:10px;color:var(--text-muted);">Bấm để chụp/tải ảnh</div>
+              </div>
+            </label>
+            <input id="cccdBackInput" type="file" accept="image/*" hidden />
+          </div>
+
+          <!-- Kết quả OCR tự động trích xuất -->
+          <div id="cccdOcrResultCard" style="display:none;padding:12px;border-radius:10px;background:#f0fdf4;border:1px solid var(--green-300);font-size:12px;color:var(--text-secondary);line-height:1.7;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <strong style="color:var(--green-900);font-size:13px;">✓ Đã trích xuất thông tin OCR từ chip CCCD</strong>
+              <span class="status-badge status-badge--available" style="font-size:10px;">Hợp lệ</span>
+            </div>
+            <div>• Số định danh CCCD: <strong id="ocrCccdNum" style="color:#0f172a;font-family:monospace;font-size:13px;">079201008892</strong></div>
+            <div>• Họ và tên: <strong id="ocrFullName" style="color:#0f172a;"></strong></div>
+            <div>• Ngày sinh: <strong>15/08/1998</strong> • Giới tính: <strong>Nam</strong></div>
+            <div>• Nơi thường trú: <strong>Bến Nghé, Quận 1, TP. Hồ Chí Minh</strong></div>
+          </div>
+        </div>
+
+        <button id="btnGotoStep2" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button" disabled>Tiếp tục: Quét khuôn mặt sinh trắc học ›</button>
+      </div>
+
+      <!-- BƯỚC 2: QUÉT KHUÔN MẶT SINH TRẮC HỌC & LIVENESS -->
+      <div id="ekycPanelStep2" style="display:none;">
+        <div style="text-align:center;margin-bottom:14px;">
+          <div class="face-liveness-container">
+            <div id="faceScanline" class="laser-scanline" style="display:none;"></div>
+            <!-- Face simulation SVG inside oval -->
+            <svg viewBox="0 0 160 200" width="140" height="180" style="opacity:0.85;">
+              <ellipse cx="80" cy="95" rx="52" ry="68" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="6 4"/>
+              <circle cx="62" cy="80" r="5" fill="#86efac"/>
+              <circle cx="98" cy="80" r="5" fill="#86efac"/>
+              <path d="M80 88 v16 h6" stroke="#86efac" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <path d="M66 126 Q80 138 94 126" stroke="#22c55e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <path d="M40 50 h-10 v10 M120 50 h10 v10 M40 150 h-10 v-10 M120 150 h10 v-10" stroke="#4ade80" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+
+          <div id="faceScanStatusText" style="font-size:13px;font-weight:700;color:var(--green-700);margin-bottom:6px;">
+            Vui lòng giữ thẳng khuôn mặt trong khung hình...
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;">
+            Hệ thống AI tự động phân tích 128 điểm nhận dạng 3D và kiểm tra chuyển động sống (Anti-Deepfake).
+          </div>
+
+          <!-- Liveness checklist -->
+          <div style="display:flex;justify-content:center;gap:12px;font-size:11px;margin-bottom:14px;flex-wrap:wrap;">
+            <span id="liveCheck1" class="spec-chip">○ Nhìn thẳng</span>
+            <span id="liveCheck2" class="spec-chip">○ Chớp mắt</span>
+            <span id="liveCheck3" class="spec-chip">○ Mỉm cười</span>
+          </div>
+
+          <div id="faceMatchSuccessBox" style="display:none;padding:10px 14px;border-radius:10px;background:#ecfdf5;border:1px solid var(--green-300);color:var(--green-800);font-size:12px;font-weight:700;margin-bottom:14px;">
+            ✓ Trùng khớp sinh trắc học: 99.4% (Đạt chuẩn)
+          </div>
+
+          <button id="btnStartFaceScan" class="btn btn-soft" style="width:100%;margin-bottom:8px;" type="button">Bắt đầu quét khuôn mặt</button>
+          <button id="btnGotoStep3" class="btn btn-primary btn-premium btn-shine" style="width:100%;display:none;" type="button">Vào Phòng chờ đối soát AI ›</button>
+        </div>
+      </div>
+
+      <!-- BƯỚC 3: PHÒNG CHỜ ĐỐI SOÁT AI RADAR -->
+      <div id="ekycPanelStep3" style="display:none;text-align:center;">
+        <div class="radar-circle-wrap">
+          <div class="radar-grid-line-x"></div>
+          <div class="radar-grid-line-y"></div>
+          <div class="radar-ring" style="width:60px;height:60px;"></div>
+          <div class="radar-ring" style="width:120px;height:120px;"></div>
+          <div class="radar-sweep-hand"></div>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#86efac;box-shadow:0 0 10px #22c55e;"></div>
+        </div>
+
+        <h4 style="margin:0 0 6px;font-size:1.15rem;color:var(--green-900);">Phòng chờ kích hoạt &amp; Đối soát AI</h4>
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+          Hệ thống đang đối chiếu dữ liệu CCCD, sinh trắc học và lịch sử tín nhiệm an toàn.
+        </div>
+
+        <!-- Verification Checklist -->
+        <div style="padding:14px;border-radius:12px;background:var(--bg-surface-soft);border:1px solid var(--green-100);text-align:left;font-size:12.5px;display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+          <div id="aiCheckItem1" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
+            <span class="status-dot"></span>
+            <span>1. Xác thực tính toàn vẹn chữ ký số trên Chip CCCD</span>
+          </div>
+          <div id="aiCheckItem2" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
+            <span class="status-dot"></span>
+            <span>2. Đối soát dữ liệu nhân thân &amp; giấy phép lái xe hợp lệ</span>
+          </div>
+          <div id="aiCheckItem3" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
+            <span class="status-dot"></span>
+            <span>3. Xác thực sinh trắc học Face Liveness chống giả mạo</span>
+          </div>
+          <div id="aiCheckItem4" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
+            <span class="status-dot"></span>
+            <span>4. Cấp hạn mức tín nhiệm &amp; Miễn cọc bảo lưu phương tiện</span>
+          </div>
+        </div>
+
+        <div style="height:6px;border-radius:99px;background:var(--green-100);overflow:hidden;margin-bottom:8px;">
+          <div id="aiProgressBar" style="height:100%;width:0%;background:var(--green-600);transition:width 0.6s ease;"></div>
+        </div>
+        <div id="aiProgressText" style="font-size:11px;color:var(--text-muted);font-weight:700;">Đang khởi tạo kết nối an toàn (25%)...</div>
+      </div>
+
+      <!-- BƯỚC 4: HOÀN TẤT & TẠO TÀI KHOẢN THÀNH CÔNG -->
+      <div id="ekycPanelStep4" style="display:none;text-align:center;">
+        <div style="width:72px;height:72px;border-radius:50%;background:#dcfce7;border:3px solid #22c55e;display:grid;place-items:center;margin:0 auto 14px;color:#15803d;box-shadow:0 10px 25px -5px rgba(34,197,94,0.4);">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+
+        <h3 style="margin:0 0 6px;font-size:1.3rem;font-family:var(--font-display);color:var(--green-900);">Tài khoản đã tạo thành công!</h3>
+        <p style="margin:0 0 16px;font-size:13px;color:var(--text-secondary);">
+          Chúc mừng bạn đã hoàn tất xác thực định danh eKYC. Hồ sơ của bạn đã được kích hoạt với đặc quyền <strong>Miễn thế chấp xe</strong> trên hệ thống RideHub.
+        </p>
+
+        <div style="padding:14px;border-radius:12px;background:var(--green-50);border:1px solid var(--green-300);text-align:left;font-size:12.5px;line-height:1.8;margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Chủ tài khoản: <strong id="succUserName"></strong></span>
+            <span class="status-badge status-badge--available">eKYC Đạt</span>
+          </div>
+          <div>Email: <strong id="succUserEmail"></strong></div>
+          <div>Số CCCD: <strong id="succUserCccd" style="font-family:monospace;">079201008892</strong></div>
+          <div>Số điện thoại: <strong id="succUserPhone"></strong></div>
+          <div>Hạn mức bảo lãnh: <strong style="color:var(--green-800);">Miễn thế chấp phương tiện</strong></div>
+        </div>
+
+        <!-- Hộp tự động chuyển hướng -->
+        <div id="ekycAutoRedirectBox" style="padding:10px 14px;border-radius:10px;background:#f0fdf4;border:1px solid #86efac;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px;color:#15803d;font-weight:700;">
+          <span class="status-dot status-dot-pulse" style="background:#22c55e;"></span>
+          <span>Đang tự động chuyển hướng vào kho xe trong <strong id="ekycCountdownSec">2</strong>s...</span>
+        </div>
+
+        <button id="btnFinishAuth" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button">Vào thuê xe ngay ›</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Firebase App & Auth SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="../js/config.js?v=20261116_10"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/vehicle-anim.js?v=20261116_10"></script>
+  <script src="../js/effects.js?v=20261116_10"></script>
+  <script src="../js/auth-rbac.js?v=20261116_10"></script>
+  <script src="../js/auth.js?v=20261116_10"></script>
 </body>
 </html>
 

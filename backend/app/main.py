@@ -4,20 +4,46 @@ Chạy:  uvicorn app.main:app --reload
 Tài liệu API tự sinh: http://127.0.0.1:8000/docs
 """
 import os
+import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import OperationalError
 
 from app import models  # noqa: F401 - import để SQLAlchemy biết các bảng
 from app.core.config import settings
+from app.core.store_errors import (
+    StoreAPIError,
+    store_api_error_handler,
+    store_http_exception_handler,
+)
 from app.core.firebase import init_firebase
+from app.db.seed_data import seed_default_accounts
 from app.db.session import Base, engine
-from app.routers import health, items, payment, notifications, chat, faq, handover, vehicles, delivery, store_staff, login
+from app.middleware.audit_log import AuditLogMiddleware
+from app.jobs.booking_expiry_job import start_expiry_job, stop_expiry_job
+from app.routers import (
+    admin_reviews,
+    bookings,
+    chat,
+    delivery,
+    faq,
+    handover,
+    health,
+    items,
+    login,
+    notifications,
+    payment,
+    store_staff,
+    stores,
+    vehicles,
+)
 
-    
+logger = logging.getLogger("ridehub.startup")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Khởi tạo Firebase Admin SDK
@@ -27,29 +53,55 @@ async def lifespan(app: FastAPI):
     # Lưu ý: create_all KHÔNG sửa bảng đã tồn tại. Đổi cột -> sửa bằng SQL hoặc xoá bảng tạo lại.
     try:
         Base.metadata.create_all(bind=engine)
-        print(f"[DB] Đã kết nối MySQL {settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}")
+        logger.info(
+            "[DB] Connected to MySQL %s:%s/%s",
+            settings.DB_HOST,
+            settings.DB_PORT,
+            settings.DB_NAME,
+        )
+        # Tự động nạp dữ liệu mẫu (3 tài khoản đại diện: Khách thuê, Chủ cửa hàng, Admin)
+        seed_default_accounts()
     except OperationalError as error:
-        print("[DB] KHÔNG kết nối được MySQL! Kiểm tra MySQL đã bật chưa và file .env.")
+        logger.error(
+            "[DB] MySQL connection failed. Check that MySQL is running and "
+            "backend/.env contains the correct connection settings."
+        )
         if "Unknown database" in str(error.orig):
-            print("[DB] Chưa có database -> mở MySQL Workbench, chạy file sql/init.sql")
-        print(f"[DB] Chi tiết: {error.orig}")
-    yield
+            logger.error(
+                "[DB] The database does not exist; create it using "
+                "backend/sql/init.sql."
+            )
+        logger.error("[DB] Connection detail: %s", error.orig)
+
+    await start_expiry_job()
+    try:
+        yield
+    finally:
+        await stop_expiry_job()
 
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
+app.add_exception_handler(StoreAPIError, store_api_error_handler)
+app.add_exception_handler(HTTPException, store_http_exception_handler)
+
 
 # CORS: cho phép trang FE (khác cổng/khác domain) gọi được API này kèm Cookie
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Audit Log Middleware: Ghi vết kiểm toán cho các thao tác duyệt, đổi trạng thái, hoàn tiền
+app.add_middleware(AuditLogMiddleware)
+
 # Mọi API đều bắt đầu bằng /api. Thêm router mới thì include ở đây.
 app.include_router(health.router, prefix="/api")
 app.include_router(items.router, prefix="/api")
+app.include_router(bookings.router, prefix="/api")
 app.include_router(payment.router, prefix="/api")
 
 app.include_router(chat.router, prefix="/api")
@@ -59,6 +111,8 @@ app.include_router(notifications.router, prefix="/api")
 app.include_router(vehicles.router, prefix="/api")
 app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
+app.include_router(stores.router, prefix="/api")
+app.include_router(admin_reviews.router, prefix="/api")
 app.include_router(login.router)
 app.include_router(login.router, prefix="/api")
 

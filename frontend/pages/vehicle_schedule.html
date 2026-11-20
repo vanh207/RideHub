@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lịch Xe Theo Ngày &amp; Tuần — RideHub</title>
+  
+  <!-- Font chữ tiêu chuẩn từ dự án -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- File CSS bóc tách riêng (đầy đủ màu sắc, components và layout) -->
+  <link rel="stylesheet" href="css/vehicle_schedule.css" />
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Tiêu đề trang & Nút chuyển chế độ xem Tháng / Tuần -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h1 style="font-size: 1.55rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">
+          Lịch Xe Hoạt Động Theo Ngày &amp; Tuần
+        </h1>
+    
+      </div>
+      <!-- Nút chuyển chế độ xem: Theo Tháng / Theo Tuần -->
+      <div style="display: flex; gap: 6px; background: var(--bg-surface-soft); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--green-100);">
+        <button id="viewMonthBtn" class="btn btn-primary" type="button" style="min-height: 32px; padding: 4px 14px; font-size: 12.5px;">Chế độ Tháng</button>
+        <button id="viewWeekBtn" class="btn btn-soft" type="button" style="min-height: 32px; padding: 4px 14px; font-size: 12.5px;">Chế độ Tuần</button>
+      </div>
+    </div>
+
+    <!-- KHỐI GIAO DIỆN CHÍNH: SPLIT LAYOUT -->
+    <div class="split-layout">
+      
+      <!-- CỘT TRÁI: LỊCH THÁNG / LỊCH TUẦN -->
+      <div class="panel-card">
+        
+        <!-- Thanh điều hướng tháng / tuần -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
+          <div>
+            <h2 id="calMonthTitle" style="margin: 0; font-size: 1.2rem;">Tháng 11 / 2026</h2>
+            <div id="calSubTitle" style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+              Theo dõi lịch giao xe, nhận lại xe và bảo dưỡng theo ngày
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button id="calPrevBtn" class="btn btn-soft" type="button" style="min-height: 34px; padding: 4px 12px;" title="Lùi lại">‹</button>
+            <button id="calTodayBtn" class="btn btn-soft" type="button" style="min-height: 34px; padding: 4px 14px; font-size: 12px;">Hôm nay</button>
+            <button id="calNextBtn" class="btn btn-soft" type="button" style="min-height: 34px; padding: 4px 12px;" title="Tiến tới">›</button>
+          </div>
+        </div>
+
+        <!-- Chú thích màu sắc (Legend Pills) -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; font-size: 11px; font-weight: 700;">
+          <span class="rh-cal-pill rh-cal-pill--pickup">● Giao xe</span>
+          <span class="rh-cal-pill rh-cal-pill--return">● Trả xe</span>
+          <span class="rh-cal-pill rh-cal-pill--maint">● Bảo dưỡng / Cleaning</span>
+        </div>
+
+        <!-- VIEW 1: LỊCH THÁNG (MONTH GRID) -->
+        <div id="monthViewWrapper">
+          <div class="rh-cal-weekdays">
+            <div>T2</div>
+            <div>T3</div>
+            <div>T4</div>
+            <div>T5</div>
+            <div>T6</div>
+            <div>T7</div>
+            <div>CN</div>
+          </div>
+          <div id="calGrid" class="rh-cal-grid"></div>
+        </div>
+
+        <!-- VIEW 2: LỊCH TUẦN (WEEK VIEW GRID) -->
+        <div id="weekViewWrapper" hidden>
+          <div id="weekGrid" class="week-view-grid"></div>
+        </div>
+      </div>
+
+      <!-- CỘT PHẢI: CHI TIẾT SỰ KIỆN TRONG NGÀY ĐÃ CHỌN -->
+      <div class="panel-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 14px; border-bottom: 1px solid rgba(22, 163, 74, 0.12); padding-bottom: 10px;">
+          <div>
+            <h2 id="calSelectedDateTitle" style="margin: 0; font-size: 1.15rem;">Lịch ngày 14/11/2026</h2>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Chi tiết lịch trình nhận, trả &amp; bảo dưỡng</div>
+          </div>
+          <span id="calDayCountBadge" class="status-badge status-badge--available">0 lịch</span>
+        </div>
+
+        <!-- Danh sách thẻ lịch xe trong ngày -->
+        <div id="calDayEventsList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- File Javascript bóc tách riêng (dữ liệu giả & logic điều hướng) -->
+  <script src="../js/vehicle_schedule.js"></script>
+</body>
+</html>

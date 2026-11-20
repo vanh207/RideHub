@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chính sách bảo mật — RideHub</title>
+    <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/variables.css" />
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <style>
+      .brand-logo img {
+        height: 36px !important;
+        max-height: 36px !important;
+        width: auto !important;
+        object-fit: contain !important;
+        display: block !important;
+      }
+      .policy-container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 40px 20px 80px;
+      }
+      .policy-header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      .policy-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        color: #059669;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 14px;
+      }
+      .policy-title {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 3.5vw, 2.6rem);
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 12px;
+      }
+      .policy-subtitle {
+        font-size: 15px;
+        color: #64748b;
+        max-width: 640px;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
+      .policy-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 36px 40px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        margin-bottom: 24px;
+      }
+      @media (max-width: 640px) {
+        .policy-card {
+          padding: 24px 20px;
+        }
+      }
+      .policy-section {
+        margin-bottom: 32px;
+      }
+      .policy-section:last-child {
+        margin-bottom: 0;
+      }
+      .policy-sec-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 14px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #f1f5f9;
+      }
+      .policy-sec-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #dcfce7;
+        color: #15803d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      .policy-p {
+        font-size: 14px;
+        line-height: 1.7;
+        color: #475569;
+        margin: 0 0 12px;
+      }
+      .policy-list {
+        padding-left: 20px;
+        margin: 0 0 14px;
+      }
+      .policy-list li {
+        font-size: 14px;
+        line-height: 1.7;
+        color: #475569;
+        margin-bottom: 8px;
+      }
+      .policy-highlight-box {
+        background: #f8fafc;
+        border-left: 4px solid #16a34a;
+        padding: 14px 18px;
+        border-radius: 0 12px 12px 0;
+        margin: 16px 0;
+        font-size: 13.5px;
+        color: #334155;
+        line-height: 1.6;
+      }
+      .policy-contact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .policy-contact-card {
+        padding: 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <header id="mainNavbar" class="navbar is-scrolled">
+      <div class="container navbar-inner">
+        <a href="../index.html" class="brand-logo">
+          <img
+            src="../assets/logo-rh.png"
+            alt="RideHub"
+            style="height: 36px; width: auto; object-fit: contain;"
+          />
+          <span>RideHub</span>
+        </a>
+        <nav class="nav-links">
+          <a href="../index.html" class="nav-link">Trang chủ</a>
+          <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+          <a href="../trips.html" class="nav-link">Chuyến đi</a>
+          <a href="../index.html#storySection" class="nav-link">Hướng dẫn thuê xe</a>
+        </nav>
+        <div class="nav-actions">
+          <a href="auth.html" class="btn btn-primary" style="min-height: 38px; padding: 6px 16px; font-size: 13px;">Đăng nhập / Đăng ký</a>
+        </div>
+      </div>
+    </header>
+
+    <main style="padding-top: 96px; background: #fdfdfd; min-height: 85vh;">
+      <div class="policy-container">
+        <!-- Breadcrumb -->
+        <div style="font-size: 13px; color: #64748b; margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
+          <a href="../index.html" style="color: #16a34a; text-decoration: none; font-weight: 600;">Trang chủ</a>
+          <span>/</span>
+          <span style="color: #0f172a; font-weight: 600;">Chính sách bảo mật</span>
+        </div>
+
+        <div class="policy-header">
+          <div class="policy-badge">
+            <span>🛡️</span> Tuân thủ Nghị định 13/2023/NĐ-CP về Bảo vệ Dữ liệu Cá nhân
+          </div>
+          <h1 class="policy-title">Chính Sách Bảo Mật RideHub</h1>
+          <p class="policy-subtitle">
+            Cam kết minh bạch và bảo mật toàn diện về cách thức RideHub thu thập, lưu trữ, sử dụng và bảo vệ thông tin cá nhân cũng như hồ sơ eKYC của bạn.
+          </p>
+          <div style="font-size: 12.5px; color: #94a3b8; margin-top: 10px;">
+            Cập nhật lần cuối: Tháng 11/2026 • Phiên bản hiệu lực: 2.4
+          </div>
+        </div>
+
+        <div class="policy-card">
+          <!-- Phần 1 -->
+          <div class="policy-section">
+            <h2 class="policy-sec-title">
+              <span class="policy-sec-icon">1</span>
+              Nguyên tắc bảo vệ dữ liệu cá nhân
+            </h2>
+            <p class="policy-p">
+              RideHub (thuộc Công ty Cổ phần Công nghệ RideHub) coi trọng quyền riêng tư và sự an toàn thông tin của người dùng. Mọi hoạt động thu thập và xử lý dữ liệu đều được thực hiện dựa trên sự đồng thuận của khách hàng, tuân thủ nghiêm ngặt Luật An toàn thông tin mạng và Nghị định 13/2023/NĐ-CP của Chính phủ Việt Nam.
+            </p>
+            <div class="policy-highlight-box">
+              <strong>Cam kết bất di dịch:</strong> RideHub <strong>tuyệt đối không kinh doanh, mua bán, cho thuê hoặc chia sẻ</strong> thông tin định danh cá nhân của khách hàng cho bất kỳ tổ chức hay bên thứ ba nào vì mục đích quảng cáo hoặc tiếp thị không được ủy quyền.
+            </div>
+          </div>
+
+          <!-- Phần 2 -->
+          <div class="policy-section">
+            <h2 class="policy-sec-title">
+              <span class="policy-sec-icon">2</span>
+              Các loại dữ liệu được thu thập
+            </h2>
+            <p class="policy-p">Để cung cấp dịch vụ thuê xe tự lái và đảm bảo an toàn giao thông, chúng tôi thu thập các nhóm thông tin sau:</p>
+            <ul class="policy-list">
+              <li><strong>Thông tin tài khoản cơ bản:</strong> Họ và tên, địa chỉ email, số điện thoại liên lạc, ảnh đại diện, mật khẩu được mã hóa băm một chiều (bcrypt).</li>
+              <li><strong>Hồ sơ định danh eKYC điện tử:</strong> Số Căn cước công dân (CCCD 12 số gắn chip), hình ảnh chụp 2 mặt CCCD, số Giấy phép lái xe (GPLX), ngày cấp, hạn sử dụng và hình ảnh khuôn mặt đối chiếu (Face Match).</li>
+              <li><strong>Dữ liệu giao dịch và cọc xe:</strong> Thông tin đơn đặt xe, mã giao dịch VietQR, số tiền cọc đối soát tự động qua cổng PayOS Sandbox / Production.</li>
+              <li><strong>Dữ liệu thiết bị &amp; Nhật ký vận hành:</strong> Địa chỉ IP, trình duyệt, lịch sử thao tác đặt xe, và tọa độ GPS của phương tiện trong suốt hành trình thuê để phục vụ cứu hộ cứu nạn khẩn cấp.</li>
+            </ul>
+          </div>
+
+          <!-- Phần 3 -->
+          <div class="policy-section">
+            <h2 class="policy-sec-title">
+              <span class="policy-sec-icon">3</span>
+              Mục đích sử dụng dữ liệu
+            </h2>
+            <p class="policy-p">Thông tin của khách hàng chỉ được sử dụng cho các mục đích hợp pháp sau:</p>
+            <ul class="policy-list">
+              <li>Xác thực điều kiện pháp lý của người lái xe theo Luật Giao thông đường bộ Việt Nam trước khi bàn giao xe.</li>
+              <li>Tự động hóa thủ tục giữ chỗ xe trong vòng 30 phút và thực hiện quy trình bàn giao xe 4 bước (Check-in, ký biên bản điện tử, chụp ảnh ODO/xước xát).</li>
+              <li>Tự động hoàn trả 100% tiền cọc về tài khoản ngân hàng của khách hàng theo chính sách hoàn cọc minh bạch sau khi kết thúc chuyến đi an toàn.</li>
+              <li>Cảnh báo vi phạm hợp đồng, hỗ trợ xử lý khiếu nại, tai nạn hoặc hỗ trợ cơ quan chức năng khi có yêu cầu bằng văn bản theo đúng pháp luật.</li>
+            </ul>
+          </div>
+
+          <!-- Phần 4 -->
+          <div class="policy-section">
+            <h2 class="policy-sec-title">
+              <span class="policy-sec-icon">4</span>
+              Bảo mật hồ sơ eKYC &amp; Hình ảnh giấy tờ
+            </h2>
+            <p class="policy-p">
+              Ảnh chụp CCCD và GPLX của khách hàng là dữ liệu nhạy cảm cao, do đó RideHub áp dụng các tiêu chuẩn an ninh mạng hàng đầu:
+            </p>
+            <ul class="policy-list">
+              <li>Mã hóa toàn bộ kênh truyền tải dữ liệu bằng giao thức SSL/TLS 1.3 với chứng chỉ bảo mật cao cấp.</li>
+              <li>Dữ liệu ảnh giấy tờ được lưu trữ phân tách trên hạ tầng đám mây bảo mật cao, có gắn watermark nhận diện bản quyền RideHub chống làm giả.</li>
+              <li>Hệ thống phân quyền Role-Based Access Control (RBAC) nghiêm ngặt: chỉ nhân viên thẩm định có thẩm quyền mới được cấp quyền rà soát hồ sơ theo quy trình kiểm toán nội bộ.</li>
+            </ul>
+          </div>
+
+          <!-- Phần 5 -->
+          <div class="policy-section">
+            <h2 class="policy-sec-title">
+              <span class="policy-sec-icon">5</span>
+              Chính sách Cookie &amp; Ghi nhớ đăng nhập
+            </h2>
+            <p class="policy-p">
+              RideHub sử dụng Cookie an toàn và mã thông báo Stateless JWT để tối ưu trải nghiệm truy cập của bạn:
+            </p>
+            <ul class="policy-list">
+              <li><strong>Cookie xác thực phiên (ridehub_token):</strong> Được lưu trữ dưới dạng Cookie bảo mật với cờ <code>SameSite=Lax</code>, tự động hết hạn và xóa bỏ khi đăng xuất.</li>
+              <li><strong>Chức năng Ghi nhớ đăng nhập (Remember Me):</strong> Khi bạn tích chọn tính năng này lúc đăng nhập, hệ thống sẽ cấp thời hạn phiên đăng nhập lên đến 30 ngày để bạn không phải đăng nhập lại nhiều lần trên thiết bị cá nhân đáng tin cậy.</li>
+              <li>Bạn có thể xóa Cookie bất kỳ lúc nào thông qua tính năng "Đăng xuất" hoặc cài đặt bảo mật của trình duyệt.</li>
+            </ul>
+          </div>
+
+          <!-- Phần 6 -->
+          <div class="policy-section">
+            <h2 class="policy-sec-title">
+              <span class="policy-sec-icon">6</span>
+              Quyền hạn của khách hàng đối với dữ liệu
+            </h2>
+            <p class="policy-p">Bạn có toàn quyền chủ động đối với thông tin cá nhân của mình:</p>
+            <ul class="policy-list">
+              <li>Truy cập và cập nhật thông tin cá nhân, giấy tờ bằng lái tại trang <a href="../profile.html" style="color:#16a34a;font-weight:600;">Hồ sơ cá nhân</a>.</li>
+              <li>Yêu cầu sao trích hoặc xuất dữ liệu lịch sử các chuyến đi và hóa đơn thuê xe.</li>
+              <li>Yêu cầu vô hiệu hóa hoặc xóa vĩnh viễn tài khoản và dữ liệu liên quan khi không còn hợp đồng thuê xe đang chờ thanh toán.</li>
+            </ul>
+          </div>
+
+          <!-- Phần 7 -->
+          <div class="policy-section">
+            <h2 class="policy-sec-title">
+              <span class="policy-sec-icon">7</span>
+              Liên hệ bộ phận Bảo vệ Dữ liệu (DPO)
+            </h2>
+            <p class="policy-p">
+              Nếu bạn có bất kỳ thắc mắc, phản ánh hoặc yêu cầu khiếu nại nào liên quan đến quyền riêng tư và an toàn dữ liệu, xin vui lòng liên hệ trực tiếp với chúng tôi:
+            </p>
+            <div class="policy-contact-grid">
+              <div class="policy-contact-card">
+                <span style="font-size:24px;">📞</span>
+                <div>
+                  <div style="font-size:12px;color:#64748b;font-weight:600;">HOTLINE HỖ TRỢ 24/7</div>
+                  <strong style="color:#0f172a;font-size:15px;">1900 6868</strong>
+                </div>
+              </div>
+              <div class="policy-contact-card">
+                <span style="font-size:24px;">✉️</span>
+                <div>
+                  <div style="font-size:12px;color:#64748b;font-weight:600;">EMAIL BẢO VỆ DỮ LIỆU</div>
+                  <strong style="color:#0f172a;font-size:14px;">privacy@ridehub.vn</strong>
+                </div>
+              </div>
+              <div class="policy-contact-card">
+                <span style="font-size:24px;">🏢</span>
+                <div>
+                  <div style="font-size:12px;color:#64748b;font-weight:600;">TRỤ SỞ CHÍNH</div>
+                  <strong style="color:#0f172a;font-size:13.5px;">45 Lê Duẩn, Quận 1, TP.HCM</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <img src="../assets/logo-rh.png" alt="RideHub Logo" style="height:34px;width:auto;filter:brightness(0) invert(1);" />
+              <span style="font-family:var(--font-display);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">RideHub</span>
+            </div>
+            <p style="font-size:13px;line-height:1.65;color:#d1fae5;margin:0 0 14px;">
+              Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+            </p>
+          </div>
+          <div>
+            <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
+            <ul class="footer-links-list">
+              <li class="footer-link-item"><a href="../index.html">Trang chủ</a></li>
+              <li class="footer-link-item"><a href="../vehicles.html">Tìm &amp; Thuê xe máy, Ô tô</a></li>
+              <li class="footer-link-item"><a href="../trips.html">Hành trình &amp; Chuyến đi</a></li>
+            </ul>
+          </div>
+          <div>
+            <div class="footer-col-title">Quy chế &amp; Bảo vệ</div>
+            <ul class="footer-links-list">
+              <li class="footer-link-item"><a href="privacy-policy.html" style="color: #4ade80; font-weight: 700;">Chính sách bảo mật eKYC</a></li>
+              <li class="footer-link-item"><a href="../index.html#storySection">Quy trình bàn giao 4 bước</a></li>
+              <li class="footer-link-item"><a href="auth.html">Đăng ký thành viên</a></li>
+            </ul>
+          </div>
+          <div>
+            <div class="footer-col-title">Liên hệ RideHub</div>
+            <div style="font-size:13px;color:#d1fae5;line-height:1.6;">
+              <div><strong>Hotline:</strong> 1900 6868</div>
+              <div><strong>Email:</strong> support@ridehub.vn</div>
+              <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+            </div>
+          </div>
+        </div>
+        <div class="footer-divider"></div>
+        <div class="footer-bottom-row">
+          <div>© 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+            <a href="privacy-policy.html" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+            <a href="../index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Điều khoản dịch vụ</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="../js/auth-rbac.js"></script>
+    <script src="../js/layout.js"></script>
+  </body>
+</html>

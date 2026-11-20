@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bảng Phương tiện &amp; Form Thêm/Sửa xe — RideHub</title>
+  <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS chung của hệ thống RideHub -->
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+
+  <!-- CSS riêng cho quản lý kho xe & kéo thả ảnh -->
+  <link rel="stylesheet" href="css/vehicle_management.css" />
+</head>
+<body style="background: var(--bg-page); min-height: 100vh; padding-bottom: 60px;">
+
+  <!-- Hiệu ứng nền nhận diện thương hiệu -->
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Thanh Navbar dùng chung -->
+  <header id="mainNavbar" class="navbar is-scrolled" style="margin-bottom: 24px;">
+    <div class="container navbar-inner">
+      <a href="../index.html" class="brand-logo" style="display: flex; align-items: center; text-decoration: none;">
+        <img src="../assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;" />
+        <span style="font-weight: 800; font-size: 1.25rem; color: var(--green-800); margin-left: 8px;">RideHub</span>
+      </a>
+      <nav class="nav-links">
+        <a href="../index.html" class="nav-link">Trang chủ</a>
+        <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+        <a href="vehicle_management.html" class="nav-link is-active" style="color: var(--green-700); font-weight: 700;">Quản lý kho xe</a>
+        <a href="delivery.html" class="nav-link">Điểm giao nhận &amp; Phí</a>
+        <a href="profile.html" class="nav-link">Hồ sơ cá nhân</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- NỘI DUNG CHÍNH -->
+  <main class="container fleet-main">
+    
+    <!-- Tiêu đề trang & Nút hành động -->
+    <div class="fleet-top-bar">
+      <div>
+        <h1 class="fleet-title">Quản Lý Kho Phương Tiện (Thêm, Sửa, Tải Ảnh)</h1>
+        <p class="fleet-subtitle">Quản trị danh sách xe máy, ô tô tự lái, cập nhật giá thuê và kiểm soát trạng thái xe</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button id="sortFleetTableBtn" class="btn btn-soft" type="button">Sắp xếp theo giá</button>
+        <button id="openAddVehicleBtn" class="btn btn-primary btn-premium btn-shine" type="button">+ Thêm xe mới</button>
+      </div>
+    </div>
+
+    <!-- 1. BẢNG PHƯƠNG TIỆN -->
+    <div class="panel-card" style="overflow-x: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid rgba(22,163,74,0.15);">
+      <table class="fleet-table">
+        <thead>
+          <tr>
+            <th>Tên xe</th>
+            <th>Loại &amp; Nhiên liệu</th>
+            <th>Giá/ngày</th>
+            <th>Trạng thái (Bấm đổi)</th>
+            <th>Cảnh báo lịch</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="fleetTableBody">
+          <!-- Dữ liệu xe render tự động từ vehicle-management.js -->
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <!-- 2. FORM MODAL THÊM / SỬA PHƯƠNG TIỆN CÓ TẢI ẢNH -->
+  <div id="addVehicleModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h3 id="addVehModalTitle" style="margin: 0; font-size: 1.25rem;">Thêm xe mới vào kho</h3>
+        <button id="closeAddVehModalBtn" class="btn btn-soft" style="min-height: 32px; padding: 4px 10px;" type="button">Đóng</button>
+      </div>
+
+      <form id="addVehicleForm" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- KHUNG KÉO THẢ VÀ TẢI ẢNH XE -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label style="font-size: 12px; font-weight: 800; color: var(--text-primary);">Tất cả ảnh về xe (Tối đa 8 ảnh)</label>
+            <span id="addVehPhotoCount" style="font-size: 11px; font-weight: 700; color: var(--green-700); background: var(--green-50); padding: 2px 8px; border-radius: 999px;">0 / 8 ảnh</span>
+          </div>
+
+          <label id="addVehDropzone" for="addVehPhotos" class="fleet-dropzone">
+            <span class="fleet-dropzone-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </span>
+            <span style="font-size: 13px; font-weight: 700; color: var(--text-primary);">Kéo thả ảnh xe vào đây hoặc <span style="color: var(--green-700); text-decoration: underline;">chọn ảnh từ máy</span></span>
+            <span style="font-size: 11px; color: var(--text-muted);">Hỗ trợ JPG, PNG, WEBP • Tối đa 8 ảnh (góc trước, sau, hông, nội thất)</span>
+          </label>
+          <input id="addVehPhotos" type="file" accept="image/*" multiple hidden />
+
+          <!-- Danh sách ảnh xem trước Preview -->
+          <div id="addVehPhotoPreview" class="fleet-photo-preview"></div>
+        </div>
+
+        <!-- Chọn Ô tô hoặc Xe máy -->
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">Lựa chọn loại phương tiện</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <label id="vehCatMotorcycleLabel" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 14px; border: 1.5px solid var(--green-600); background: var(--green-50); border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 13px; color: var(--green-800); transition: all 0.2s;">
+              <input type="radio" name="addVehCategory" value="motorcycle" checked style="accent-color: var(--green-600);" />
+              <span>🏍️ Xe máy</span>
+            </label>
+            <label id="vehCatCarLabel" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 14px; border: 1.5px solid #e2e8f0; background: #fff; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 13px; color: var(--text-secondary); transition: all 0.2s;">
+              <input type="radio" name="addVehCategory" value="car" style="accent-color: var(--green-600);" />
+              <span>🚗 Ô tô</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="float-field" style="margin-bottom: 0;">
+          <input id="addVehName" class="float-input" type="text" placeholder=" " value="Honda Vision (2025)" required />
+          <label class="float-label" for="addVehName">Tên xe</label>
+        </div>
+
+        <div class="split-layout" style="gap: 10px;">
+          <div>
+            <label for="addVehTransmission" id="addVehTransmissionLabel" style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">Loại xe máy</label>
+            <select id="addVehTransmission" class="float-input" style="padding: 10px 12px;">
+              <option value="Xe tay ga">Xe tay ga (Ga)</option>
+              <option value="Xe số">Xe số (Số)</option>
+              <option value="Xe côn tay">Xe côn tay (Côn)</option>
+              <option value="Xe điện">Xe điện</option>
+            </select>
+          </div>
+          <div>
+            <label for="addVehFuel" style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">Nhiên liệu</label>
+            <select id="addVehFuel" class="float-input" style="padding: 10px 12px;">
+              <option value="Xăng">Xăng</option>
+              <option value="Điện">Điện</option>
+              <option value="Dầu">Dầu</option>
+            </select>
+          </div>
+          <div class="float-field" style="margin-bottom: 0; align-self: end;">
+            <input id="addVehPrice" class="float-input" type="number" min="50000" step="10000" placeholder=" " value="150000" required />
+            <label class="float-label" for="addVehPrice">Giá thuê/ngày (VNĐ)</label>
+          </div>
+        </div>
+
+        <div>
+          <label for="addVehDesc" style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">Mô tả xe</label>
+          <textarea id="addVehDesc" class="float-input" rows="2" style="padding: 10px 12px; resize: vertical;" placeholder="Tình trạng xe, trang bị đi kèm...">Xe mới 2026 vận hành êm ái, cốp rộng, trang bị sẵn 2 nón bảo hiểm.</textarea>
+        </div>
+
+        <div>
+          <label for="addVehCollateral" style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">Tài sản thế chấp</label>
+          <input id="addVehCollateral" class="float-input" type="text" style="padding: 10px 12px;" value="500.000đ tiền cọc giữ xe (hoặc miễn thế chấp khi eKYC Đạt)." />
+        </div>
+
+        <div>
+          <label for="addVehTerms" style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">Điều khoản</label>
+          <textarea id="addVehTerms" class="float-input" rows="2" style="padding: 10px 12px; resize: vertical;">Sử dụng đúng mục đích, không chở hàng cấm, tuân thủ luật giao thông đường bộ.</textarea>
+        </div>
+
+        <div>
+          <label for="addVehSurcharge" style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">Phụ phí phát sinh</label>
+          <textarea id="addVehSurcharge" class="float-input" rows="2" style="padding: 10px 12px; resize: vertical;">Vượt giới hạn 250km/ngày: 3.000đ/km • Trả trễ: 50.000đ/giờ • Vệ sinh: 50.000đ.</textarea>
+        </div>
+
+        <div style="padding: 12px; border-radius: 14px; background: var(--bg-surface-soft); border: 1px solid var(--green-100);">
+          <div style="font-size: 12px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Chính sách hủy chuyến</div>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px;">
+            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+              <input type="radio" name="cancelPolicyMode" value="system" checked />
+              <span>Lấy chính sách hệ thống</span>
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+              <input type="radio" name="cancelPolicyMode" value="store" />
+              <span>Chính sách riêng cửa hàng</span>
+            </label>
+          </div>
+          <div id="addVehSystemCancelPreview" style="font-size: 12px; color: var(--text-secondary); background: #ffffff; padding: 8px 10px; border-radius: 10px;">
+            Hệ thống: Trước 24h hoàn 100% cọc • Trong 2–24h hoàn 70% cọc • Dưới 2h không hoàn cọc.
+          </div>
+          <div id="addVehCustomCancelBox" hidden>
+            <textarea id="addVehCustomCancel" class="float-input" rows="2" style="padding: 10px 12px; resize: vertical; background: #ffffff;" placeholder="Nhập chính sách hủy riêng...">Hủy trước 48h hoàn 100% cọc • Trước 12h hoàn 50% cọc • Dưới 12h không hoàn.</textarea>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-premium" style="width: 100%; margin-top: 6px;" type="submit">Lưu phương tiện vào kho</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. MODAL XEM CHI TIẾT PHƯƠNG TIỆN -->
+  <div id="vehicleDetailModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="max-width: 620px; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
+        <div>
+          <span id="vdStatusBadge" class="status-badge status-badge--available">Sẵn sàng</span>
+          <h3 id="vdTitle" style="margin: 8px 0 2px 0; font-size: 1.3rem;">Tên xe</h3>
+          <div id="vdMeta" style="font-size: 13px; color: var(--text-muted);">Phân loại</div>
+        </div>
+        <button id="closeDetailModalBtn" class="btn btn-soft" style="min-height: 32px; padding: 4px 10px;" type="button">Đóng</button>
+      </div>
+
+      <div id="vdGallery" class="fleet-gallery-grid"></div>
+      <div id="vdSpecsRow" style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; line-height: 1.55; color: var(--text-secondary);">
+        <div style="background: var(--bg-surface-soft); padding: 10px 12px; border-radius: 8px;">
+          <strong style="color: var(--text-primary); display: block;">Mô tả:</strong>
+          <span id="vdDesc"></span>
+        </div>
+        <div style="background: var(--bg-surface-soft); padding: 10px 12px; border-radius: 8px;">
+          <strong style="color: var(--text-primary); display: block;">Thế chấp:</strong>
+          <span id="vdCollateral"></span>
+        </div>
+        <div style="background: var(--bg-surface-soft); padding: 10px 12px; border-radius: 8px;">
+          <strong style="color: var(--text-primary); display: block;">Chính sách hủy cọc:</strong>
+          <span id="vdCancel"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nạp file Javascript component dùng chung & logic riêng của trang -->
+  <script src="../js/components.js"></script>
+  <script src="../js/vehicle_management.js"></script>
+</body>
+</html>

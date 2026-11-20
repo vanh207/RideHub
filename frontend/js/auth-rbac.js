@@ -33,59 +33,44 @@
       label: 'Khách thuê',
       badgeClass: 'status-badge--available',
       home: 'vehicles.html',
-      allowedPages: ['index.html', 'vehicles.html', 'booking.html', 'trips.html', 'profile.html', 'auth.html', 'chat.html']
+      allowedPages: ['index.html', 'vehicles.html', 'booking.html', 'trips.html', 'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html']
     },
     store_owner: {
       label: 'Chủ cửa hàng',
       badgeClass: 'status-badge--transit',
       home: 'store-portal.html',
-      allowedPages: ['index.html', 'store-portal.html', 'profile.html', 'auth.html', 'chat.html']
+      allowedPages: ['index.html', 'store-portal.html', 'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html']
     },
     admin: {
       label: 'Quản trị hệ thống',
       badgeClass: 'status-badge--maintenance',
       home: 'admin-ops.html',
-      allowedPages: ['index.html', 'admin-ops.html', 'profile.html', 'auth.html', 'chat.html']
+      allowedPages: ['index.html', 'admin-ops.html', 'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html']
     }
   };
 
-  const DEFAULT_ACCOUNTS = [
-    { phone: '0901234567', email: 'an.nguyen@ridehub.vn', pass: '123456', name: 'Nguyễn Văn An', role: 'customer' },
-    { phone: '0902222222', email: 'greenride@ridehub.vn', pass: '123456', name: 'Chủ xe GreenRide Q1', role: 'store_owner' },
-    { phone: '0909999999', email: 'admin@ridehub.vn', pass: '123456', name: 'Admin Hệ thống', role: 'admin' }
-  ];
+  const DEFAULT_ACCOUNTS = [];
 
   const AuthRBAC = {
     getAccounts() {
-      let list = null;
+      let list = [];
       try {
         const raw = localStorage.getItem(STORAGE_ACCOUNTS);
         if (raw) list = JSON.parse(raw);
       } catch (_) {}
-      if (!Array.isArray(list)) {
-        localStorage.setItem(STORAGE_ACCOUNTS, JSON.stringify(DEFAULT_ACCOUNTS));
-        return [...DEFAULT_ACCOUNTS];
-      }
-      // Filter out deleted roles (store_staff, operator)
-      list = list.filter((a) => a.role !== 'store_staff' && a.role !== 'operator');
-      // Ensure default role accounts always have up-to-date email & phone
-      let changed = false;
-      DEFAULT_ACCOUNTS.forEach((def) => {
-        const idx = list.findIndex((a) => a.phone === def.phone || a.role === def.role);
-        if (idx === -1) {
-          list.push(def);
-          changed = true;
-        } else if (!list[idx].email) {
-          list[idx] = { ...def, ...list[idx], email: def.email };
-          changed = true;
-        }
-      });
-      if (changed) localStorage.setItem(STORAGE_ACCOUNTS, JSON.stringify(list));
-      return list;
+      return Array.isArray(list) ? list : [];
     },
 
     saveAccounts(list) {
       localStorage.setItem(STORAGE_ACCOUNTS, JSON.stringify(list));
+    },
+
+    setCurrentUser(user) {
+      if (user) {
+        localStorage.setItem(STORAGE_USER, JSON.stringify(user));
+      } else {
+        localStorage.removeItem(STORAGE_USER);
+      }
     },
 
     getCurrentUser() {
@@ -179,9 +164,34 @@
     },
 
     logout() {
+      const delCookie = (name) => {
+        document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax`;
+      };
+      delCookie('ridehub_token');
+      delCookie('access_token');
+      delCookie('token');
+      delCookie('ridehub_auth_token');
+      delCookie('ridehub_refresh_token');
+
       localStorage.removeItem(STORAGE_USER);
+      localStorage.removeItem('ridehub_token');
+      localStorage.removeItem('token');
+      localStorage.removeItem('ridehub_auth_token');
+      localStorage.removeItem('ridehub_refresh_token');
       this.applyUI();
       if (global.showRideHubToast) global.showRideHubToast('Đã đăng xuất tài khoản.');
+    },
+
+    getToken() {
+      try {
+        const fromCookie = (document.cookie.match(/(^| )ridehub_token=([^;]+)/) || [])[2]
+                        || (document.cookie.match(/(^| )access_token=([^;]+)/) || [])[2]
+                        || (document.cookie.match(/(^| )token=([^;]+)/) || [])[2];
+        if (fromCookie) return decodeURIComponent(fromCookie);
+        return localStorage.getItem('ridehub_token') || localStorage.getItem('token') || '';
+      } catch (_) {
+        return '';
+      }
     },
 
     getCurrentPageName() {
@@ -323,9 +333,17 @@
     },
 
     applyUI() {
+      const currentPage = this.getCurrentPageName();
+      const isAuthPage = currentPage === 'auth.html' || window.location.pathname.includes('auth.html');
+
+      // Trên trang Đăng nhập / Đăng ký: Xóa bỏ và không hiển thị bất kỳ Avatar / Notif nào
+      if (isAuthPage) {
+        document.querySelectorAll('#rbacUserPill, #rhUserWrap, #rhNotifWrap, #rbacNotifWrap, .user-menu-wrap, .notif-wrap, .user-avatar-trigger').forEach(el => el.remove());
+        return;
+      }
+
       const user = this.getCurrentUser();
       const roleInfo = user ? ROLES[user.role] : null;
-      const currentPage = this.getCurrentPageName();
 
       // 1. Update Navbar User Pill
       const navActions = document.querySelector('.nav-actions');
@@ -337,6 +355,7 @@
           userPill.style.cssText = 'display:inline-flex;align-items:center;gap:8px;';
           navActions.prepend(userPill);
         }
+
         if (user && roleInfo) {
           const initials = (user.name || 'U').trim().split(/\s+/).slice(-1)[0].slice(0, 1).toUpperCase();
           const avatarInner = user.avatarUrl
@@ -394,12 +413,6 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                   <span>Đổi mật khẩu</span>
                 </a>
-                <div style="padding:6px 12px 4px;font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;border-top:1px solid var(--green-100);margin-top:4px;">Chuyển nhanh vai trò (Demo)</div>
-                <div style="display:flex;flex-direction:column;gap:2px;padding:2px 6px 6px;">
-                  <button type="button" data-nav-switch-role="store_owner" class="user-menu-item" style="font-size:12px;padding:5px 8px;border-radius:6px;${user.role==='store_owner'?'background:var(--green-100);font-weight:700;color:var(--green-800);':''}">🏪 Chủ cửa hàng (GreenRide Q1)</button>
-                  <button type="button" data-nav-switch-role="customer" class="user-menu-item" style="font-size:12px;padding:5px 8px;border-radius:6px;${user.role==='customer'?'background:var(--green-100);font-weight:700;color:var(--green-800);':''}">👤 Khách thuê (Nguyễn Văn An)</button>
-                  <button type="button" data-nav-switch-role="admin" class="user-menu-item" style="font-size:12px;padding:5px 8px;border-radius:6px;${user.role==='admin'?'background:var(--green-100);font-weight:700;color:var(--green-800);':''}">👑 Admin hệ thống</button>
-                </div>
                 <button id="rbacLogoutBtn" class="user-menu-item user-menu-item--danger" style="border-top:1px solid var(--green-100);margin-top:2px;" type="button" role="menuitem">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
                   <span>Đăng xuất</span>
@@ -461,35 +474,25 @@
             });
           }
 
-          dropdown?.querySelectorAll('[data-nav-switch-role]').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const targetRole = btn.dataset.navSwitchRole;
-              this.loginAsRole(targetRole);
-              const targetHome = ROLES[targetRole]?.home || 'index.html';
-              if (currentPage === 'store-portal.html' && (targetRole === 'store_owner' || targetRole === 'admin')) {
-                window.location.reload();
-              } else if (currentPage === 'admin-ops.html' && targetRole === 'admin') {
-                window.location.reload();
-              } else {
-                window.location.href = targetHome;
-              }
-            });
-          });
+
 
           document.getElementById('rbacLogoutBtn')?.addEventListener('click', () => {
             this.logout();
-            if (currentPage !== 'index.html' && currentPage !== 'auth.html') {
-              window.location.href = 'auth.html';
+            const isPublicPage = currentPage === 'index.html' || currentPage === 'vehicles.html' || currentPage === 'auth.html' || currentPage === 'privacy-policy.html';
+            if (!isPublicPage) {
+              const authUrl = window.location.pathname.includes('/pages/') ? 'auth.html' : 'pages/auth.html';
+              window.location.href = authUrl;
             }
           });
         } else {
-          userPill.innerHTML = `<a href="auth.html" class="btn btn-soft" style="min-height:38px;padding:6px 14px;font-size:13px;">Đăng nhập</a>`;
+          const authUrl = window.location.pathname.includes('/pages/') ? 'auth.html' : 'pages/auth.html';
+          userPill.innerHTML = `<a href="${authUrl}" class="btn btn-soft" style="min-height:38px;padding:6px 14px;font-size:13px;">Đăng nhập</a>`;
         }
       }
 
       // 2. Filter Navbar & Mobile Drawer links based on role
-      const allowed = roleInfo ? roleInfo.allowedPages : ['index.html', 'vehicles.html', 'booking.html', 'auth.html'];
+      const alwaysPublicPages = ['index.html', 'vehicles.html', 'booking.html', 'auth.html', 'privacy-policy.html'];
+      const allowed = roleInfo ? [...roleInfo.allowedPages, 'privacy-policy.html'] : alwaysPublicPages;
       document.querySelectorAll('.nav-links a, .mobile-drawer a').forEach((link) => {
         const href = link.getAttribute('href');
         if (!href || href.startsWith('#')) return;
@@ -502,37 +505,11 @@
       const existingGuard = document.getElementById('rbacGuardOverlay');
       if (existingGuard) existingGuard.remove();
 
-      if (!allowed.includes(currentPage)) {
+      const isPublic = alwaysPublicPages.includes(currentPage);
+      if (!isPublic && !allowed.includes(currentPage)) {
         const guard = document.createElement('div');
         guard.id = 'rbacGuardOverlay';
         guard.style.cssText = 'position:fixed;inset:0;z-index:180;background:rgba(248,252,249,0.96);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:24px;';
-
-        let quickActionHtml = '';
-        if (currentPage === 'store-portal.html') {
-          quickActionHtml = `
-            <div style="margin:16px 0;padding:12px;border-radius:12px;background:#f0fdf4;border:1px solid #86efac;text-align:left;">
-              <div style="font-size:12px;font-weight:800;color:#166534;margin-bottom:8px;">ĐĂNG NHẬP NHANH VÀO CỬA HÀNG (1-CLICK):</div>
-              <div style="display:flex;flex-direction:column;gap:6px;">
-                <button type="button" id="guardQuickStoreOwnerBtn" class="btn btn-primary btn-premium" style="justify-content:center;padding:10px 14px;font-size:13px;width:100%;">
-                  🏪 Đăng nhập vai trò Chủ cửa hàng (GreenRide Q1)
-                </button>
-              </div>
-              <div style="font-size:11px;color:#15803d;margin-top:6px;text-align:center;">Email: <strong>greenride@ridehub.vn</strong> • Mật khẩu: <strong>123456</strong></div>
-            </div>
-          `;
-        } else if (currentPage === 'admin-ops.html') {
-          quickActionHtml = `
-            <div style="margin:16px 0;padding:12px;border-radius:12px;background:#f0fdf4;border:1px solid #86efac;text-align:left;">
-              <div style="font-size:12px;font-weight:800;color:#166534;margin-bottom:8px;">ĐĂNG NHẬP NHANH QUẢN TRỊ (1-CLICK):</div>
-              <div style="display:flex;flex-direction:column;gap:6px;">
-                <button type="button" id="guardQuickAdminBtn" class="btn btn-primary btn-premium" style="justify-content:center;padding:10px 14px;font-size:13px;width:100%;">
-                  👑 Đăng nhập Admin hệ thống
-                </button>
-              </div>
-              <div style="font-size:11px;color:#15803d;margin-top:6px;text-align:center;">Email: <strong>admin@ridehub.vn</strong> • Mật khẩu: <strong>123456</strong></div>
-            </div>
-          `;
-        }
 
         guard.innerHTML = `
           <div class="panel-card" style="max-width:480px;text-align:center;">
@@ -541,7 +518,6 @@
             <p style="color:var(--text-secondary);font-size:14px;margin:0 0 12px;">
               ${user ? `Bạn đang đăng nhập với tài khoản: <strong>${user.name} (${roleInfo.label})</strong>.` : 'Trang này yêu cầu quyền truy cập phù hợp.'}
             </p>
-            ${quickActionHtml}
             <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;">
               <a href="auth.html" class="btn btn-soft" style="font-size:12px;">Mở trang đăng nhập (auth.html)</a>
               <a href="${roleInfo ? roleInfo.home : 'index.html'}" class="btn btn-soft" style="font-size:12px;">Về trang chủ</a>
@@ -549,15 +525,6 @@
           </div>
         `;
         document.body.appendChild(guard);
-
-        document.getElementById('guardQuickStoreOwnerBtn')?.addEventListener('click', () => {
-          this.loginAsRole('store_owner');
-          window.location.reload();
-        });
-        document.getElementById('guardQuickAdminBtn')?.addEventListener('click', () => {
-          this.loginAsRole('admin');
-          window.location.reload();
-        });
       }
 
       // 4. Enforce Tab-Level Restrictions (BR-24 for store_staff, Admin tabs for operator)

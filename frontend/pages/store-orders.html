@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cổng Quản Lý & Duyệt Đơn Đặt Xe — Cửa Hàng RideHub</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/logo-ridehub.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+
+  <style>
+    :root {
+      --sp-primary: #16a34a;
+      --sp-primary-dark: #15803d;
+      --sp-surface: #ffffff;
+      --sp-border: #e2e8f0;
+      --sp-bg-page: #f8fcf9;
+    }
+
+    body {
+      background-color: var(--sp-bg-page);
+      font-family: var(--font-sans);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+    }
+
+    /* Top Subpage Navigation Bar & Responsive Active Pill */
+    .portal-nav {
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(34, 197, 94, 0.18);
+      box-shadow: 0 4px 20px -8px rgba(22, 163, 74, 0.08);
+    }
+
+    .portal-nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 66px;
+      gap: 12px;
+      padding: 6px 0;
+    }
+
+    .portal-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .portal-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      padding: 4px;
+      list-style: none;
+      background: #f0fdf4;
+      border: 1px solid #dcfce7;
+      border-radius: 9999px;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .portal-nav-links::-webkit-scrollbar {
+      display: none;
+    }
+
+    .portal-nav-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      text-decoration: none;
+      border: 1.5px solid transparent;
+      background: transparent;
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .portal-nav-pill:hover {
+      color: #15803d;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Hiệu ứng Active Pill đẹp đúng chuẩn yêu cầu của người dùng */
+    .portal-nav-pill.is-active {
+      background: #ffffff;
+      color: #166534;
+      border-color: #16a34a;
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(22, 163, 74, 0.16);
+    }
+
+    .portal-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .portal-station-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #166534;
+      white-space: nowrap;
+    }
+
+    .portal-station-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      display: inline-block;
+      box-shadow: 0 0 8px #22c55e;
+      flex-shrink: 0;
+    }
+
+    .portal-btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      color: #15803d;
+      font-size: 12.5px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .portal-btn-back:hover {
+      background: #bbf7d0;
+      color: #14532d;
+      transform: translateY(-1px);
+    }
+
+    /* Responsive Breakpoints cho Header & Form */
+    @media (max-width: 1024px) {
+      .portal-nav-inner {
+        flex-wrap: wrap;
+        padding: 8px 12px;
+      }
+      .portal-nav-links {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+      }
+      .portal-station-pill {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .portal-brand-text {
+        font-size: 17px !important;
+      }
+      .portal-brand-badge {
+        font-size: 9.5px !important;
+        padding: 2px 6px !important;
+      }
+      .portal-nav-pill {
+        font-size: 12px;
+        padding: 5px 10px;
+      }
+      .portal-btn-back {
+        font-size: 11.5px;
+        padding: 5px 10px;
+      }
+      .kpi-metrics-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Store Hero */
+    .store-hero-banner {
+      background: linear-gradient(135deg, #064e3b 0%, #14532d 50%, #15803d 100%);
+      color: #ffffff;
+      padding: 32px 0 36px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px -10px rgba(20, 83, 45, 0.35);
+    }
+
+    .store-hero-banner::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: -10%;
+      width: 50%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(74, 222, 128, 0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* KPI Metrics Bar */
+    .kpi-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-top: -24px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .kpi-metric-card {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      border: 1px solid var(--green-100);
+      box-shadow: 0 8px 20px -6px rgba(19, 42, 28, 0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+    }
+
+    .kpi-metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -8px rgba(19, 42, 28, 0.12);
+      border-color: var(--green-300);
+    }
+
+    .kpi-title {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .kpi-value {
+      font-size: 1.7rem;
+      font-weight: 800;
+      font-family: var(--font-display);
+      color: var(--green-900);
+      line-height: 1.1;
+    }
+
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Main Grid Layout */
+    .orders-layout-grid {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 24px;
+      padding: 32px 0 80px;
+    }
+
+    @media (max-width: 980px) {
+      .orders-layout-grid {
+        grid-template-columns: 1fr;
+      }
+      .store-side-menu {
+        display: none;
+      }
+    }
+
+    /* Store Sidebar */
+    .store-side-menu {
+      position: sticky;
+      top: 86px;
+      align-self: start;
+    }
+
+    .side-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .side-nav-item:hover {
+      background: var(--green-50);
+      color: var(--green-800);
+    }
+
+    .side-nav-item.is-active {
+      background: linear-gradient(135deg, var(--green-500) 0%, var(--green-700) 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(22, 163, 74, 0.28);
+    }
+
+    .side-nav-item.is-active svg {
+      stroke: #ffffff;
+    }
+
+    /* Order Card SaaS Design */
+    .saas-order-card {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      border: 1.5px solid #e6f4ea;
+      padding: 22px;
+      box-shadow: 0 6px 18px -4px rgba(19, 42, 28, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: all var(--dur-fast) var(--ease-out);
+      position: relative;
+    }
+
+    .saas-order-card:hover {
+      border-color: rgba(34, 197, 94, 0.4);
+      box-shadow: 0 14px 30px -8px rgba(22, 163, 74, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .saas-order-card.status-pending {
+      border-left: 4px solid #f59e0b;
+    }
+
+    .saas-order-card.status-approved {
+      border-left: 4px solid #16a34a;
+    }
+
+    .saas-order-card.status-cancelled {
+      border-left: 4px solid #ef4444;
+      opacity: 0.9;
+    }
+
+    .order-head-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .order-grid-4col {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      font-size: 13px;
+    }
+
+    .col-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .col-val-primary {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .col-val-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    /* Modal styles đã được chuẩn hóa trong components.css */
+
+    /* Toast Container */
+    .toast-box {
+      min-width: 340px;
+      max-width: 460px;
+      background: #ffffff;
+      color: #0f172a;
+      padding: 14px 18px;
+      border-radius: 12px;
+      box-shadow: 0 12px 30px -6px rgba(0,0,0,0.22);
+      font-size: 13.5px;
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      border-left: 4px solid var(--green-600);
+      animation: toastSlideIn 0.25s var(--ease-out);
+    }
+
+    .toast-box.toast-error {
+      border-left-color: #ef4444;
+    }
+
+    @keyframes toastSlideIn {
+      from { transform: translateX(50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <!-- Toast Floating Container -->
+  <div id="toastContainer" style="position:fixed;top:24px;right:24px;z-index:999999;display:flex;flex-direction:column;gap:12px;pointer-events:none;"></div>
+
+  <!-- Header / Navbar Cửa Hàng Đồng Bộ Responsive Pill -->
+  <header class="portal-nav">
+    <div class="container portal-nav-inner">
+      <a href="../index.html" class="portal-brand-wrap" aria-label="RideHub Homepage">
+        <svg width="34" height="34" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+          <defs>
+            <linearGradient id="navLogoBg" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#22c55e" />
+              <stop offset="60%" stop-color="#16a34a" />
+              <stop offset="100%" stop-color="#14532d" />
+            </linearGradient>
+            <linearGradient id="navLogoTrack" x1="12" y1="10" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff" />
+              <stop offset="100%" stop-color="#bbf7d0" />
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="40" height="40" rx="12" fill="url(#navLogoBg)" />
+          <path d="M14 32V13C14 13 19 11 25 11C31 11 35 14 35 19C35 23 31 26 25 26H14" stroke="url(#navLogoTrack)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M22 25L32 34" stroke="url(#navLogoTrack)" stroke-width="3.2" stroke-linecap="round" />
+          <circle cx="33" cy="13" r="3" fill="#86efac" />
+        </svg>
+        <span class="portal-brand-text" style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text-primary);">
+          Ride<span style="color:var(--green-600);">Hub</span>
+        </span>
+        <span class="portal-brand-badge" style="font-size:10.5px;font-weight:800;letter-spacing:0.8px;padding:3px 8px;border-radius:999px;background:var(--green-100);color:var(--green-800);text-transform:uppercase;margin-left:2px;">Cổng Cửa Hàng</span>
+      </a>
+
+      <!-- 3 Nút Chức Năng Cửa Hàng Đồng Bộ Phong Cách Pill Active -->
+      <nav class="portal-nav-links" aria-label="Menu chức năng Cửa hàng">
+        <a href="../index.html" class="portal-nav-pill">Trang chủ</a>
+        <a href="store-orders.html" class="portal-nav-pill is-active">Duyệt đơn đặt xe</a>
+        <a href="handover.html" class="portal-nav-pill">Biên bản giao/nhận</a>
+        <a href="test-cases.html" class="portal-nav-pill">Bảng kiểm thử QA</a>
+      </nav>
+
+      <!-- User Station Badge & Back to Home -->
+      <div class="portal-nav-actions">
+        <div class="portal-station-pill">
+          <span class="portal-station-dot"></span>
+          <span>GreenRide Q.1 (Trực tuyến)</span>
+        </div>
+        <a href="../index.html" class="portal-btn-back">
+          ← Về Trang chủ
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Store Hero Banner -->
+  <section class="store-hero-banner">
+    <div class="container" style="position:relative;z-index:2;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+            <span class="status-badge" style="background:rgba(255,255,255,0.2);color:#ffffff;border:1px solid rgba(255,255,255,0.3);font-size:11px;font-weight:800;letter-spacing:0.8px;">
+              💎 ĐỐI TÁC KIM CƯƠNG RIDEHUB
+            </span>
+            <span style="font-size:13px;color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:4px;">
+              ⭐ <strong>4.95 / 5.0</strong> (1.240 lượt thuê hoàn thành)
+            </span>
+          </div>
+          <h1 style="font-size:2rem;font-weight:800;margin:0 0 6px;color:#ffffff;font-family:var(--font-display);">
+            Duyệt &amp; Quản Lý Đơn Đặt Xe — Trạm GreenRide Q.1
+          </h1>
+          <p style="font-size:14px;color:rgba(255,255,255,0.88);margin:0;max-width:760px;line-height:1.6;">
+            Thẩm định hồ sơ eKYC khách thuê, phê duyệt giữ chỗ nhận xe, xử lý yêu cầu dời lịch trình tự động và liên kết lập biên bản bàn giao điện tử 6 phần có chữ ký số.
+          </p>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);padding:14px 18px;border-radius:12px;text-align:right;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.75);">Địa chỉ trạm chính</div>
+          <div style="font-size:13.5px;font-weight:700;color:#ffffff;margin:2px 0;">120 Nguyễn Huệ, P. Bến Nghé, Q.1, TP.HCM</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.85);">Hotline trạm xe: <strong>0902.222.222</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Container Nội Dung & Bảng KPI Đồng Bộ -->
+  <main class="container">
+
+    <!-- KPI Metrics Dashboard Bar (Tự động cập nhật theo thời gian thực) -->
+    <div class="kpi-metrics-grid">
+      <!-- 1. Tổng đơn -->
+      <div class="kpi-metric-card">
+        <div class="kpi-title">
+          <span>Tổng số đơn đặt xe</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <div class="kpi-value" id="kpiTotalOrders">5</div>
+        <div class="kpi-sub">Toàn bộ hồ sơ trên hệ thống</div>
+      </div>
+
+      <!-- 2. Đơn chờ duyệt (Pulse) -->
+      <div class="kpi-metric-card" style="border-color:#fde68a;">
+        <div class="kpi-title" style="color:#b45309;">
+          <span>Cần duyệt gấp</span>
+          <span style="display:inline-flex;width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 6px #f59e0b;"></span>
+        </div>
+        <div class="kpi-value" id="kpiPendingOrders" style="color:#b45309;">2</div>
+        <div class="kpi-sub">Cần cửa hàng xác nhận giữ xe</div>
+      </div>
+
+      <!-- 3. Đã duyệt -->
+      <div class="kpi-metric-card" style="border-color:#bbf7d0;">
+        <div class="kpi-title" style="color:#15803d;">
+          <span>Đã duyệt & Sẵn sàng</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="kpi-value" id="kpiApprovedOrders" style="color:#15803d;">2</div>
+        <div class="kpi-sub">Sẵn sàng lập biên bản bàn giao</div>
+      </div>
+
+      <!-- 4. Yêu cầu đổi lịch -->
+      <div class="kpi-metric-card" style="border-color:#e9d5ff;">
+        <div class="kpi-title" style="color:#7e22ce;">
+          <span>Yêu cầu dời lịch</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7e22ce" stroke-width="2"><path d="M12 8v4l3 3M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z"/></svg>
+        </div>
+        <div class="kpi-value" id="kpiRescheduleOrders" style="color:#7e22ce;">1</div>
+        <div class="kpi-sub">Khách xin gia hạn / đổi ngày</div>
+      </div>
+
+      <!-- 5. Dòng tiền dự kiến -->
+      <div class="kpi-metric-card" style="background:linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);">
+        <div class="kpi-title" style="color:var(--green-900);">
+          <span>Cọc VietQR đã nhận (30%)</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        </div>
+        <div class="kpi-value" id="kpiTotalDeposit" style="font-size:1.35rem;color:var(--green-800);">1.399.500 đ</div>
+        <div class="kpi-sub">Còn lại thu lúc giao: <strong id="kpiRemainCollection" style="color:#b91c1c;">3.265.500 đ</strong></div>
+      </div>
+    </div>
+
+    <!-- Main Grid: Sidebar + Order List -->
+    <div class="orders-layout-grid">
+
+      <!-- Sidebar Điều Hướng Cửa Hàng -->
+      <aside class="store-side-menu">
+        <div class="panel-card" style="padding:18px;border:1px solid var(--green-200);box-shadow:var(--shadow-soft);">
+          <!-- Station Profile Info -->
+          <div style="display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--green-100);">
+            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;display:grid;place-items:center;font-weight:800;font-size:17px;box-shadow:var(--shadow-soft);">GR</div>
+            <div style="flex:1;min-width:0;">
+              <strong style="font-size:14.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--green-950);">GreenRide Q.1</strong>
+              <span class="status-badge status-badge--available" style="font-size:10px;padding:1px 6px;">Cửa Hàng Xác Thực</span>
+            </div>
+          </div>
+
+          <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin:16px 0 10px;">
+            MENU QUẢN TRỊ CỬA HÀNG
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <a href="store-orders.html" class="side-nav-item is-active">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              <span>Duyệt / Hủy đơn thuê</span>
+              <span id="sidebarPendingCount" style="margin-left:auto;background:#ef4444;color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;">2</span>
+            </a>
+
+            <a href="handover.html" class="side-nav-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+              <span>Biên bản bàn giao xe</span>
+            </a>
+
+            <a href="test-cases.html" class="side-nav-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M5 11l2-6h10l2 6"/></svg>
+              <span>Bảng kiểm thử QA</span>
+            </a>
+
+            <a href="../vehicles.html" class="side-nav-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h10l3 5v4h-2M9 17h6"/></svg>
+              <span>Kho xe RideHub</span>
+            </a>
+          </div>
+
+          <!-- Quick Tip Box -->
+          <div style="margin-top:20px;padding:12px;border-radius:10px;background:var(--green-50);border:1px dashed var(--green-300);font-size:12px;color:var(--green-900);line-height:1.5;">
+            <strong>💡 Quy chuẩn BR-25:</strong> Khi duyệt đơn xe máy/ô tô, hệ thống tự động thẩm định eKYC. Khách đạt chuẩn sẽ được giảm hoặc miễn tiền cọc thế chấp.
+          </div>
+        </div>
+      </aside>
+
+      <!-- Nội Dung Chính: Danh Sách & Xử Lý Đơn -->
+      <section style="display:flex;flex-direction:column;gap:18px;">
+
+        <!-- BANNER TÍCH HỢP BIÊN BẢN GIAO NHẬN & TEST CASES (SPRINT 2) -->
+        <div class="panel-card" style="padding:16px 20px;background:linear-gradient(135deg,#f0fdf4 0%,#ffffff 100%);border:1.5px solid var(--green-300);">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="status-badge status-badge--available" style="font-size:10px;font-weight:800;">SPRINT 2 • TÍCH HỢP ĐẦY ĐỦ</span>
+                <strong style="color:var(--green-900);font-size:14.5px;">Biên Bản Giao/Nhận Xe Điện Tử &amp; Bảng Kiểm Thử QA</strong>
+              </div>
+              <p style="font-size:12.5px;color:var(--text-secondary);margin:4px 0 0;line-height:1.5;">
+                Bạn có thể tạo biên bản bàn giao xe điện tử có chữ ký số hoặc đối soát 15 kịch bản kiểm thử Sprint 2 trực tiếp:
+              </p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <a href="handover.html" class="btn btn-outline btn-sm" style="background:#fff;border-color:var(--green-400);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+                Lập Biên bản giao/nhận xe →
+              </a>
+              <a href="test-cases.html" class="btn btn-outline btn-sm" style="background:#fff;border-color:var(--green-400);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M5 11l2-6h10l2 6"/></svg>
+                Bảng 15 Test Cases QA →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="panel-card" style="padding:18px 20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:16px;">
+            <div>
+              <h2 style="margin:0;font-size:1.25rem;color:var(--green-950);">Danh Sách Đơn Đặt Xe Từ Khách Thuê</h2>
+              <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">
+                Thẩm định danh tính, phê duyệt nhận đơn, xử lý yêu cầu dời lịch trình và bàn giao xe.
+              </div>
+            </div>
+
+            <!-- Search Input -->
+            <div style="position:relative;min-width:280px;">
+              <input id="orderSearchInput" class="form-input" type="text" placeholder="Tìm theo mã đơn, khách, SĐT, xe..." style="padding-left:36px;min-height:38px;font-size:13px;" />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Multi-Status Tabs Bar -->
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid #f1f5f9;padding-top:14px;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;" id="orderFilterBar">
+              <button type="button" class="btn btn-primary" data-filter="all" style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
+                Tất cả (<span id="countAll">5</span>)
+              </button>
+              <button type="button" class="btn btn-soft" data-filter="pending" style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
+                Chờ duyệt (<span id="countPending">2</span>)
+              </button>
+              <button type="button" class="btn btn-soft" data-filter="approved" style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
+                Đã duyệt (<span id="countApproved">2</span>)
+              </button>
+              <button type="button" class="btn btn-soft" data-filter="reschedule" style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
+                Yêu cầu đổi lịch (<span id="countResched">1</span>)
+              </button>
+              <button type="button" class="btn btn-soft" data-filter="cancelled" style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
+                Đã hủy (<span id="countCancelled">1</span>)
+              </button>
+            </div>
+
+            <!-- Vehicle Segment Filter -->
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:12px;color:var(--text-muted);font-weight:700;">Loại xe:</span>
+              <select id="vehicleCategoryFilter" class="form-input" style="min-height:32px;padding:4px 8px;font-size:12px;width:auto;">
+                <option value="all">Tất cả phương tiện</option>
+                <option value="car">Ô tô điện & xăng</option>
+                <option value="moto">Xe máy điện & xe số</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danh Sách Đơn Hàng Render Động (SaaS Cards) -->
+        <div id="ordersListContainer" style="display:flex;flex-direction:column;gap:16px;">
+          <!-- Dynamically populated by store-orders logic -->
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal 1: Chi Tiết Đơn Hàng & Thẩm Định eKYC -->
+  <div id="storeOrderDetailModal" class="app-modal-backdrop" role="dialog" aria-modal="true">
+    <div class="app-modal-dialog" style="max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--green-100);">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <h3 id="sodModalTitle" style="margin:0;font-size:1.35rem;font-family:var(--font-display);color:var(--green-950);">
+              Chi tiết đơn đặt xe #RH-8842
+            </h3>
+            <span id="sodStatusBadge" class="status-badge status-badge--booked">Chờ duyệt</span>
+          </div>
+          <div id="sodCreatedAt" style="font-size:12.5px;color:var(--text-muted);margin-top:4px;">
+            Mã hệ thống: RH-ORD-2026-8842 • Trạm xử lý: GreenRide Q.1
+          </div>
+        </div>
+        <button id="closeOrderModalBtn" class="btn btn-soft" style="min-height:32px;padding:4px 12px;font-size:12.5px;" type="button">✕ Đóng</button>
+      </div>
+
+      <div id="sodModalBody" style="display:flex;flex-direction:column;gap:16px;">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Từ Chối Đơn & Quy Trình Hoàn Tiền Cọc -->
+  <div id="rejectOrderModal" class="app-modal-backdrop" role="dialog" aria-modal="true">
+    <div class="app-modal-dialog" style="max-width:500px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="width:36px;height:36px;border-radius:50%;background:#fee2e2;color:#dc2626;display:grid;place-items:center;font-weight:900;font-size:18px;">✕</span>
+        <h3 style="margin:0;font-size:1.25rem;color:#b91c1c;">Từ chối nhận đơn đặt xe</h3>
+      </div>
+      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 14px;line-height:1.5;">
+        Hệ thống sẽ cập nhật trạng thái đơn sang <strong>Đã hủy</strong>, gửi email giải thích lý do cho khách hàng và tự động đối soát hoàn 100% tiền cọc qua VietQR:
+      </p>
+
+      <!-- Refund Preview -->
+      <div id="rejectRefundBox" style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:8px;margin-bottom:14px;font-size:13px;">
+        <div style="display:flex;justify-content:space-between;color:#991b1b;margin-bottom:2px;">
+          <span>Số tiền cọc cần hoàn trả:</span>
+          <strong id="rejectRefundAmount">96.000 đ</strong>
+        </div>
+        <div style="font-size:11.5px;color:#b91c1c;">Phương thức: Hoàn về tài khoản VietQR thanh toán ban đầu</div>
+      </div>
+
+      <div style="font-size:12px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">
+        Chọn lý do từ chối:
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;">
+          <input type="radio" name="rejectReason" value="Xe gặp sự cố kỹ thuật đột xuất cần bảo dưỡng" checked>
+          <span>Xe gặp sự cố kỹ thuật đột xuất cần bảo dưỡng</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;">
+          <input type="radio" name="rejectReason" value="Hết xe cùng phân khúc vào khung giờ này do trùng lịch">
+          <span>Hết xe cùng phân khúc vào khung giờ này</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;">
+          <input type="radio" name="rejectReason" value="Khách hàng chưa đủ điều kiện GPLX hoặc hồ sơ eKYC bị từ chối">
+          <span>Khách hàng chưa đủ điều kiện GPLX / eKYC</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;">
+          <input type="radio" name="rejectReason" value="Điều phối trạm xe: Khu vực giao xe ngoài phạm vi hỗ trợ">
+          <span>Địa điểm giao nhận ngoài phạm vi hỗ trợ của trạm</span>
+        </label>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button type="button" class="btn btn-soft" id="cancelRejectModalBtn">Bỏ qua</button>
+        <button type="button" class="btn btn-primary" id="confirmRejectModalBtn" style="background:#dc2626;border-color:#dc2626;">
+          Xác nhận Từ chối & Hoàn Cọc
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Xử Lý Yêu Cầu Dời Lịch Trình (Reschedule Modal) -->
+  <div id="rescheduleModal" class="app-modal-backdrop" role="dialog" aria-modal="true">
+    <div class="app-modal-dialog" style="max-width:560px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span style="width:36px;height:36px;border-radius:50%;background:#f3e8ff;color:#7e22ce;display:grid;place-items:center;font-weight:900;font-size:18px;">⚡</span>
+        <div>
+          <h3 style="margin:0;font-size:1.25rem;color:#6b21a8;">Xử lý yêu cầu dời lịch trình thuê</h3>
+          <div style="font-size:12.5px;color:var(--text-muted);" id="rescheduleModalSub">Đơn hàng #RH-8835</div>
+        </div>
+      </div>
+
+      <div id="rescheduleModalBody" style="display:flex;flex-direction:column;gap:14px;">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts: Logic Xử Lý & Đồng Bộ Dữ Liệu Thực Tế -->
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY = 'ridehub_store_orders_v1';
+
+      // 1. DỮ LIỆU ĐƠN HÀNG THỰC TẾ (ĐỒNG BỘ 100% CÁC TRƯỜNG DỮ LIỆU)
+      const DEFAULT_ORDERS = [
+        {
+          id: 'RH-8842',
+          vehicle: 'VinFast Feliz S',
+          category: 'moto',
+          categoryLabel: 'Xe máy điện • Tay ga',
+          licensePlate: '59A-123.45',
+          customer: 'Nguyễn Văn An',
+          phone: '0901234567',
+          email: 'an.nguyen@ridehub.vn',
+          cccd: '079201008899',
+          ekycStatus: 'pass',
+          schedule: '14/11/2026 08:00 → 16/11/2026 08:00',
+          durationDays: 2,
+          delivery: 'Giao xe tận nơi • 120 Nguyễn Huệ, Q.1',
+          addons: '2 nón bảo hiểm 3/4, Áo mưa đôi RideHub',
+          total: 320000,
+          deposit: 96000,
+          collateral: 'Miễn tiền cọc thế chấp (eKYC Hợp lệ)',
+          status: 'pending',
+          cancelReason: '',
+          note: 'Khách cần nhận xe đúng giờ để đi gặp đối tác.'
+        },
+        {
+          id: 'RH-8845',
+          vehicle: 'VinFast VF 5 Plus',
+          category: 'car',
+          categoryLabel: 'Ô tô điện • SUV 5 chỗ',
+          licensePlate: '51K-889.92',
+          customer: 'Trần Thanh Bình',
+          phone: '0901000002',
+          email: 'binh.tran@ridehub.vn',
+          cccd: '079202001122',
+          ekycStatus: 'pass',
+          schedule: '15/11/2026 09:00 → 17/11/2026 18:00',
+          durationDays: 2.5,
+          delivery: 'Nhận tại cửa hàng • GreenRide Q.1',
+          addons: 'Bảo hiểm chuyến đi mở rộng thân vỏ PTI',
+          total: 1875000,
+          deposit: 562500,
+          collateral: '5.000.000đ hoặc Cavet xe máy chính chủ',
+          status: 'pending',
+          cancelReason: '',
+          note: 'Yêu cầu mức pin xe tối thiểu 95% trước khi bàn giao.'
+        },
+        {
+          id: 'RH-8835',
+          vehicle: 'Dat Bike Weaver++',
+          category: 'moto',
+          categoryLabel: 'Xe máy điện • Côn tay thể thao',
+          licensePlate: '59B-987.65',
+          customer: 'Lê Kim Chi',
+          phone: '0901000003',
+          email: 'kimchi.le@ridehub.vn',
+          cccd: '079199003344',
+          ekycStatus: 'pass',
+          schedule: '13/11/2026 10:00 → 14/11/2026 10:00',
+          durationDays: 1,
+          delivery: 'Giao xe tận nơi • 45 Lê Lợi, Q.1',
+          addons: 'Giá đỡ điện thoại chống rung MagSafe',
+          total: 240000,
+          deposit: 72000,
+          collateral: '500.000đ tiền mặt (đã giữ cọc)',
+          status: 'approved',
+          cancelReason: '',
+          rescheduleRequest: {
+            status: 'pending_store',
+            oldSchedule: '13/11/2026 10:00 → 14/11/2026 10:00 (1 ngày)',
+            newSchedule: '14/11/2026 10:00 → 16/11/2026 10:00 (2 ngày)',
+            durationDiff: '+1 ngày',
+            surcharge: 240000,
+            reason: 'Khách dời lịch công tác sang ngày 14/11 và xin gia hạn thêm 1 ngày.'
+          }
+        },
+        {
+          id: 'RH-8820',
+          vehicle: 'VinFast Klara S',
+          category: 'moto',
+          categoryLabel: 'Xe máy điện • Cốp rộng',
+          licensePlate: '59C-456.78',
+          customer: 'Hoàng Minh Trí',
+          phone: '0901000004',
+          email: 'tri.hoang@ridehub.vn',
+          cccd: '079198005566',
+          ekycStatus: 'pass',
+          schedule: '14/11/2026 09:00 → 15/11/2026 09:00',
+          durationDays: 1,
+          delivery: 'Nhận tại cửa hàng • GreenRide Q.1',
+          addons: '2 nón bảo hiểm tiêu chuẩn, Bộ sạc theo xe',
+          total: 180000,
+          deposit: 54000,
+          collateral: 'Miễn thế chấp eKYC',
+          status: 'approved',
+          cancelReason: ''
+        },
+        {
+          id: 'RH-8812',
+          vehicle: 'Mazda 3 Luxury 2023',
+          category: 'car',
+          categoryLabel: 'Ô tô xăng • Sedan 5 chỗ',
+          licensePlate: '51H-998.11',
+          customer: 'Phạm Quốc Hùng',
+          phone: '0901888999',
+          email: 'hung.pham@ridehub.vn',
+          cccd: '079195007788',
+          ekycStatus: 'pass',
+          schedule: '10/11/2026 07:00 → 12/11/2026 19:00',
+          durationDays: 2.5,
+          delivery: 'Giao xe tận nơi • Sân bay Tân Sơn Nhất',
+          addons: 'Ghế ngồi an toàn cho trẻ em',
+          total: 2250000,
+          deposit: 675000,
+          collateral: '5.000.000đ tiền mặt',
+          status: 'cancelled',
+          cancelReason: 'Xe gặp sự cố kỹ thuật đột xuất cần bảo dưỡng'
+        }
+      ];
+
+      let orders = [];
+      let currentFilter = 'all';
+      let currentCategory = 'all';
+      let rejectingOrderId = null;
+
+      // Toast Thông Báo Chuẩn UI/UX
+      function showToast(title, message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `toast-box ${type === 'error' ? 'toast-error' : ''}`;
+        const iconSvg = type === 'success' 
+          ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`
+          : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+
+        toast.innerHTML = `
+          <div style="flex-shrink:0;margin-top:1px;">${iconSvg}</div>
+          <div style="flex:1;">
+            <strong style="display:block;font-size:14px;color:var(--text-primary);margin-bottom:2px;">${title}</strong>
+            <div style="color:var(--text-secondary);font-size:13px;line-height:1.4;">${message}</div>
+          </div>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateX(30px)';
+          toast.style.transition = 'all 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }, 3600);
+      }
+
+      // 2. KHỞI TẠO VÀ LƯU DỮ LIỆU LOCALSTORAGE
+      function loadOrders() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            orders = JSON.parse(raw);
+          } else {
+            orders = JSON.parse(JSON.stringify(DEFAULT_ORDERS));
+            saveOrders();
+          }
+        } catch (e) {
+          orders = JSON.parse(JSON.stringify(DEFAULT_ORDERS));
+        }
+      }
+
+      function saveOrders() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+        } catch (e) {
+          console.warn('LocalStorage save error:', e);
+        }
+      }
+
+      // 3. TÍNH TOÁN VÀ CẬP NHẬT CÁC CHỈ SỐ KPI & BADGES THỜI GIAN THỰC
+      function updateMetricsAndBadges() {
+        const total = orders.length;
+        const pending = orders.filter(o => o.status === 'pending').length;
+        const approved = orders.filter(o => o.status === 'approved').length;
+        const reschedule = orders.filter(o => o.rescheduleRequest && o.rescheduleRequest.status === 'pending_store').length;
+        const cancelled = orders.filter(o => o.status === 'cancelled').length;
+
+        // Tính toán dòng tiền
+        let activeOrders = orders.filter(o => o.status !== 'cancelled');
+        let totalDeposit = activeOrders.reduce((sum, o) => sum + (o.deposit || 0), 0);
+        let totalRevenue = activeOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        let remainCollect = Math.max(0, totalRevenue - totalDeposit);
+
+        // Cập nhật DOM KPI Cards
+        const elTotal = document.getElementById('kpiTotalOrders');
+        const elPending = document.getElementById('kpiPendingOrders');
+        const elApproved = document.getElementById('kpiApprovedOrders');
+        const elResched = document.getElementById('kpiRescheduleOrders');
+        const elDeposit = document.getElementById('kpiTotalDeposit');
+        const elRemain = document.getElementById('kpiRemainCollection');
+
+        if (elTotal) elTotal.textContent = total;
+        if (elPending) elPending.textContent = pending;
+        if (elApproved) elApproved.textContent = approved;
+        if (elResched) elResched.textContent = reschedule;
+        if (elDeposit) elDeposit.textContent = totalDeposit.toLocaleString('vi-VN') + ' đ';
+        if (elRemain) elRemain.textContent = remainCollect.toLocaleString('vi-VN') + ' đ';
+
+        // Cập nhật số đếm trên các Filter Tabs
+        const cAll = document.getElementById('countAll');
+        const cPending = document.getElementById('countPending');
+        const cApproved = document.getElementById('countApproved');
+        const cResched = document.getElementById('countResched');
+        const cCancelled = document.getElementById('countCancelled');
+        const cSide = document.getElementById('sidebarPendingCount');
+
+        if (cAll) cAll.textContent = total;
+        if (cPending) cPending.textContent = pending;
+        if (cApproved) cApproved.textContent = approved;
+        if (cResched) cResched.textContent = reschedule;
+        if (cCancelled) cCancelled.textContent = cancelled;
+        if (cSide) {
+          cSide.textContent = pending;
+          cSide.style.display = pending > 0 ? 'inline-block' : 'none';
+        }
+      }
+
+      // 4. RENDER DANH SÁCH ĐƠN HÀNG
+      function renderOrders() {
+        const container = document.getElementById('ordersListContainer');
+        const searchVal = (document.getElementById('orderSearchInput')?.value || '').toLowerCase().trim();
+        if (!container) return;
+
+        let filtered = orders.filter(o => {
+          // Lọc trạng thái
+          if (currentFilter === 'pending' && o.status !== 'pending') return false;
+          if (currentFilter === 'approved' && o.status !== 'approved') return false;
+          if (currentFilter === 'cancelled' && o.status !== 'cancelled') return false;
+          if (currentFilter === 'reschedule' && (!o.rescheduleRequest || o.rescheduleRequest.status !== 'pending_store')) return false;
+
+          // Lọc phân khúc xe
+          if (currentCategory !== 'all' && o.category !== currentCategory) return false;
+
+          // Lọc tìm kiếm
+          if (searchVal) {
+            const combined = `${o.id} ${o.customer} ${o.phone} ${o.email} ${o.vehicle} ${o.licensePlate}`.toLowerCase();
+            if (!combined.includes(searchVal)) return false;
+          }
+          return true;
+        });
+
+        if (filtered.length === 0) {
+          container.innerHTML = `
+            <div class="panel-card" style="text-align:center;padding:48px 20px;color:var(--text-muted);border:1.5px dashed var(--green-200);">
+              <div style="font-size:38px;margin-bottom:8px;">📭</div>
+              <strong style="font-size:16px;color:var(--text-primary);display:block;margin-bottom:4px;">Không tìm thấy đơn đặt xe phù hợp</strong>
+              <p style="font-size:13px;margin:0 0 16px;">Vui lòng thử chọn trạng thái bộ lọc khác hoặc nhập từ khóa tìm kiếm mới.</p>
+              <button type="button" class="btn btn-soft btn-sm" onclick="window.resetFilters()">Xóa bộ lọc & Hiển thị tất cả</button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = filtered.map(o => {
+          let badgeHtml = '';
+          if (o.status === 'pending') {
+            badgeHtml = `<span class="status-badge" style="background:#fef3c7;color:#b45309;font-weight:700;"><span class="status-dot status-dot-pulse" style="background:#f59e0b;"></span>Chờ duyệt đơn</span>`;
+          } else if (o.status === 'approved') {
+            badgeHtml = `<span class="status-badge status-badge--available" style="font-weight:700;">✓ Đã duyệt</span>`;
+          } else if (o.status === 'cancelled') {
+            badgeHtml = `<span class="status-badge" style="background:#fee2e2;color:#b91c1c;font-weight:700;">✕ Đã từ chối / Hủy</span>`;
+          }
+
+          const hasResched = o.rescheduleRequest && o.rescheduleRequest.status === 'pending_store';
+          const remainAmount = Math.max(0, o.total - o.deposit);
+
+          return `
+            <article class="saas-order-card status-${o.status}" data-id="${o.id}">
+              <!-- Card Header -->
+              <div class="order-head-bar">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <span style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--green-900);">
+                    #${o.id}
+                  </span>
+                  <span class="status-badge" style="background:var(--green-50);border:1px solid var(--green-200);color:var(--green-800);font-size:11px;font-weight:700;">
+                    ${o.categoryLabel}
+                  </span>
+                  ${badgeHtml}
+                  ${hasResched ? `<span class="status-badge" style="background:#f3e8ff;color:#7e22ce;font-weight:800;border:1px solid #d8b4fe;">⚡ Có yêu cầu dời lịch</span>` : ''}
+                </div>
+
+                <div style="font-size:12.5px;color:var(--text-muted);">
+                  Thời gian tạo đơn: <span style="font-weight:600;color:var(--text-secondary);">16/11/2026 • Trực tuyến</span>
+                </div>
+              </div>
+
+              <!-- 4-Column Grid -->
+              <div class="order-grid-4col">
+                <!-- Col 1: Khách thuê -->
+                <div>
+                  <div class="col-label">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.8 4.8-5.5 8-5.5s6.5 1.7 8 5.5"/></svg>
+                    Khách thuê & eKYC
+                  </div>
+                  <div class="col-val-primary">${o.customer}</div>
+                  <div class="col-val-sub">
+                    📞 ${o.phone}<br/>
+                    ✉️ ${o.email}
+                  </div>
+                  <div style="margin-top:6px;">
+                    <span class="status-badge status-badge--available" style="font-size:10.5px;padding:1px 6px;">
+                      ✓ eKYC Đạt chuẩn
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Col 2: Phương tiện -->
+                <div>
+                  <div class="col-label">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h10l3 5v4h-2M9 17h6"/></svg>
+                    Phương tiện bàn giao
+                  </div>
+                  <div class="col-val-primary" style="color:var(--green-800);">${o.vehicle}</div>
+                  <div class="col-val-sub">
+                    Biển số: <strong>${o.licensePlate}</strong><br/>
+                    Phụ kiện: <em>${o.addons}</em>
+                  </div>
+                </div>
+
+                <!-- Col 3: Lịch trình & Giao nhận -->
+                <div>
+                  <div class="col-label">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                    Lịch trình & Giao nhận
+                  </div>
+                  <div class="col-val-primary">${o.schedule}</div>
+                  <div class="col-val-sub">
+                    Thời lượng: <strong>${o.durationDays} ngày</strong><br/>
+                    📍 ${o.delivery}
+                  </div>
+                </div>
+
+                <!-- Col 4: Dòng tiền & Cọc -->
+                <div>
+                  <div class="col-label">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                    Dòng tiền & Đặt cọc
+                  </div>
+                  <div class="col-val-primary" style="color:var(--green-900);font-size:15px;">
+                    ${o.total.toLocaleString('vi-VN')} đ
+                  </div>
+                  <div class="col-val-sub">
+                    Đã cọc: <strong style="color:var(--green-700);">${o.deposit.toLocaleString('vi-VN')} đ (VietQR)</strong><br/>
+                    Thu tại trạm: <strong style="color:#b91c1c;">${remainAmount.toLocaleString('vi-VN')} đ</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Banner Yêu Cầu Dời Lịch (nếu có) -->
+              ${hasResched ? `
+                <div style="background:#faf5ff;border:1px solid #d8b4fe;border-radius:var(--radius-md);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                  <div>
+                    <div style="font-size:12.5px;font-weight:800;color:#6b21a8;margin-bottom:2px;">
+                      ⚡ KHÁCH HÀNG YÊU CẦU DỜI LỊCH TRÌNH THUÊ (${o.rescheduleRequest.durationDiff}):
+                    </div>
+                    <div style="font-size:13px;color:#4c1d95;">
+                      Lịch mới: <strong>${o.rescheduleRequest.newSchedule}</strong> • Phụ thu tự động: <strong>+${o.rescheduleRequest.surcharge.toLocaleString('vi-VN')} đ</strong>
+                    </div>
+                    <div style="font-size:12px;color:#7e22ce;margin-top:2px;">
+                      Lý do khách gửi: <em>"${o.rescheduleRequest.reason}"</em>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-sm" style="background:#7e22ce;color:#fff;border-color:#7e22ce;font-weight:700;" onclick="window.openRescheduleModal('${o.id}')">
+                    Xử lý Dời Lịch →
+                  </button>
+                </div>
+              ` : ''}
+
+              <!-- Lý Do Hủy (nếu đã hủy) -->
+              ${o.status === 'cancelled' && o.cancelReason ? `
+                <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-sm);padding:10px 14px;font-size:12.5px;color:#991b1b;">
+                  <strong>✕ Lý do từ chối đơn:</strong> ${o.cancelReason}. <em>(Hệ thống đã gửi thông báo hoàn 100% cọc ${o.deposit.toLocaleString('vi-VN')}đ cho khách)</em>.
+                </div>
+              ` : ''}
+
+              <!-- Action Toolbar Footer -->
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:14px;border-top:1px solid #f1f5f9;margin-top:2px;">
+                <div style="font-size:12px;color:var(--text-muted);">
+                  Thế chấp: <strong>${o.collateral}</strong>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <!-- Xem chi tiết -->
+                  <button type="button" class="btn btn-soft btn-sm" style="font-size:12.5px;font-weight:700;" onclick="window.viewOrderDetail('${o.id}')">
+                    👁️ Thẩm định & Chi tiết
+                  </button>
+
+                  <!-- Nút duyệt & từ chối khi Chờ duyệt -->
+                  ${o.status === 'pending' ? `
+                    <button type="button" class="btn btn-primary btn-sm" style="font-size:12.5px;font-weight:700;" onclick="window.approveOrder('${o.id}')">
+                      ✓ Duyệt nhận đơn
+                    </button>
+                    <button type="button" class="btn btn-soft btn-sm" style="font-size:12.5px;font-weight:700;color:#dc2626;" onclick="window.openRejectModal('${o.id}')">
+                      ✕ Từ chối đơn
+                    </button>
+                  ` : ''}
+
+                  <!-- Nút Lập Biên Bản khi Đã duyệt (Liên kết trực tiếp và truyền tham số) -->
+                  ${o.status === 'approved' ? `
+                    <a href="handover.html?booking_id=${encodeURIComponent(o.id)}&customer=${encodeURIComponent(o.customer)}&phone=${encodeURIComponent(o.phone)}&vehicle=${encodeURIComponent(o.vehicle)}&plate=${encodeURIComponent(o.licensePlate)}&deposit=${encodeURIComponent(o.deposit)}" 
+                       class="btn btn-primary btn-sm" 
+                       style="font-size:12.5px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(22,163,74,0.3);">
+                      📝 Lập biên bản bàn giao xe →
+                    </a>
+                  ` : ''}
+                </div>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      // 5. THAO TÁC DUYỆT ĐƠN HÀNG
+      window.approveOrder = function (orderId) {
+        const ord = orders.find(o => o.id === orderId);
+        if (!ord) return;
+
+        ord.status = 'approved';
+        saveOrders();
+        updateMetricsAndBadges();
+        renderOrders();
+
+        showToast(
+          'Đã duyệt nhận đơn đặt xe thành công!',
+          `Đơn #${ord.id} (${ord.customer} • ${ord.vehicle}) đã chuyển sang trạng thái ĐÃ DUYỆT. Bạn có thể tiến hành lập Biên bản bàn giao xe ngay bây giờ.`
+        );
+      };
+
+      // 6. THAO TÁC TỪ CHỐI ĐƠN & HOÀN TIỀN CỌC
+      window.openRejectModal = function (orderId) {
+        const ord = orders.find(o => o.id === orderId);
+        if (!ord) return;
+
+        rejectingOrderId = orderId;
+        const modal = document.getElementById('rejectOrderModal');
+        const refundEl = document.getElementById('rejectRefundAmount');
+        if (refundEl) refundEl.textContent = (ord.deposit || 0).toLocaleString('vi-VN') + ' đ';
+
+        modal?.classList.add('is-open');
+      };
+
+      document.getElementById('confirmRejectModalBtn')?.addEventListener('click', function () {
+        if (!rejectingOrderId) return;
+        const ord = orders.find(o => o.id === rejectingOrderId);
+        if (!ord) return;
+
+        const reasonRadio = document.querySelector('input[name="rejectReason"]:checked');
+        const reason = reasonRadio ? reasonRadio.value : 'Lý do điều phối nội bộ';
+
+        ord.status = 'cancelled';
+        ord.cancelReason = reason;
+
+        saveOrders();
+        updateMetricsAndBadges();
+        renderOrders();
+
+        document.getElementById('rejectOrderModal')?.classList.remove('is-open');
+
+        showToast(
+          'Đã từ chối đơn hàng & Xác nhận hoàn cọc!',
+          `Đơn #${ord.id} đã hủy. Hệ thống gửi email kèm mã tra soát hoàn ${ord.deposit.toLocaleString('vi-VN')}đ cọc qua VietQR cho khách hàng.`,
+          'error'
+        );
+        rejectingOrderId = null;
+      });
+
+      document.getElementById('cancelRejectModalBtn')?.addEventListener('click', function () {
+        document.getElementById('rejectOrderModal')?.classList.remove('is-open');
+        rejectingOrderId = null;
+      });
+
+      // 7. XỬ LÝ YÊU CẦU DỜI LỊCH TRÌNH (RESCHEDULE)
+      window.openRescheduleModal = function (orderId) {
+        const ord = orders.find(o => o.id === orderId);
+        if (!ord || !ord.rescheduleRequest) return;
+
+        const modal = document.getElementById('rescheduleModal');
+        const sub = document.getElementById('rescheduleModalSub');
+        const body = document.getElementById('rescheduleModalBody');
+
+        if (sub) sub.textContent = `Đơn hàng #${ord.id} • Khách hàng: ${ord.customer}`;
+
+        const newTotal = ord.total + (ord.rescheduleRequest.surcharge || 0);
+
+        if (body) {
+          body.innerHTML = `
+            <div style="background:#f8fafc;padding:14px;border-radius:10px;border:1px solid #e2e8f0;font-size:13px;line-height:1.6;">
+              <div style="margin-bottom:6px;">
+                <span style="color:var(--text-muted);font-size:11px;font-weight:800;text-transform:uppercase;">Lịch thuê ban đầu:</span>
+                <div style="font-weight:700;">${ord.rescheduleRequest.oldSchedule}</div>
+              </div>
+              <div style="margin-bottom:6px;">
+                <span style="color:#7e22ce;font-size:11px;font-weight:800;text-transform:uppercase;">Lịch thuê mới đề xuất:</span>
+                <div style="font-weight:800;color:#6b21a8;">${ord.rescheduleRequest.newSchedule}</div>
+              </div>
+              <div>
+                <span style="color:var(--text-muted);font-size:11px;font-weight:800;text-transform:uppercase;">Lý do khách hàng gửi:</span>
+                <div style="color:var(--text-secondary);font-style:italic;">"${ord.rescheduleRequest.reason}"</div>
+              </div>
+            </div>
+
+            <!-- Tính toán tài chính dời lịch -->
+            <div style="background:#faf5ff;border:1px solid #d8b4fe;padding:14px;border-radius:10px;font-size:13.5px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span>Giá thuê ban đầu:</span>
+                <strong>${ord.total.toLocaleString('vi-VN')} đ</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#7e22ce;">
+                <span>Phụ phí gia hạn (${ord.rescheduleRequest.durationDiff}):</span>
+                <strong>+${ord.rescheduleRequest.surcharge.toLocaleString('vi-VN')} đ</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;border-top:1px dashed #d8b4fe;padding-top:6px;color:#581c87;">
+                <span>Tổng tiền mới sau khi dời lịch:</span>
+                <span>${newTotal.toLocaleString('vi-VN')} đ</span>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
+              <button type="button" class="btn btn-soft" onclick="document.getElementById('rescheduleModal').classList.remove('is-open');">Đóng</button>
+              <button type="button" class="btn btn-soft" style="color:#b91c1c;" onclick="window.rejectReschedule('${ord.id}')">Từ chối dời lịch</button>
+              <button type="button" class="btn btn-primary" style="background:#7e22ce;border-color:#7e22ce;" onclick="window.approveReschedule('${ord.id}')">
+                ✓ Chấp thuận Dời Lịch (+${ord.rescheduleRequest.surcharge.toLocaleString('vi-VN')}đ)
+              </button>
+            </div>
+          `;
+        }
+
+        modal?.classList.add('is-open');
+      };
+
+      window.approveReschedule = function (orderId) {
+        const ord = orders.find(o => o.id === orderId);
+        if (!ord || !ord.rescheduleRequest) return;
+
+        // Cập nhật lịch mới và cộng dồn tiền thuê
+        ord.schedule = ord.rescheduleRequest.newSchedule;
+        ord.total += (ord.rescheduleRequest.surcharge || 0);
+        ord.rescheduleRequest.status = 'approved_store';
+
+        saveOrders();
+        updateMetricsAndBadges();
+        renderOrders();
+
+        document.getElementById('rescheduleModal')?.classList.remove('is-open');
+        showToast(
+          'Đã chấp thuận dời lịch trình thuê!',
+          `Đơn #${ord.id} đã cập nhật lịch mới: ${ord.schedule}. Tổng tiền đơn được tự động tính lại thành ${ord.total.toLocaleString('vi-VN')}đ.`
+        );
+      };
+
+      window.rejectReschedule = function (orderId) {
+        const ord = orders.find(o => o.id === orderId);
+        if (!ord || !ord.rescheduleRequest) return;
+
+        ord.rescheduleRequest.status = 'rejected_store';
+
+        saveOrders();
+        updateMetricsAndBadges();
+        renderOrders();
+
+        document.getElementById('rescheduleModal')?.classList.remove('is-open');
+        showToast(
+          'Đã từ chối yêu cầu dời lịch!',
+          `Đơn #${ord.id} vẫn giữ nguyên lịch trình ban đầu: ${ord.schedule}.`,
+          'info'
+        );
+      };
+
+      // 8. XEM CHI TIẾT ĐƠN HÀNG & THẨM ĐỊNH eKYC
+      window.viewOrderDetail = function (orderId) {
+        const ord = orders.find(o => o.id === orderId);
+        if (!ord) return;
+
+        const modal = document.getElementById('storeOrderDetailModal');
+        const titleEl = document.getElementById('sodModalTitle');
+        const badgeEl = document.getElementById('sodStatusBadge');
+        const bodyEl = document.getElementById('sodModalBody');
+
+        if (titleEl) titleEl.textContent = `Hồ sơ đơn đặt xe #${ord.id}`;
+        if (badgeEl) {
+          if (ord.status === 'approved') {
+            badgeEl.className = 'status-badge status-badge--available';
+            badgeEl.textContent = '✓ Đã duyệt';
+          } else if (ord.status === 'cancelled') {
+            badgeEl.className = 'status-badge status-badge--maintenance';
+            badgeEl.textContent = '✕ Đã từ chối';
+          } else {
+            badgeEl.className = 'status-badge status-badge--booked';
+            badgeEl.textContent = 'Chờ duyệt';
+          }
+        }
+
+        const remainPay = Math.max(0, ord.total - ord.deposit);
+
+        if (bodyEl) {
+          bodyEl.innerHTML = `
+            <!-- Tab 1: Khách hàng & Thẩm định eKYC -->
+            <div style="background:#f8fafc;padding:16px;border-radius:10px;border:1px solid #e2e8f0;">
+              <div style="font-size:12px;font-weight:800;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+                <span>1. HỒ SƠ KHÁCH HÀNG & THẨM ĐỊNH eKYC</span>
+                <span class="status-badge status-badge--available" style="font-size:11px;">Hồ sơ hợp lệ 100%</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+                <div>Họ và tên: <strong style="color:var(--text-primary);">${ord.customer}</strong></div>
+                <div>Số điện thoại: <strong>${ord.phone}</strong></div>
+                <div>Email: <strong>${ord.email}</strong></div>
+                <div>Số CCCD: <strong>${ord.cccd}</strong></div>
+              </div>
+              <div style="margin-top:10px;padding:8px 12px;background:#f0fdf4;border-radius:6px;font-size:12px;color:var(--green-800);">
+                ✓ Đã đối chiếu ảnh chụp CCCD & GPLX B2 qua hệ thống eKYC RideHub. Khách đủ điều kiện thuê tự lái.
+              </div>
+            </div>
+
+            <!-- Tab 2: Phương tiện & Địa điểm giao nhận -->
+            <div style="background:#f8fafc;padding:16px;border-radius:10px;border:1px solid #e2e8f0;">
+              <div style="font-size:12px;font-weight:800;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">
+                2. THÔNG TIN PHƯƠNG TIỆN & LỊCH TRÌNH
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+                <div>Xe: <strong style="color:var(--green-700);">${ord.vehicle}</strong></div>
+                <div>Biển kiểm soát: <strong>${ord.licensePlate}</strong></div>
+                <div>Lịch thuê: <strong>${ord.schedule}</strong></div>
+                <div>Thời lượng: <strong>${ord.durationDays} ngày</strong></div>
+                <div style="grid-column:1/-1;">Địa điểm nhận: <strong>${ord.delivery}</strong></div>
+                <div style="grid-column:1/-1;">Phụ kiện: <em>${ord.addons}</em></div>
+                <div style="grid-column:1/-1;">Ghi chú từ khách: <em>${ord.note || 'Không có'}</em></div>
+              </div>
+            </div>
+
+            <!-- Tab 3: Hạch toán tài chính & Cọc -->
+            <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;padding:16px;border-radius:10px;font-size:13.5px;">
+              <div style="font-size:12px;font-weight:800;color:var(--green-900);text-transform:uppercase;margin-bottom:8px;">
+                3. HẠCH TOÁN CHI PHÍ & ĐẶT CỌC VIETQR
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span>Tổng chi phí thuê xe:</span>
+                <strong>${ord.total.toLocaleString('vi-VN')} đ</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:var(--green-800);">
+                <span>Đã thanh toán cọc giữ chỗ 30% (VietQR):</span>
+                <strong>- ${ord.deposit.toLocaleString('vi-VN')} đ</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;border-top:1px dashed #86efac;padding-top:6px;color:#b91c1c;">
+                <span>Số tiền còn lại thu tại thời điểm giao xe:</span>
+                <span>${remainPay.toLocaleString('vi-VN')} đ</span>
+              </div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">
+                Điều kiện thế chấp: <strong>${ord.collateral}</strong>
+              </div>
+            </div>
+
+            <!-- Action Buttons Inside Modal -->
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px;">
+              <button type="button" class="btn btn-soft" onclick="document.getElementById('storeOrderDetailModal').classList.remove('is-open');">Đóng</button>
+              
+              ${ord.status === 'pending' ? `
+                <button type="button" class="btn btn-primary" onclick="window.approveOrder('${ord.id}');document.getElementById('storeOrderDetailModal').classList.remove('is-open');">
+                  ✓ Duyệt nhận đơn ngay
+                </button>
+                <button type="button" class="btn btn-soft" style="color:#b91c1c;" onclick="document.getElementById('storeOrderDetailModal').classList.remove('is-open');window.openRejectModal('${ord.id}');">
+                  ✕ Từ chối đơn
+                </button>
+              ` : ''}
+
+              ${ord.status === 'approved' ? `
+                <a href="handover.html?booking_id=${encodeURIComponent(ord.id)}&customer=${encodeURIComponent(ord.customer)}&phone=${encodeURIComponent(ord.phone)}&vehicle=${encodeURIComponent(ord.vehicle)}&plate=${encodeURIComponent(ord.licensePlate)}&deposit=${encodeURIComponent(ord.deposit)}" 
+                   class="btn btn-primary" style="text-decoration:none;">
+                  📝 Tiến hành Lập biên bản bàn giao xe →
+                </a>
+              ` : ''}
+            </div>
+          `;
+        }
+
+        modal?.classList.add('is-open');
+      };
+
+      document.getElementById('closeOrderModalBtn')?.addEventListener('click', function () {
+        document.getElementById('storeOrderDetailModal')?.classList.remove('is-open');
+      });
+
+      // 9. EVENT LISTENERS CHO SEARCH & FILTERS
+      document.getElementById('orderSearchInput')?.addEventListener('input', function () {
+        renderOrders();
+      });
+
+      document.querySelectorAll('#orderFilterBar [data-filter]').forEach(btn => {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('#orderFilterBar [data-filter]').forEach(b => {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-soft');
+          });
+          this.classList.remove('btn-soft');
+          this.classList.add('btn-primary');
+          currentFilter = this.dataset.filter;
+          renderOrders();
+        });
+      });
+
+      document.getElementById('vehicleCategoryFilter')?.addEventListener('change', function (e) {
+        currentCategory = e.target.value;
+        renderOrders();
+      });
+
+      window.resetFilters = function () {
+        currentFilter = 'all';
+        currentCategory = 'all';
+        const searchInput = document.getElementById('orderSearchInput');
+        if (searchInput) searchInput.value = '';
+
+        const catSelect = document.getElementById('vehicleCategoryFilter');
+        if (catSelect) catSelect.value = 'all';
+
+        document.querySelectorAll('#orderFilterBar [data-filter]').forEach(b => {
+          b.classList.toggle('btn-primary', b.dataset.filter === 'all');
+          b.classList.toggle('btn-soft', b.dataset.filter !== 'all');
+        });
+
+        renderOrders();
+      };
+
+      // Đóng modal khi click ra ngoài backdrop hoặc ấn ESC
+      [
+        document.getElementById('storeOrderDetailModal'),
+        document.getElementById('rejectOrderModal'),
+        document.getElementById('rescheduleModal')
+      ].forEach(m => {
+        m?.addEventListener('click', function (e) {
+          if (e.target === this) {
+            this.classList.remove('is-open');
+          }
+        });
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.app-modal-backdrop.is-open').forEach(m => m.classList.remove('is-open'));
+        }
+      });
+
+      // Khởi chạy
+      loadOrders();
+      updateMetricsAndBadges();
+      renderOrders();
+
+    })();
+  </script>
+  <script src="../js/components.js"></script>
+  <script src="../js/auth-rbac.js"></script>
+</body>
+
+</html>

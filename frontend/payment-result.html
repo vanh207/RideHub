@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2563eb" />
+    <title>Kết quả thanh toán | RideHub</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        padding: 28px 16px;
+        display: grid;
+        place-items: center;
+        color: #1f2937;
+        background: linear-gradient(135deg, #eff6ff, #f3f4f6 55%, #f0fdf4);
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      .result-card {
+        width: min(100%, 560px);
+        padding: 32px;
+        border-radius: 24px;
+        background: #fff;
+        box-shadow: 0 16px 48px rgba(15, 23, 42, .12);
+      }
+      .brand {
+        margin-bottom: 24px;
+        color: #2563eb;
+        font-size: .85rem;
+        font-weight: 800;
+        letter-spacing: .14em;
+        text-align: center;
+      }
+      .state-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 16px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: #eff6ff;
+        color: #2563eb;
+        font-size: 30px;
+        font-weight: 700;
+      }
+      .result-card.success .state-icon { color: #15803d; background: #dcfce7; }
+      .result-card.failure .state-icon { color: #b91c1c; background: #fee2e2; }
+      .result-card.warning .state-icon { color: #b45309; background: #fef3c7; }
+      h1 { margin: 0; font-size: clamp(1.45rem, 5vw, 1.9rem); text-align: center; }
+      .message {
+        max-width: 440px;
+        margin: 12px auto 22px;
+        color: #4b5563;
+        line-height: 1.6;
+        text-align: center;
+      }
+      .booking-ref {
+        margin: 0 0 20px;
+        color: #374151;
+        font-weight: 700;
+        text-align: center;
+      }
+      .details {
+        margin: 0;
+        padding: 6px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+      }
+      .detail-row {
+        min-height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .detail-row:last-child { border-bottom: 0; }
+      .detail-row dt { color: #6b7280; font-size: .9rem; }
+      .detail-row dd {
+        max-width: 62%;
+        margin: 0;
+        overflow-wrap: anywhere;
+        font-size: .9rem;
+        font-weight: 650;
+        text-align: right;
+      }
+      .alert {
+        margin-top: 16px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #fff7ed;
+        color: #9a3412;
+        font-size: .92rem;
+        line-height: 1.5;
+      }
+      .actions {
+        margin-top: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+      }
+      .button {
+        min-height: 44px;
+        padding: 11px 17px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 11px;
+        background: #2563eb;
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .button.secondary { background: #eff6ff; color: #1d4ed8; }
+      .button.tertiary { background: #f3f4f6; color: #374151; }
+      .button[hidden], [hidden] { display: none !important; }
+      .footnote {
+        margin: 20px 0 0;
+        color: #6b7280;
+        font-size: .8rem;
+        line-height: 1.5;
+        text-align: center;
+      }
+      @media (max-width: 480px) {
+        .result-card { padding: 26px 20px; }
+        .actions { display: grid; }
+        .button { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="result-card" id="resultCard" aria-busy="true">
+      <div class="brand">RIDEHUB</div>
+      <div class="state-icon" id="stateIcon" aria-hidden="true">…</div>
+      <h1 id="statusTitle">Đang xác minh thanh toán</h1>
+      <p class="message" id="statusMessage" role="status" aria-live="polite">
+        Đang đối chiếu trạng thái đơn hàng với hệ thống RideHub.
+      </p>
+      <p class="booking-ref" id="bookingRef" hidden></p>
+
+      <dl class="details" id="transactionDetails" hidden>
+        <div class="detail-row">
+          <dt>Trạng thái</dt><dd id="paymentStatus">—</dd>
+        </div>
+        <div class="detail-row">
+          <dt>Số tiền</dt><dd id="paymentAmount">—</dd>
+        </div>
+        <div class="detail-row">
+          <dt>Mã giao dịch</dt><dd id="transactionCode">—</dd>
+        </div>
+        <div class="detail-row">
+          <dt>Thời gian thanh toán</dt><dd id="paidAt">—</dd>
+        </div>
+        <div class="detail-row">
+          <dt>Hạn giữ chỗ</dt><dd id="holdExpiresAt">—</dd>
+        </div>
+      </dl>
+
+      <div class="alert" id="resultAlert" role="alert" hidden></div>
+      <div class="actions">
+        <a class="button" id="backOrderButton" hidden>Quay lại đơn</a>
+        <a class="button" id="retryPaymentButton" hidden>Thử thanh toán lại</a>
+        <a class="button secondary" id="loginButton" href="pages/auth.html" hidden>Đăng nhập</a>
+        <button class="button secondary" id="checkAgainButton" type="button" hidden>Kiểm tra lại</button>
+        <a class="button tertiary" href="vehicles.html">Đặt xe khác</a>
+      </div>
+      <p class="footnote">Trạng thái hiển thị được xác minh từ máy chủ RideHub, không dựa vào tham số kết quả trên đường dẫn.</p>
+    </main>
+    <script src="js/config.js" defer></script>
+    <script src="js/payment-result.js" defer></script>
+  </body>
+</html>

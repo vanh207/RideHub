@@ -11,9 +11,19 @@
 (function (global) {
   'use strict';
 
+  const getInitialBaseUrl = () => {
+    if (typeof global.CONFIG !== 'undefined' && global.CONFIG.API_BASE_URL) {
+      return global.CONFIG.API_BASE_URL;
+    }
+    if (typeof window !== 'undefined' && window.location) {
+      if (window.location.port === '8000') return `${window.location.origin}/api`;
+    }
+    return 'http://127.0.0.1:8000/api';
+  };
+
   // Config mặc định
   const DEFAULT_CONFIG = {
-    baseUrl: 'https://api.ridehub.vn/v1',
+    baseUrl: getInitialBaseUrl(),
     timeoutMs: 8000,
     mockMode: true, // Mặc định bật Mock fallback để ứng dụng chạy độc lập
     storageUserKey: 'ridehub_current_user',
@@ -71,7 +81,12 @@
     // Token Auth
     getToken() {
       try {
-        return localStorage.getItem(this.config.storageTokenKey) || '';
+        const fromCookie = (document.cookie.match(/(^| )ridehub_token=([^;]+)/) || [])[2] 
+                        || (document.cookie.match(/(^| )access_token=([^;]+)/) || [])[2]
+                        || (document.cookie.match(/(^| )token=([^;]+)/) || [])[2]
+                        || (document.cookie.match(/(^| )ridehub_auth_token=([^;]+)/) || [])[2];
+        if (fromCookie) return decodeURIComponent(fromCookie);
+        return localStorage.getItem(this.config.storageTokenKey) || localStorage.getItem('ridehub_token') || '';
       } catch (_) {
         return '';
       }
@@ -79,8 +94,19 @@
 
     setToken(token) {
       try {
-        if (token) localStorage.setItem(this.config.storageTokenKey, token);
-        else localStorage.removeItem(this.config.storageTokenKey);
+        if (token) {
+          document.cookie = `ridehub_token=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `access_token=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `${this.config.storageTokenKey}=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+          localStorage.setItem(this.config.storageTokenKey, token);
+          localStorage.setItem('ridehub_token', token);
+        } else {
+          document.cookie = 'ridehub_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+          document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+          document.cookie = `${this.config.storageTokenKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax`;
+          localStorage.removeItem(this.config.storageTokenKey);
+          localStorage.removeItem('ridehub_token');
+        }
       } catch (_) {}
     }
 
@@ -108,11 +134,15 @@
         params = null,
         timeout = this.config.timeoutMs,
         useMock = this.config.mockMode,
+        mockFallback = true,
         skipAuth = false
       } = options;
 
       // Xây dựng URL & query params
-      let url = endpoint.startsWith('http') ? endpoint : `${this.config.baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+      const activeBaseUrl = (typeof global.CONFIG !== 'undefined' && global.CONFIG.API_BASE_URL)
+        ? global.CONFIG.API_BASE_URL
+        : this.config.baseUrl;
+      let url = endpoint.startsWith('http') ? endpoint : `${activeBaseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
       if (params && Object.keys(params).length > 0) {
         const query = new URLSearchParams();
         Object.entries(params).forEach(([k, v]) => {
@@ -172,6 +202,9 @@
           if (error.name === 'AbortError') {
             this.notify('Yêu cầu hết thời gian chờ (Timeout).', 'error');
             return { ok: false, status: 408, message: 'Request Timeout' };
+          }
+          if (!mockFallback) {
+            return { ok: false, status: 0, message: 'Không thể kết nối máy chủ.' };
           }
           console.warn('[RideHubAPI] Fetch thất bại, chuyển sang Mock fallback:', error.message);
           // Rơi xuống mock router
@@ -440,7 +473,22 @@
       const self = this;
       return {
         async create(bookingData) {
-          return self.post('bookings', bookingData);
+          const result = await self.post('bookings', bookingData, {
+            useMock: false,
+            mockFallback: false
+          });
+          if (!result.ok) return result;
+
+          const bookingId = Number(result.data && result.data.id);
+          if (!Number.isSafeInteger(bookingId) || bookingId <= 0) {
+            return { ok: false, status: 502, message: 'Backend không trả về booking_id hợp lệ.' };
+          }
+
+          const paymentPage = window.location.port === '8000'
+            ? '/frontend/payment-qr.html'
+            : '/payment-qr.html';
+          window.location.assign(`${paymentPage}?booking_id=${encodeURIComponent(bookingId)}`);
+          return result;
         },
 
         async getMyBookings() {

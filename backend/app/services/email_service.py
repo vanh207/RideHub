@@ -144,7 +144,20 @@ class EmailService:
     Cung cấp các hàm gửi thông báo đơn hàng, biên bản giao nhận, cọc và hoàn tiền.
     """
 
-    def __init__(self, backend_type: Optional[str] = None):
+    def __init__(
+        self,
+        backend_type: Optional[str] = None,
+        sender: Optional[BaseEmailSender] = None,
+    ):
+        if sender is not None:
+            self.sender = sender
+            self.backend_name = type(sender).__name__
+            logger.info(
+                "[EmailService] Initialized with injected sender: %s",
+                self.backend_name,
+            )
+            return
+
         # Xác định backend: nếu không chỉ định, lấy từ settings.EMAIL_BACKEND
         selected_backend = (backend_type or settings.EMAIL_BACKEND).strip().lower()
 
