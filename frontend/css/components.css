@@ -278,6 +278,25 @@
   margin-top: 2px;
 }
 
+.booking-eligibility-message {
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.booking-eligibility-message[hidden] {
+  display: none;
+}
+
+.booking-eligibility-message ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
 .is-invalid {
   border-color: #ef4444 !important;
   background-color: #fffafb;

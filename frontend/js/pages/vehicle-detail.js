@@ -128,19 +128,34 @@
     recalcTotal();
   }
 
-  function proceedBooking() {
-    if (!picker || !picker.syncFromText(byId('detailScheduleInput').value)) {
-      toast('Hãy chọn khoảng thời gian hợp lệ bằng lịch thuê xe.', true);
-      return;
-    }
-    const selectedTime = picker.getState();
-    if (!selectedTime.endDay) {
-      toast('Hãy chọn ngày trả xe trước khi tiếp tục.', true);
-      return;
-    }
+  function getRentalStart() {
+    const state = picker.getState();
     const pad = (value) => String(value).padStart(2, '0');
-    const toDateTime = (day, time) =>
-      `${selectedTime.year}-${pad(selectedTime.month + 1)}-${pad(day)}T${time}`;
+    return `${state.year}-${pad(state.month + 1)}-${pad(state.startDay)}T${state.pickupHour}:00`;
+  }
+
+  async function proceedBooking() {
+    const button = byId('proceedBookingBtn');
+    const eligibilityMessage = byId('bookingEligibilityMessage');
+    button.disabled = true;
+    window.RideHubBookingEligibility.clearMessage(eligibilityMessage);
+    try {
+      const vehicleType = vehicle.type === 'car' ? 'CAR' : 'MOTORBIKE';
+      const result = await window.RideHubBookingEligibility.check(vehicleType, getRentalStart());
+      if (!result.eligible) {
+        window.RideHubBookingEligibility.showReasons(eligibilityMessage, result.reasons);
+        return;
+      }
+    } catch (error) {
+      console.error('[RideHub] Không thể kiểm tra điều kiện thuê:', error);
+      window.RideHubBookingEligibility.showError(
+        eligibilityMessage,
+        `Không thể kiểm tra điều kiện thuê: ${error.message}`
+      );
+      return;
+    } finally {
+      button.disabled = false;
+    }
 
     const specs = Array.from(document.querySelectorAll('#detailChips .meta-chip')).map((chip) => chip.textContent.trim()).join(' • ');
     const isDelivery = byId('btnDelivery').classList.contains('btn-primary');
