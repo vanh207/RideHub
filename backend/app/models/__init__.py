@@ -14,30 +14,9 @@ from app.models.faq import FAQ
 from app.models.handover import HandoverProtocol  
 from app.models.vehicle_reservation import VehicleReservation
 from app.models.vehicle_schedule import VehicleSchedule
-from app.models.audit_log import AuditLog
-
-__all__ = [
-    "Base",
-    "User",
-    "Role",
-    "UserRole",
-    "Store",
-    "StoreStaff",
-    "Vehicle",
-    "VehicleReservation",
-    "VehicleSchedule",
-    "Booking",
-    "BookingStatusHistory",
-    "DeliveryFeeZone",
-    "DeliveryPoint",
-    "PaymentTransaction",
-    "Refund",
-    "PaymentWebhookLog",
-    "IdentityDocument",
-    "DriverLicense",
-    "HandoverProtocol",
-    "ChatConversation",
-    "ChatMessage",
-    "FAQ",
-    "AuditLog",
-]
+from app.models.feedback import (
+    Review,
+    Complaint,
+    ComplaintEvidence,
+    ComplaintStatusHistory,
+)

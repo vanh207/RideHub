@@ -364,34 +364,77 @@ CREATE TABLE IF NOT EXISTS rental_settlements (
     FOREIGN KEY (recorded_by) REFERENCES users(id)
 );
 
--- ==============================================================================
--- BẢNG NHẬT KÝ KIỂM TOÁN (AUDIT LOGS)
--- Ghi nhận thao tác duyệt, đổi trạng thái, hoàn tiền (ai, làm gì, lúc nào)
--- ==============================================================================
-CREATE TABLE IF NOT EXISTS audit_logs (
+-- ==========================================
+-- 6. ĐÁNH GIÁ & KHIẾU NẠI (REVIEWS & COMPLAINTS)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS reviews (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NULL,
-    user_email VARCHAR(150) NULL,
-    user_role VARCHAR(50) NULL,
-    ip_address VARCHAR(45) NULL,
-    user_agent VARCHAR(500) NULL,
-    action VARCHAR(100) NOT NULL,
-    resource_type VARCHAR(100) NOT NULL,
-    resource_id VARCHAR(100) NULL,
-    http_method VARCHAR(10) NOT NULL,
-    endpoint VARCHAR(255) NOT NULL,
-    description TEXT NULL,
-    request_payload JSON NULL,
-    response_summary TEXT NULL,
-    status_code INT NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'SUCCESS',
-    error_message TEXT NULL,
-    execution_time_ms FLOAT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_audit_logs_user_id (user_id),
-    INDEX idx_audit_logs_user_email (user_email),
-    INDEX idx_audit_logs_action (action),
-    INDEX idx_audit_logs_resource (resource_type, resource_id),
-    INDEX idx_audit_logs_created_at (created_at),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+    booking_id INT NOT NULL,
+    reviewer_id INT NOT NULL,
+    rating INT NOT NULL,
+    comment TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT ck_reviews_rating CHECK (rating BETWEEN 1 AND 5),
+    CONSTRAINT uq_reviews_booking_reviewer UNIQUE (booking_id, reviewer_id),
+    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS complaints (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    booking_id INT NOT NULL,
+    reporter_id INT NOT NULL,
+    against_user_id INT,
+    category VARCHAR(50) NOT NULL,
+    subject VARCHAR(200) NOT NULL,
+    description TEXT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'OPEN',
+    priority VARCHAR(20) NOT NULL DEFAULT 'NORMAL',
+    assigned_to INT,
+    resolution TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP NULL,
+    CONSTRAINT ck_complaints_status CHECK (
+        status IN ('OPEN', 'IN_PROGRESS', 'WAITING_FOR_CUSTOMER', 'RESOLVED', 'REJECTED', 'CLOSED')
+    ),
+    CONSTRAINT ck_complaints_priority CHECK (priority IN ('NORMAL', 'HIGH', 'URGENT')),
+    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
+    FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (against_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX ix_complaints_status_created_at (status, created_at),
+    INDEX ix_complaints_booking_id (booking_id)
+);
+
+CREATE TABLE IF NOT EXISTS complaint_evidence (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    complaint_id INT NOT NULL,
+    uploaded_by INT,
+    image_url VARCHAR(500) NOT NULL,
+    caption TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (complaint_id) REFERENCES complaints(id) ON DELETE CASCADE,
+    FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX ix_complaint_evidence_complaint_id (complaint_id)
+);
+
+CREATE TABLE IF NOT EXISTS complaint_status_histories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    complaint_id INT NOT NULL,
+    from_status VARCHAR(30),
+    to_status VARCHAR(30) NOT NULL,
+    changed_by INT,
+    note TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT ck_complaint_status_histories_to_status CHECK (
+        to_status IN ('OPEN', 'IN_PROGRESS', 'WAITING_FOR_CUSTOMER', 'RESOLVED', 'REJECTED', 'CLOSED')
+    ),
+    CONSTRAINT ck_complaint_status_histories_from_status CHECK (
+        from_status IS NULL OR from_status IN
+        ('OPEN', 'IN_PROGRESS', 'WAITING_FOR_CUSTOMER', 'RESOLVED', 'REJECTED', 'CLOSED')
+    ),
+    FOREIGN KEY (complaint_id) REFERENCES complaints(id) ON DELETE CASCADE,
+    FOREIGN KEY (changed_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX ix_complaint_status_histories_complaint_created (complaint_id, created_at)
 );
