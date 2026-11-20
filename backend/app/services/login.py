@@ -191,6 +191,7 @@ def login_with_firebase(db: Session, id_token: str):
     email = decoded_token.get("email")
     phone = decoded_token.get("phone_number")
     name = decoded_token.get("name") or "Người dùng RideHub"
+    picture = decoded_token.get("picture")
 
     if not firebase_uid:
         raise HTTPException(
@@ -204,6 +205,8 @@ def login_with_firebase(db: Session, id_token: str):
         user = db.query(User).filter(User.email == email).first()
         if user:
             user.firebase_uid = firebase_uid
+            if picture and not user.avatar_url:
+                user.avatar_url = picture
 
     # Nếu chưa có user -> tự động đăng ký mới (Auto-provisioning)
     if not user:
@@ -212,12 +215,13 @@ def login_with_firebase(db: Session, id_token: str):
             email=email,
             phone=phone,
             full_name=name,
-            role="customer",
+            avatar_url=picture,
             status="active",
         )
         db.add(user)
         db.commit()
         db.refresh(user)
+        assign_user_role(db, user.id, "customer")
 
     if user.status != "active":
         raise HTTPException(
