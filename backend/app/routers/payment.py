@@ -18,10 +18,10 @@ Các tính năng cốt lõi:
 """
 from datetime import datetime
 from math import ceil
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
-from sqlalchemy import func, or_
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
+from sqlalchemy import String, case, cast, func, or_
 from sqlalchemy.orm import Session
 
 from app.core.booking_status import CANCEL_ACTOR_SYSTEM, DEPOSIT_PAID
@@ -1039,13 +1039,68 @@ def process_payment_webhook(
     "/operations/anomalies",
     response_model=List[PaymentAnomalyResponse],
     summary="Danh sách hàng chờ giao dịch bất thường (Admin/Operator)",
+    responses={
+        200: {
+            "description": "Danh sách giao dịch; metadata phân trang được trả trong headers.",
+            "headers": {
+                "X-Total-Count": {
+                    "description": "Tổng số kết quả sau khi áp dụng bộ lọc.",
+                    "schema": {"type": "integer"},
+                },
+                "X-Page": {
+                    "description": "Trang hiện tại, bắt đầu từ 1.",
+                    "schema": {"type": "integer"},
+                },
+                "X-Page-Size": {
+                    "description": "Số kết quả tối đa trong trang.",
+                    "schema": {"type": "integer"},
+                },
+                "X-Total-Pages": {
+                    "description": "Tổng số trang.",
+                    "schema": {"type": "integer"},
+                },
+            },
+        }
+    },
 )
 def list_payment_anomalies(
-    limit: int = Query(200, ge=1, le=500),
+    response: Response,
+    page: int = Query(1, ge=1, description="Trang bắt đầu từ 1"),
+    page_size: int = Query(200, ge=1, le=500, description="Số kết quả mỗi trang"),
+    limit: Optional[int] = Query(
+        None,
+        ge=1,
+        le=500,
+        deprecated=True,
+        description="Tham số tương thích ngược; thay thế page_size",
+    ),
+    refund_status: Optional[Literal["PENDING", "SUCCESS", "REFUNDED", "FAILED"]] = None,
+    transaction_status: Optional[
+        Literal["PENDING", "SUCCESS", "FAILED", "REFUNDED", "LATE_PAYMENT", "CANCELLED", "EXPIRED"]
+    ] = None,
+    anomaly_type: Optional[
+        Literal["AMOUNT_MISMATCH", "LATE_PAYMENT", "PENDING_REFUND"]
+    ] = None,
+    q: Optional[str] = Query(
+        None,
+        min_length=1,
+        max_length=200,
+        description="Tìm mã giao dịch, mã đơn, khách hàng, xe hoặc lý do",
+    ),
+    sort_by: Literal["occurred_at", "amount", "transaction_code", "booking_id"] = "occurred_at",
+    sort_order: Literal["asc", "desc"] = "desc",
     db: Session = Depends(get_db),
     _: User = Depends(get_current_payment_operator),
 ):
-    """Trả về giao dịch có webhook bất thường hoặc yêu cầu hoàn tiền đang chờ."""
+    """Trả về hàng chờ đã lọc, giữ body dạng danh sách và trả metadata trang qua headers."""
+    if limit is not None:
+        if page_size != 200 and page_size != limit:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Chỉ dùng một trong hai tham số page_size hoặc limit.",
+            )
+        page_size = limit
+
     latest_log = (
         db.query(
             PaymentWebhookLog.transaction_code.label("transaction_code"),
@@ -1064,7 +1119,20 @@ def list_payment_anomalies(
         .group_by(Refund.payment_transaction_id)
         .subquery()
     )
-    rows = (
+    anomaly_type_expression = case(
+        (
+            PaymentWebhookLog.process_result.in_(ANOMALOUS_WEBHOOK_RESULTS),
+            PaymentWebhookLog.process_result,
+        ),
+        (Refund.status == "PENDING", "PENDING_REFUND"),
+        else_=PaymentTransaction.status,
+    )
+    occurred_at_expression = func.coalesce(
+        PaymentWebhookLog.processed_at,
+        Refund.created_at,
+        PaymentTransaction.created_at,
+    )
+    query = (
         db.query(
             PaymentTransaction,
             Booking,
@@ -1093,17 +1161,52 @@ def list_payment_anomalies(
                 PaymentTransaction.status == "LATE_PAYMENT",
             )
         )
-        .order_by(
-            func.coalesce(
-                PaymentWebhookLog.processed_at,
-                Refund.created_at,
-                PaymentTransaction.created_at,
-            ).desc(),
-            PaymentTransaction.id.desc(),
-        )
-        .limit(limit)
+    )
+
+    if refund_status:
+        query = query.filter(Refund.status == refund_status)
+    if transaction_status:
+        query = query.filter(PaymentTransaction.status == transaction_status)
+    if anomaly_type:
+        query = query.filter(anomaly_type_expression == anomaly_type)
+    if q:
+        search_pattern = f"%{q.strip()}%"
+        if q.strip():
+            query = query.filter(
+                or_(
+                    PaymentTransaction.transaction_code.ilike(search_pattern),
+                    PaymentTransaction.provider_txn_id.ilike(search_pattern),
+                    cast(Booking.id, String).ilike(search_pattern),
+                    User.full_name.ilike(search_pattern),
+                    Vehicle.brand.ilike(search_pattern),
+                    Vehicle.model.ilike(search_pattern),
+                    Vehicle.plate_number.ilike(search_pattern),
+                    PaymentWebhookLog.queue_reason.ilike(search_pattern),
+                    Refund.reason.ilike(search_pattern),
+                )
+            )
+
+    total = query.count()
+    sort_columns = {
+        "occurred_at": occurred_at_expression,
+        "amount": PaymentTransaction.amount,
+        "transaction_code": PaymentTransaction.transaction_code,
+        "booking_id": Booking.id,
+    }
+    sort_column = sort_columns[sort_by]
+    ordering = sort_column.asc() if sort_order == "asc" else sort_column.desc()
+    offset = (page - 1) * page_size
+    rows = (
+        query.order_by(ordering, PaymentTransaction.id.desc())
+        .offset(offset)
+        .limit(page_size)
         .all()
     )
+
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Page"] = str(page)
+    response.headers["X-Page-Size"] = str(page_size)
+    response.headers["X-Total-Pages"] = str((total + page_size - 1) // page_size)
 
     transaction_ids = [transaction.id for transaction, *_ in rows]
     completed_refund_transaction_ids = {
@@ -1143,6 +1246,7 @@ def list_payment_anomalies(
                 provider_txn_id=transaction.provider_txn_id,
                 booking_id=booking.id,
                 customer_name=customer.full_name if customer else None,
+                booking_status=booking.status,
                 vehicle_name=(
                     f"{vehicle.brand} {vehicle.model}".strip() if vehicle else None
                 ),
