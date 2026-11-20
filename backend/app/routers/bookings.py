@@ -5,13 +5,55 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
+from app.crud.booking import (
+    BookingConflictError,
+    BookingNotFoundError,
+    BookingUnavailableError,
+    BookingValidationError,
+    create_booking_with_hold,
+)
+from app.crud.booking_cancellation import (
+    BookingActor,
+    BookingCancellationError,
+    BookingNotFoundError as BookingCancelNotFoundError,
+    BookingPermissionError,
+    BookingStateError,
+    cancel_booking,
+)
 from app.db.session import get_db
 from app.models.user import User
 from app.models.vehicle import Vehicle
+from app.schemas.booking import (
+    BookingCancelRequest,
+    BookingCancelResponse,
+    BookingHoldCreate,
+    BookingHoldResponse,
+)
 from app.services.booking_eligibility import check_customer_can_rent
 
-
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
+
+
+@router.post("", response_model=BookingHoldResponse, status_code=status.HTTP_201_CREATED)
+def create_booking_hold(
+    payload: BookingHoldCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return create_booking_with_hold(
+            db,
+            payload,
+            customer_id=current_user.id,
+        )
+    except BookingConflictError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except BookingNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except BookingUnavailableError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+    except BookingValidationError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
 
 
 class BookingEligibilityRequest(BaseModel):
@@ -65,3 +107,44 @@ def check_booking_eligibility(
         eligible=result.eligible,
         reasons=result.reasons,
     )
+
+
+@router.post(
+    "/{booking_id}/cancel",
+    response_model=BookingCancelResponse,
+    summary="Hủy đơn và tính tiền hoàn theo chính sách",
+)
+def cancel_booking_endpoint(
+    booking_id: int,
+    payload: BookingCancelRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    actor = BookingActor(id=current_user.id, role=current_user.role)
+    try:
+        return cancel_booking(
+            db,
+            booking_id,
+            actor=actor,
+            reason=payload.reason,
+        )
+    except BookingCancelNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except BookingPermissionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    except BookingStateError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+    except BookingCancellationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc

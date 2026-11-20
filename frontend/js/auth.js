@@ -487,14 +487,14 @@
     const msg = isFile
       ? "LƯU Ý VỀ ĐĂNG NHẬP GOOGLE FIREBASE:\n\n" +
         "Trang đang được mở bằng file:/// trực tiếp.\n" +
-        "Google & Firebase OAuth bắt buộc chạy qua máy chủ (http://127.0.0.1:8000 hoặc Live Server http://127.0.0.1:5500).\n\n" +
-        "• Chọn [OK]: Chuyển sang máy chủ backend (http://127.0.0.1:8000/frontend/pages/auth.html)\n" +
+        "Google & Firebase OAuth bắt buộc chạy qua máy chủ tên miền localhost (http://localhost:8000 hoặc Live Server http://localhost:5500 / 5501).\n\n" +
+        "• Chọn [OK]: Chuyển sang máy chủ backend (http://localhost:8000/frontend/pages/auth.html)\n" +
         "• Chọn [Cancel]: Dùng thử tài khoản Google mô phỏng (Demo Google Mode) để tiếp tục ngay."
       : "Google OAuth popup bị chặn trong môi trường này. Bạn có muốn dùng tài khoản Google mô phỏng?";
 
     const proceedHttp = confirm(msg);
     if (proceedHttp) {
-      window.location.href = 'http://127.0.0.1:8000/frontend/pages/auth.html';
+      window.location.href = 'http://localhost:8000/frontend/pages/auth.html';
     } else {
       const demoUser = {
         id: 'usr_demo_google_' + Date.now().toString(36),
@@ -525,7 +525,20 @@
     const originalHtml = googleBtn.innerHTML;
 
     if (window.location.protocol === 'file:') {
-      handleLocalFileGoogleLogin();
+      alert(
+        "LƯU Ý VỀ ĐĂNG NHẬP GOOGLE:\n\n" +
+        "Bạn đang mở trang trực tiếp bằng file:/// (nhấp đúp từ ổ đĩa).\n" +
+        "Google OAuth bắt buộc chạy qua máy chủ web (Live Server hoặc Backend FastAPI).\n\n" +
+        "Hệ thống sẽ chuyển bạn sang máy chủ http://localhost:8000/frontend/pages/auth.html để đăng nhập Google thật."
+      );
+      window.location.href = 'http://localhost:8000/frontend/pages/auth.html';
+      return;
+    }
+
+    // Tự động chuyển từ 127.0.0.1 sang localhost để tránh lỗi auth/unauthorized-domain của Firebase
+    if (window.location.hostname === '127.0.0.1') {
+      const targetUrl = window.location.href.replace('127.0.0.1', 'localhost');
+      window.location.replace(targetUrl);
       return;
     }
 
@@ -608,13 +621,20 @@
         if (typeof showRideHubToast === 'function') {
           showRideHubToast('Web API Key chưa đúng. Vui lòng kiểm tra lại Web API Key trong Firebase Console.', true);
         }
-      } else if (err.code === 'auth/operation-not-supported-in-this-environment' || window.location.protocol === 'file:') {
-        handleLocalFileGoogleLogin();
+      } else if (err.code === 'auth/operation-not-supported-in-this-environment') {
+        if (typeof showRideHubToast === 'function') {
+          showRideHubToast('Môi trường trình duyệt hiện tại không hỗ trợ Google Popup.', true);
+        }
       } else if (err.code === 'auth/popup-closed-by-user') {
         if (typeof showRideHubToast === 'function') showRideHubToast('Bạn đã đóng cửa sổ đăng nhập Google.', true);
       } else if (err.code === 'auth/configuration-not-found') {
         if (typeof showRideHubToast === 'function') {
           showRideHubToast('Firebase chưa bật Google Sign-In Provider trong Firebase Console.', true);
+        }
+      } else if (err.code === 'auth/unauthorized-domain') {
+        const currentHost = window.location.hostname;
+        if (typeof showRideHubToast === 'function') {
+          showRideHubToast(`Tên miền '${currentHost}' chưa được cấp phép trong Firebase Console. Hãy mở web qua 'localhost' (VD: http://localhost:5501/...) hoặc thêm '${currentHost}' vào Authorized Domains trên Firebase Console.`, true);
         }
       } else {
         if (typeof showRideHubToast === 'function') {

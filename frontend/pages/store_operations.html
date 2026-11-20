@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Giao Diện Cửa Hàng: Đổi Trạng Thái, Lịch Xe &amp; Cảnh Báo — RideHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS giao diện vận hành cửa hàng -->
+  <link rel="stylesheet" href="./css/store_operations.css" />
+</head>
+<body>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+  <div class="container">
+    <!-- Tiêu đề & Thông tin cửa hàng -->
+    <div class="page-header">
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+          <h1 class="page-title">Quản Lý Xe, Lịch Trình &amp; Cảnh Báo</h1>
+          <span class="status-badge status-badge--available">Cửa hàng GreenRide Q.1</span>
+        </div>
+        <p class="page-desc">
+          Đặc tả SRS v2.2: <strong>FR-17</strong> (Kho xe) • <strong>FR-21</strong> (Lịch ngày/tuần &amp; Cảnh báo xung đột) • <strong>FR-60</strong> (Bảo dưỡng/vệ sinh)
+        </p>
+      </div>
+      <div>
+        <span class="status-badge status-badge--cleaning">🟢 Đồng bộ thời gian thực</span>
+      </div>
+    </div>
+
+    <!-- Chỉ số thống kê (KPIs) -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div id="statTotalVeh" class="stat-value">4</div>
+        <div class="stat-label">Tổng xe trong kho</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">82%</div>
+        <div class="stat-label">Tỷ lệ lấp đầy tuần này</div>
+      </div>
+      <div class="stat-card">
+        <div id="statCleaningMaint" class="stat-value alert-warning">2</div>
+        <div class="stat-label">Cảnh báo Vệ sinh / Bảo dưỡng</div>
+      </div>
+      <div class="stat-card">
+        <div id="statConflictCount" class="stat-value alert-danger">1</div>
+        <div class="stat-label">Cảnh báo Xung đột lịch phát hiện</div>
+      </div>
+    </div>
+
+    <!-- Banner cảnh báo thông minh -->
+    <div class="alerts-container">
+      <div class="alert-banner alert-banner--danger">
+        <div class="alert-icon">⚠️</div>
+        <div>
+          <div class="alert-title">
+            <span>Cảnh báo xung đột lịch xe (FR-21): Yêu cầu dời đơn #RH-8835</span>
+            <span class="alert-tag alert-tag--danger">Xung đột lịch</span>
+          </div>
+          <div class="alert-desc">
+            Khách hàng xin dời lịch thuê <strong>Dat Bike Weaver++</strong> sang <strong>14/11/2026</strong>. Trùng ca xe đang bảo dưỡng/vệ sinh pin và lịch giao xe khác.
+          </div>
+        </div>
+      </div>
+      <div class="alert-banner alert-banner--warning">
+        <div class="alert-icon">🔧</div>
+        <div>
+          <div class="alert-title">
+            <span>Cảnh báo xe tới hạn bảo trì định kỳ (FR-60): Mazda 3 Sedan</span>
+            <span class="alert-tag alert-tag--warning">Bảo dưỡng</span>
+          </div>
+          <div class="alert-desc">
+            Xe <strong>Mazda 3 Sedan</strong> tới hạn thay nhớt, kiểm tra phanh ngày <strong>18/11/2026</strong>. Hệ thống đã tự động chuyển trạng thái và ẩn khỏi tìm kiếm.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bảng Kho xe & Đổi trạng thái trực tiếp -->
+    <div class="panel-card">
+      <div style="margin-bottom: 12px;">
+        <h2 style="margin: 0; font-size: 1.15rem;">Kho Xe &amp; Vòng Đời Trạng Thái (FR-17, FR-18)</h2>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+          Bấm trực tiếp vào badge trạng thái để chuyển: <em>Sẵn sàng → Đang thuê → Đang vệ sinh → Bảo dưỡng</em>
+        </div>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="fleet-table">
+          <thead>
+            <tr>
+              <th>Tên phương tiện</th>
+              <th>Phân loại &amp; Nhiên liệu</th>
+              <th>Giá thuê/ngày</th>
+              <th>Trạng thái (Bấm chọn)</th>
+              <th>Cảnh báo lịch / Vận hành</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="fleetTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Lịch xe hoạt động theo Ngày & Tuần -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+      <div>
+        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0;">Lịch Xe Hoạt Động Theo Ngày &amp; Tuần (FR-21)</h2>
+        <div style="font-size: 12px; color: var(--text-secondary);">Theo dõi lịch giao nhận, kiểm tra tình trạng xe và xử lý xung đột lịch</div>
+      </div>
+      <div style="display: flex; gap: 6px; background: var(--bg-surface-soft); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--green-100);">
+        <button id="viewMonthBtn" class="btn btn-primary" type="button" style="min-height: 30px; padding: 3px 12px; font-size: 12px;">Chế độ Tháng</button>
+        <button id="viewWeekBtn" class="btn btn-soft" type="button" style="min-height: 30px; padding: 3px 12px; font-size: 12px;">Chế độ Tuần</button>
+      </div>
+    </div>
+
+    <div class="split-layout">
+      <!-- Cột trái: Lịch tháng / Tuần -->
+      <div class="panel-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+          <div>
+            <h3 id="calMonthTitle" style="margin: 0; font-size: 1.15rem;">Tháng 11 / 2026</h3>
+            <div id="calSubTitle" style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">Bấm chọn ngày để xem chi tiết ca xe</div>
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button id="calPrevBtn" class="btn btn-soft" type="button" style="min-height: 32px; padding: 2px 10px;">‹</button>
+            <button id="calTodayBtn" class="btn btn-soft" type="button" style="min-height: 32px; padding: 2px 12px; font-size: 12px;">Hôm nay</button>
+            <button id="calNextBtn" class="btn btn-soft" type="button" style="min-height: 32px; padding: 2px 10px;">›</button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; font-size: 11px; font-weight: 700;">
+          <span class="rh-cal-pill rh-cal-pill--pickup">● Giao xe</span>
+          <span class="rh-cal-pill rh-cal-pill--return">● Trả xe</span>
+          <span class="rh-cal-pill rh-cal-pill--maint">● Bảo dưỡng / Vệ sinh</span>
+          <span class="rh-cal-pill rh-cal-pill--conflict">● Xung đột lịch</span>
+        </div>
+        <div id="monthViewWrapper">
+          <div class="rh-cal-weekdays">
+            <div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div>
+          </div>
+          <div id="calGrid" class="rh-cal-grid"></div>
+        </div>
+        <div id="weekViewWrapper" hidden>
+          <div id="weekGrid" class="week-view-grid"></div>
+        </div>
+      </div>
+
+      <!-- Cột phải: Chi tiết ngày đã chọn -->
+      <div class="panel-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(22, 163, 74, 0.12); padding-bottom: 8px;">
+          <div>
+            <h3 id="calSelectedDateTitle" style="margin: 0; font-size: 1.1rem;">Lịch ngày 14/11/2026</h3>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">Chi tiết lịch trình &amp; cảnh báo phát sinh</div>
+          </div>
+          <span id="calDayCountBadge" class="status-badge status-badge--available">0 lịch</span>
+        </div>
+        <div id="calDayEventsList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS xử lý nghiệp vụ -->
+  <script src="../js/store_operations.js"></script>
+</body>
+</html>

@@ -35,7 +35,13 @@ frontend/
 
 Trang chủ hiện **✅ Backend OK · MySQL: connected** là FE đã nối được BE. Bấm menu **Items (CRUD mẫu)** để thử thêm / sửa / xoá, rồi mở MySQL Workbench xem bảng `items` thay đổi theo.
 
-> Nhấp đúp mở thẳng file `index.html` (địa chỉ `file:///...`) thường vẫn chạy, nhưng hay gặp lỗi khó hiểu. Nên dùng Live Server.
+> Không mở các trang thuê xe/thanh toán bằng `file:///...`: một số trình duyệt chặn `fetch`, cookie và `localStorage` ở origin `null`. Dùng HTTP server theo hướng dẫn dưới đây.
+
+## Luồng thuê xe → QR thanh toán (TF19FB0)
+
+Có thể dùng chính FastAPI static server tại `http://127.0.0.1:8000/frontend/vehicles.html`, hoặc Live Server tại `http://127.0.0.1:5500/vehicles.html`. Trang `booking.html` lấy danh sách xe thật từ backend, tạo booking bằng token đăng nhập rồi chuyển sang `payment-qr.html?booking_id=...`. Giá cọc và hạn giữ chỗ do backend tính.
+
+Để có xe mẫu trong MySQL, sau khi backend đã tạo tài khoản/cửa hàng mẫu, chạy `backend/sql/seed_tf19fb0_demo_vehicle.sql` một lần trong MySQL Workbench. Để hiển thị QR PayOS thực tế, điền `PAYOS_CLIENT_ID`, `PAYOS_API_KEY` và `PAYOS_CHECKSUM_KEY` của môi trường sandbox/test vào `backend/.env`; không đưa các giá trị này vào Git.
 
 ## 3. Frontend nối với backend thế nào?
 

@@ -1,13 +1,24 @@
 // Cấu hình chung của frontend.
 // Toàn bộ các API Key & Secret được lưu trong file .env và tự động nạp vào CONFIG.
+const getInitialApiBaseUrl = () => {
+  if (typeof window !== 'undefined' && window.location) {
+    // Nếu chạy trực tiếp trên FastAPI port 8000
+    if (window.location.port === '8000') {
+      return `${window.location.origin}/api`;
+    }
+  }
+  // Mặc định gọi Backend FastAPI port 8000 khi chạy từ Live Server (port 5500, 5501, 5502,...) hoặc file:///
+  return "http://127.0.0.1:8000/api";
+};
+
 const CONFIG = {
-  API_BASE_URL: "http://127.0.0.1:8000/api",
+  API_BASE_URL: getInitialApiBaseUrl(),
   APP_NAME: "RideHub",
   FIREBASE: {
-    apiKey: "",         // Nạp tự động từ .env (FIREBASE_WEB_API_KEY)
-    projectId: "",      // Nạp tự động từ .env (FIREBASE_PROJECT_ID)
-    authDomain: "",     // Nạp tự động từ .env (FIREBASE_AUTH_DOMAIN)
-    storageBucket: "",  // Nạp tự động từ .env (FIREBASE_STORAGE_BUCKET)
+    apiKey: "AIzaSyAeC9Ln5LN9IIlHhuwGoAcwKYp-8HDDyKU",         // Nạp sẵn mặc định từ .env
+    projectId: "ridehub-carmoto",                               // Nạp sẵn mặc định từ .env
+    authDomain: "ridehub-carmoto.firebaseapp.com",              // Nạp sẵn mặc định từ .env
+    storageBucket: "ridehub-carmoto.appspot.com",               // Nạp sẵn mặc định từ .env
   }
 };
 
@@ -40,7 +51,14 @@ function parseEnvContent(text) {
 function applyEnvToConfig(env) {
   if (!env) return;
   if (env.APP_NAME) CONFIG.APP_NAME = env.APP_NAME;
-  if (env.API_BASE_URL) CONFIG.API_BASE_URL = env.API_BASE_URL;
+  if (env.API_BASE_URL) {
+    // Nếu API_BASE_URL trỏ nhầm vào port của Live Server (5500, 5501, 5502), tự chuẩn hóa về port 8000 của FastAPI backend
+    let apiUrl = env.API_BASE_URL;
+    if (apiUrl.includes(':5501') || apiUrl.includes(':5500') || apiUrl.includes(':5502')) {
+      apiUrl = apiUrl.replace(/:550[0-9]/, ':8000');
+    }
+    CONFIG.API_BASE_URL = apiUrl;
+  }
 
   const apiKey = env.FIREBASE_WEB_API_KEY || env.VITE_FIREBASE_API_KEY;
   const projId = env.FIREBASE_PROJECT_ID || env.VITE_FIREBASE_PROJECT_ID;

@@ -65,6 +65,17 @@ def get_current_user(
     return user
 
 
+def get_current_customer_id() -> Optional[int]:
+    """Lấy customer_id từ phiên đăng nhập khi auth đã bật.
+
+    TODO: Khi có JWT bắt buộc cho khách thuê, đổi hàm này sang dùng
+    ``current_user: User = Depends(get_current_user)`` và trả về
+    ``current_user.id``. Router giữ fallback ``payload.customer_id`` cho
+    giai đoạn chưa có đăng nhập.
+    """
+    return None
+
+
 def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
     """Chỉ user có role 'admin' mới được đi tiếp."""
     if current_user.role != "admin":

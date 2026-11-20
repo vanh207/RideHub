@@ -7,7 +7,8 @@ Chạy kiểm thử:
 """
 import sys
 import os
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+from types import SimpleNamespace
 
 # Bổ sung đường dẫn gốc app vào sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -17,9 +18,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app import models  # noqa: F401
 from app.db.session import Base
 from app.models.booking import Booking
+from app.models.driver_license import DriverLicense
 from app.models.payment import PaymentTransaction, Refund, PaymentWebhookLog
+from app.models.user import User
+from app.models.vehicle import Vehicle
 from app.schemas.payment import (
     PaymentCreateRequest,
     PaymentWebhookPayload,
@@ -53,13 +58,43 @@ def run_all_tests():
     db = TestingSession()
 
     # 1. Tạo đơn đặt xe mẫu (Booking Seed)
+    customer = User(
+        id=10,
+        full_name="Test Customer",
+        status="active",
+        date_of_birth=date(1990, 1, 1),
+    )
+    db.add_all(
+        [
+            customer,
+            Vehicle(
+                id=20,
+                store_id=30,
+                vehicle_type="MOTORBIKE",
+                plate_number="TEST-20",
+                brand="Honda",
+                model="Vision",
+                price_per_day=500000,
+                is_active=True,
+            ),
+            DriverLicense(
+                id=40,
+                user_id=10,
+                license_class="A1",
+                license_number="TEST-LICENSE-10",
+                expiry_date=date.today() + timedelta(days=365),
+                status="approved",
+            ),
+        ]
+    )
     booking = Booking(
         id=1,
         customer_id=10,
         vehicle_id=20,
         start_time=datetime.now(),
         end_time=datetime.now() + timedelta(days=2),
-        status="PENDING",
+        hold_expires_at=datetime.now() + timedelta(minutes=30),
+        status="PENDING_PAYMENT",
         rental_amount=500000.0,
         delivery_fee=0.0,
         deposit_amount=200000.0,
@@ -71,11 +106,14 @@ def run_all_tests():
     # TEST CASE 1: Khởi tạo giao dịch cọc (TF1B039-TC001, TC002)
     req1 = PaymentCreateRequest(
         booking_id=1,
-        amount=200000.0,
         provider="MOCK_PAY",
         payment_method="QR_CODE",
     )
-    resp1 = create_payment_transaction(request=req1, db=db)
+    resp1 = create_payment_transaction(
+        request=req1,
+        db=db,
+        current_user=User(id=10),
+    )
     assert resp1.status == "PENDING"
     assert resp1.payment_url.startswith("https://sandbox.ridehub.vn")
     assert "qrserver.com" in resp1.qr_code_url
@@ -85,8 +123,8 @@ def run_all_tests():
     # TEST CASE 2: Kiểm tra số tiền <= 0 bị từ chối (TF1B039-TC003)
     from pydantic import ValidationError
     try:
-        invalid_req = PaymentCreateRequest(booking_id=1, amount=-50000.0)
-        create_payment_transaction(request=invalid_req, db=db)
+        invalid_req = PaymentCreateRequest(booking_id=0)
+        create_payment_transaction(request=invalid_req, db=db, current_user=User(id=10))
         assert False, "Cần chặn số tiền <= 0"
     except (HTTPException, ValidationError) as exc:
         print("[PASSED] TC003: Chặn số tiền cọc không hợp lệ thành công (Validation Error).")
@@ -133,7 +171,11 @@ def run_all_tests():
 
     # TEST CASE 6: Xử lý Hoàn tiền khi đã SUCCESS (TF1B039-TC009, TC010)
     ref_req = PaymentRefundRequest(transaction_code=txn_code, reason="Khách hủy chuyến hợp lệ")
-    ref_resp = process_payment_refund(request=ref_req, db=db)
+    ref_resp = process_payment_refund(
+        request=ref_req,
+        db=db,
+        current_user=SimpleNamespace(id=1),
+    )
     assert ref_resp.status == "SUCCESS"
 
     db.expire_all()
@@ -153,15 +195,49 @@ def run_all_tests():
     booking2 = Booking(
         id=2, customer_id=15, vehicle_id=25,
         start_time=datetime.now(), end_time=datetime.now() + timedelta(days=1),
-        status="PENDING", rental_amount=300000.0, deposit_amount=100000.0, total_amount=300000.0
+        hold_expires_at=datetime.now() + timedelta(minutes=30),
+        status="PENDING_PAYMENT", rental_amount=300000.0, deposit_amount=100000.0, total_amount=300000.0
     )
-    db.add(booking2)
+    db.add_all(
+        [
+            User(
+                id=15,
+                full_name="Second Customer",
+                status="active",
+                date_of_birth=date(1990, 1, 1),
+            ),
+            Vehicle(
+                id=25,
+                store_id=35,
+                vehicle_type="MOTORBIKE",
+                plate_number="TEST-25",
+                brand="Honda",
+                model="Wave",
+                price_per_day=300000,
+                is_active=True,
+            ),
+            DriverLicense(
+                id=45,
+                user_id=15,
+                license_class="A1",
+                license_number="TEST-LICENSE-15",
+                expiry_date=date.today() + timedelta(days=365),
+                status="approved",
+            ),
+            booking2,
+        ]
+    )
     db.commit()
 
-    txn2 = create_payment_transaction(request=PaymentCreateRequest(booking_id=2, amount=100000.0), db=db)
+    txn2 = create_payment_transaction(
+        request=PaymentCreateRequest(booking_id=2),
+        db=db,
+        current_user=User(id=15),
+    )
     sim_res = simulate_payment_webhook(
         request=PaymentSimulateRequest(transaction_code=txn2.transaction_code, status="SUCCESS"),
         db=db,
+        current_user=SimpleNamespace(id=1),
     )
     assert sim_res["webhook_result"]["status"] == "OK"
     print("[PASSED] Simulator Tool: Giả lập Webhook trên Swagger UI hoạt động hoàn hảo.")

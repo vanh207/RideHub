@@ -34,9 +34,7 @@ class MockPaymentGatewayService:
             secret_key: Khóa bí mật dùng để tạo/xác thực chữ ký HMAC-SHA256.
             base_url: Đường dẫn gốc giả lập cổng thanh toán.
         """
-        self.secret_key = secret_key or getattr(
-            settings, "PAYMENT_GATEWAY_SECRET", "ridehub_mock_secret_key_2026_tf19e3d"
-        )
+        self.secret_key = secret_key or settings.PAYMENT_GATEWAY_SECRET
         self.base_url = base_url or getattr(
             settings, "PAYMENT_MOCK_BASE_URL", "https://sandbox.ridehub.vn"
         )

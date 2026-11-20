@@ -525,9 +525,12 @@
 
         const draft = {
           orderCode: 'RH-' + Math.floor(100000 + Math.random() * 899999),
+          vehicleId: window.rideHubSelectedVehicleId,
           vehicle: document.getElementById('detailTitle')?.textContent || 'VinFast Feliz S (2025)',
           specs,
           schedule: document.getElementById('detailScheduleInput')?.value || '12/11 21:00 → 15/11 11:00',
+          startTime: selectedTimes.startTime,
+          endTime: selectedTimes.endTime,
           deliveryMode: delMode,
           deliveryAddress: delAddr,
           deliveryFee: delFee,
@@ -546,6 +549,20 @@
   <script>
     let activeBasePrice = 160000;
     let deliveryFee = 0;
+    const todayForBooking = new Date();
+    const defaultStart = new Date(todayForBooking);
+    defaultStart.setDate(defaultStart.getDate() + 1);
+    defaultStart.setHours(0, 0, 0, 0);
+    const daysInStartMonth = new Date(
+      defaultStart.getFullYear(),
+      defaultStart.getMonth() + 1,
+      0
+    ).getDate();
+    if (defaultStart.getDate() > daysInStartMonth - 3) {
+      defaultStart.setMonth(defaultStart.getMonth() + 1, 1);
+    }
+    const defaultEnd = new Date(defaultStart);
+    defaultEnd.setDate(defaultEnd.getDate() + 3);
 
     // Date & Time Picker State
     const dtStart = new Date();

@@ -174,6 +174,8 @@
       vehicle: vehicle.name,
       specs,
       schedule: byId('detailScheduleInput').value,
+      startTime: toDateTime(selectedTime.startDay, selectedTime.pickupHour),
+      endTime: toDateTime(selectedTime.endDay, selectedTime.returnHour),
       deliveryMode,
       deliveryAddress,
       deliveryFee,
