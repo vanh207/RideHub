@@ -32,6 +32,11 @@ REQUIRED_COLUMNS = {
         ("account_name", "VARCHAR(255) NULL"),
         ("beneficiary_source", "VARCHAR(100) NULL"),
     ],
+    "bookings": [
+        ("cancelled_at", "DATETIME NULL"),
+        ("cancelled_by", "VARCHAR(30) NULL"),
+        ("cancel_reason", "TEXT NULL"),
+    ],
 }
 
 

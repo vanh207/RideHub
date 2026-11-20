@@ -37,5 +37,10 @@ TF19904_ROUNDS=3 ../.venv/bin/python -m pytest tests/test_booking_concurrency_ho
 ## 4. Ghi kết quả
 
 Log chạy thật được lưu tại `docs/test-results/TF19904-pytest.log`.
-Các test `Fail` là lỗi sản phẩm đã được ghi trong sheet "Lỗi phát hiện";
-các test `Blocked/skip` là tính năng chưa tồn tại trên `develop`.
+
+Sau khi sửa 4 lỗi TF19904: **21 passed / 0 failed / 2 blocked**. Các test bị skip là
+`TC-A8` và `TC-B5`, cần inject lỗi/clock để mô phỏng; không phải lỗi sản phẩm.
+
+Nếu DB test đã tồn tại từ trước, chạy `backend/sql/booking_cancellation.sql` hoặc
+restart server để có `booking_status_history` và 3 cột `cancelled_at`, `cancelled_by`,
+`cancel_reason` trên bảng `bookings`.

@@ -28,7 +28,9 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
+from app.core.booking_status import CANCEL_ACTOR_CUSTOMER
 from app.core.config import settings
+from app.crud.booking_status_history import record_booking_status_change
 from app.crud.vehicle import (
     MAX_RENTAL_DURATION,
     MIN_RENTAL_DURATION,
@@ -303,6 +305,16 @@ def _create_booking_tx(
     )
     db.add(booking)
     db.flush()
+    record_booking_status_change(
+        db,
+        booking,
+        "",
+        HOLD_BOOKING_STATUS,
+        changed_by=CANCEL_ACTOR_CUSTOMER,
+        changed_by_user_id=customer_id,
+        reason="BOOKING_CREATED",
+        created_at=attempt_now,
+    )
 
     reservation = VehicleReservation(
         vehicle_id=vehicle.id,

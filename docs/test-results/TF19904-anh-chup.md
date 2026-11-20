@@ -9,7 +9,7 @@ cd backend
 TEST_DATABASE_URL='<mysql-test-url>' ../.venv/bin/python -m pytest tests/test_booking_concurrency_hold_cancel.py -v --disable-warnings --tb=line
 ```
 
-Chụp: dòng tổng kết `4 failed, 15 passed, 4 skipped, 315 warnings in 22.68s` và danh sách 4 test FAILED ngay phía trên.
+Chụp: dòng tổng kết `21 passed, 2 skipped, 319 warnings in 23.49s` và danh sách test `SKIPPED` (`TC-A8`, `TC-B5`) ngay phía trên.
 File log tương ứng: `docs/test-results/TF19904-pytest.log`.
 
 ## Ảnh 2 — SQL đếm bản ghi sau A1
@@ -63,7 +63,7 @@ WHERE vehicle_id = 1990401;
 
 Chụp: booking đầu `CANCELLED`, reservation/schedule tương ứng `CANCELLED`, booking thứ hai (khách đặt lại) `PENDING_PAYMENT`.
 
-## Ảnh 4 — Bảng dữ liệu sau B3 (lỗi hết hạn)
+## Ảnh 4 — Bảng dữ liệu sau B3 (hết hạn, đã đặt lại được)
 
 ```bash
 TEST_DATABASE_URL='<mysql-test-url>' ../.venv/bin/python -m pytest tests/test_booking_concurrency_hold_cancel.py::test_TC_B3_rebook_after_hold_expiry -v
@@ -85,7 +85,13 @@ FROM vehicle_schedules
 WHERE vehicle_id = 1990401;
 ```
 
-Chụp: `hold_expires_at` đã ở quá khứ nhưng booking vẫn `PENDING_PAYMENT`, reservation vẫn `ACTIVE`, schedule vẫn `ACTIVE`; pytest báo `BookingConflictError`.
+Chụp: 2 dòng booking cho cùng xe/khung giờ (đơn cũ `PENDING_PAYMENT` đã quá hold, đơn mới `PENDING_PAYMENT` của khách khác); pytest báo `PASSED`, không còn `BookingConflictError`. Có thể chụp thêm:
+
+```sql
+SELECT id, booking_id, from_status, to_status, changed_by, changed_by_user_id, reason
+FROM booking_status_history
+ORDER BY id DESC LIMIT 10;
+```
 
 ## Ảnh 5 — Cấu hình đệm/giữ chỗ
 

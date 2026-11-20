@@ -23,6 +23,7 @@ from app.core.firebase import init_firebase
 from app.db.seed_data import seed_default_accounts
 from app.db.session import Base, engine
 from app.middleware.audit_log import AuditLogMiddleware
+from app.jobs.booking_expiry_job import start_expiry_job, stop_expiry_job
 from app.routers import (
     admin_reviews,
     bookings,
@@ -71,7 +72,12 @@ async def lifespan(app: FastAPI):
                 "backend/sql/init.sql."
             )
         logger.error("[DB] Connection detail: %s", error.orig)
-    yield
+
+    await start_expiry_job()
+    try:
+        yield
+    finally:
+        await stop_expiry_job()
 
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)

@@ -85,6 +85,17 @@ class Settings(BaseSettings):
     BOOKING_LOCK_RETRY_ATTEMPTS: int = 3
     BOOKING_LOCK_RETRY_BASE_DELAY_SECONDS: float = 0.05
 
+    # ---- Hủy đơn & hoàn tiền ----
+    BOOKING_CANCEL_FREE_HOURS: int = 24
+    BOOKING_CANCEL_PARTIAL_HOURS: int = 6
+    BOOKING_CANCEL_PARTIAL_RATE: Decimal = Decimal("0.5")
+    BOOKING_CANCEL_STORE_FAULT_RATE: Decimal = Decimal("1.0")
+
+    # ---- Job tự hủy đơn hết hạn giữ chỗ ----
+    BOOKING_EXPIRY_JOB_ENABLED: bool = True
+    BOOKING_EXPIRY_JOB_INTERVAL_SECONDS: int = 60
+    BOOKING_EXPIRY_JOB_BATCH_SIZE: int = 100
+
     @field_validator("PAYMENT_GATEWAY_SECRET", "JWT_SECRET_KEY", mode="before")
     @classmethod
     def replace_placeholder_secrets(cls, value: str) -> str:
