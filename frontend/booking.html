@@ -1,91 +1,433 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tạo đơn thuê xe — RideHub</title>
-    <style>
-      :root {
-        color-scheme: light;
-        font-family: "Segoe UI", system-ui, sans-serif;
-        color: #172033;
-        background: #f3f7f5;
-      }
-      * { box-sizing: border-box; }
-      body { margin: 0; min-height: 100vh; }
-      main {
-        width: min(680px, calc(100% - 32px));
-        margin: 48px auto;
-        padding: 28px;
-        border-radius: 20px;
-        background: white;
-        box-shadow: 0 12px 40px rgb(15 23 42 / 10%);
-      }
-      h1 { margin: 0 0 8px; font-size: 1.65rem; }
-      .intro, .hint { color: #526170; line-height: 1.55; }
-      .field { display: grid; gap: 7px; margin: 20px 0; }
-      label { font-weight: 650; }
-      input, select, button {
-        width: 100%;
-        min-height: 46px;
-        padding: 10px 12px;
-        border: 1px solid #cbd5d1;
-        border-radius: 10px;
-        font: inherit;
-      }
-      button {
-        border: 0;
-        background: #15803d;
-        color: white;
-        font-weight: 700;
-        cursor: pointer;
-      }
-      button:disabled { opacity: 0.6; cursor: wait; }
-      #message {
-        min-height: 24px;
-        margin: 16px 0;
-        color: #9a3412;
-        white-space: pre-wrap;
-      }
-      .links { display: flex; gap: 16px; flex-wrap: wrap; }
-      a { color: #166534; }
-      @media (max-width: 520px) {
-        main { margin: 16px auto; padding: 20px; }
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <h1>Tạo đơn thuê xe</h1>
-      <p class="intro">
-        Chọn xe và thời gian thuê. Backend sẽ kiểm tra xe còn trống, tính giá/cọc
-        và giữ chỗ trước khi mở trang thanh toán.
-      </p>
-      <form id="bookingForm">
-        <div class="field">
-          <label for="vehicleId">Xe khả dụng trên hệ thống</label>
-          <select id="vehicleId" required disabled>
-            <option value="">Đang tải danh sách xe…</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="startTime">Thời gian nhận xe</label>
-          <input id="startTime" type="datetime-local" required />
-        </div>
-        <div class="field">
-          <label for="endTime">Thời gian trả xe</label>
-          <input id="endTime" type="datetime-local" required />
-        </div>
-        <p class="hint">Tiền thuê và tiền cọc do backend tự tính, không lấy từ trình duyệt.</p>
-        <button id="submitBooking" type="submit" disabled>Tạo đơn và tiếp tục thanh toán</button>
-      </form>
-      <p id="message" role="status" aria-live="polite"></p>
-      <div class="links">
-        <a href="vehicles.html">Quay lại danh sách xe</a>
-        <a href="pages/auth.html">Đăng nhập / đăng ký</a>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đơn thuê &amp; Thanh toán — RideHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <div class="blob-layer" aria-hidden="true" data-pause-offscreen>
+    <div class="morph-blob morph-blob--1"></div>
+    <div class="morph-blob morph-blob--2"></div>
+  </div>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <header id="mainNavbar" class="navbar is-scrolled">
+    <div class="container navbar-inner">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo-ridehub.png" alt="RideHub" style="height:36px;width:auto;" />
+      </a>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">Trang chủ</a>
+        <a href="vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+        <a href="trips.html" class="nav-link">Chuyến đi</a>
+        <a href="booking.html" class="nav-link is-active">Đơn của tôi</a>
+        <a href="index.html#storySection" class="nav-link">Hướng dẫn thuê xe</a>
+        <a href="store-portal.html" class="nav-link">Cửa hàng</a>
+        <a href="admin-ops.html" class="nav-link">Vận hành &amp; Admin</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+        </button>
       </div>
-    </main>
-    <script src="js/config.js"></script>
-    <script src="js/booking.js" defer></script>
-  </body>
+    </div>
+  </header>
+
+  <aside id="mobileDrawer" class="mobile-drawer">
+    <a href="index.html">Trang chủ</a>
+    <a href="vehicles.html">Tìm &amp; Thuê xe</a>
+    <a href="trips.html">Chuyến đi</a>
+    <a href="booking.html">Đơn của tôi</a>
+    <a href="index.html#storySection">Hướng dẫn thuê xe</a>
+    <a href="store-portal.html">Cổng Cửa hàng</a>
+    <a href="admin-ops.html">Vận hành &amp; Admin</a>
+  </aside>
+
+  <section class="subpage-hero">
+    <div class="aurora-bg" aria-hidden="true"></div>
+    <div class="container" style="position:relative;z-index:2;">
+      <span class="eyebrow">Đặt xe, Giữ chỗ &amp; Thanh toán</span>
+      <h1 class="section-title" data-reveal="text-mask">Đặt giữ chỗ 30 phút, Thanh toán QR &amp; Theo dõi đơn</h1>
+      <p class="section-subtitle">Khóa lịch an toàn chống đặt trùng, ghi nhận tiền cọc tự động qua Webhook và tính hoàn tiền minh bạch.</p>
+    </div>
+  </section>
+
+  <main class="subpage-main">
+    <div class="container">
+      <!-- Stepper with Moving Vehicle -->
+      <div class="panel-card" style="margin-bottom:24px;">
+        <div id="bookingStepper" class="stepper-track">
+          <div class="stepper-line"><div id="stepperFill" class="stepper-line-fill"></div></div>
+          <div id="stepperVehicle" class="stepper-vehicle">
+            <svg viewBox="0 0 110 64" width="48" height="30">
+              <path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#22c55e"/>
+              <g transform="translate(27,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g>
+              <g transform="translate(81,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g>
+            </svg>
+          </div>
+          <button class="step-node is-current" type="button"><span class="step-circle">1</span><span style="font-size:12px;font-weight:700;">Tạo đơn</span></button>
+          <button class="step-node" type="button"><span class="step-circle">2</span><span style="font-size:12px;font-weight:700;">Cửa hàng duyệt</span></button>
+          <button class="step-node" type="button"><span class="step-circle">3</span><span style="font-size:12px;font-weight:700;">Đặt cọc</span></button>
+          <button class="step-node" type="button"><span class="step-circle">4</span><span style="font-size:12px;font-weight:700;">Tạo đơn trên hệ thống</span></button>
+        </div>
+      </div>
+
+      <div class="booking-studio">
+        <!-- Left: 4-Step Interactive Flow -->
+        <div class="panel-card" style="position:relative;overflow:hidden;">
+          <canvas id="bookingSuccessConfetti" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+
+          <!-- BƯỚC 1: TẠO ĐƠN -->
+          <div id="stepPanel0">
+            <h2 id="checkoutVehicleHeading" style="margin:0 0 4px;font-size:1.15rem;">Bước 1: Tạo đơn — VinFast Feliz S</h2>
+            <div id="checkoutScheduleSub" style="font-size:13px;color:var(--green-700);font-weight:700;margin-bottom:12px;"></div>
+
+            <div style="padding:14px;border-radius:var(--radius-md);background:var(--bg-surface-soft);margin-bottom:14px;">
+              <div class="summary-row"><span>Thông số xe</span><span id="sumVehicleSpecs">Số tự động • Điện • 2 chỗ</span></div>
+              <div class="summary-row"><span>Hình thức nhận xe</span><span id="sumDeliveryMode">Tôi tự đến lấy xe</span></div>
+              <div class="summary-row"><span>Địa điểm giao / nhận</span><span id="sumDeliveryAddr">45 Lý Tự Trọng, Q.1</span></div>
+              <div class="summary-row"><span>Tiện ích bổ sung</span><span id="sumAddons">Không chọn</span></div>
+              <div class="summary-row"><span>Chi tiết tính giá</span><span id="sumBreakdown">160.000đ × 2 ngày</span></div>
+              <div class="summary-row"><span>Phí giao nhận</span><span id="sumDeliveryFee">0đ</span></div>
+              <div class="summary-row"><span>Tổng giá trị đơn</span><strong id="sumTotalFee">320.000đ</strong></div>
+              <div class="summary-row"><span>Tiền cọc đặt trước (30%)</span><strong id="sumDepositFee" style="color:var(--green-700);">96.000đ</strong></div>
+              <div class="summary-row"><span>Còn lại khi nhận xe</span><span id="sumRemainFee">224.000đ</span></div>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label" for="bookingNote">Ghi chú cho cửa hàng</label>
+              <input id="bookingNote" class="form-input" type="text" value="Chuẩn bị 2 nón bảo hiểm size M" />
+            </div>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button id="goStep2Btn" class="btn btn-primary btn-premium btn-shine" type="button">Gửi đơn cho cửa hàng duyệt</button>
+              <button class="btn btn-soft btn-premium" type="button" data-open-modal="cancelModal">Chính sách hủy</button>
+            </div>
+          </div>
+
+          <!-- BƯỚC 2: CỬA HÀNG DUYỆT -->
+          <div id="stepPanel1" hidden style="text-align:center;padding:18px 8px;">
+            <span class="status-badge status-badge--booked" style="margin-bottom:12px;"><span class="status-dot status-dot-pulse"></span>Đang chờ cửa hàng duyệt</span>
+            <h2 style="margin:0 0 8px;font-size:1.25rem;">Bước 2: Cửa hàng xác nhận đơn</h2>
+            <p style="color:var(--text-secondary);font-size:14px;margin:0 0 18px;">
+              Yêu cầu thuê xe đã được gửi tới chủ cửa hàng. Hệ thống giữ lịch trong 30 phút để tránh trùng đơn.
+            </p>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+              <button id="goStep3Btn" class="btn btn-primary btn-premium btn-shine" type="button">Cửa hàng xác nhận duyệt đơn</button>
+            </div>
+          </div>
+
+          <!-- BƯỚC 3: ĐẶT CỌC -->
+          <div id="stepPanel2" hidden style="text-align:center;padding:12px 8px;">
+            <span class="status-badge status-badge--transit" style="margin-bottom:12px;"><span class="status-orbit-wrap"><span class="status-orbit-dot"></span></span>Cửa hàng đã duyệt</span>
+            <h2 style="margin:0 0 8px;font-size:1.25rem;">Bước 3: Thanh toán tiền cọc</h2>
+            <p style="color:var(--text-secondary);font-size:14px;margin:0 0 16px;">
+              Vui lòng quét mã QR ở khung bên phải để thanh toán khoản tiền cọc 30% trước khi hết thời gian giữ chỗ.
+            </p>
+            <button id="goStep4Btn" class="btn btn-primary btn-premium btn-shine" type="button">Xác nhận đã đặt cọc thành công</button>
+          </div>
+
+          <!-- BƯỚC 4: TẠO ĐƠN THUÊ TRÊN HỆ THỐNG -->
+          <div id="stepPanel3" hidden style="text-align:center;padding:16px 8px;">
+            <svg width="68" height="68" viewBox="0 0 76 76" style="margin:0 auto 12px;">
+              <circle cx="38" cy="38" r="34" fill="#dcfce7" stroke="#22c55e" stroke-width="4"/>
+              <path d="M22 39l11 11 21-22" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h2 style="margin:0 0 8px;font-size:1.3rem;">Bước 4: Đã tạo đơn thuê trên hệ thống!</h2>
+            <p id="finalOrderInfo" style="color:var(--text-secondary);font-size:14px;margin:0 0 18px;"></p>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+              <a href="trips.html" class="btn btn-primary btn-premium btn-shine">Xem trong trang Chuyến đi</a>
+              <a href="vehicles.html" class="btn btn-soft">Thuê thêm xe khác</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Hold Timer + PayOS QR + E-Receipt -->
+        <div class="panel-card" style="display:flex;flex-direction:column;gap:16px;">
+          <div class="hold-timer-card">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#dcfce7" stroke-width="5"/>
+              <circle id="holdTimerRing" cx="30" cy="30" r="24" fill="none" stroke="#22c55e" stroke-width="5" stroke-linecap="round" transform="rotate(-90 30 30)"/>
+              <g transform="translate(30,30)">
+                <g id="holdTimerWheel" class="wheel-spin wheel-spin--slow">
+                  <circle r="8" fill="none" stroke="#15803d" stroke-width="2"/>
+                  <line x1="-8" y1="0" x2="8" y2="0" stroke="#15803d" stroke-width="1.5"/>
+                </g>
+              </g>
+            </svg>
+            <div style="flex:1;">
+              <div style="font-size:12px;font-weight:700;color:var(--text-muted);">Giữ chỗ 30 phút</div>
+              <div id="holdOdometer" class="odometer">29:58</div>
+            </div>
+            <button id="simulateLowTimerBtn" class="btn btn-soft" style="padding:6px 12px;min-height:34px;font-size:12px;" type="button">&lt;5 phút</button>
+          </div>
+
+          <div id="qrWaitingNotice" style="text-align:center;padding:24px 16px;border-radius:var(--radius-md);background:var(--bg-surface-soft);color:var(--text-secondary);font-size:13px;">
+            <strong style="display:block;color:var(--text-primary);margin-bottom:6px;">Mã QR thanh toán cọc</strong>
+            Mã QR sẽ tự động hiển thị khi tiến trình chuyển sang bước <strong>3. Đặt cọc</strong> sau khi cửa hàng duyệt đơn.
+          </div>
+
+          <div id="qrPaymentPanel" hidden style="text-align:center;padding:18px;border-radius:var(--radius-md);background:var(--bg-surface-soft);">
+            <div id="qrOrderTitle" style="font-size:13px;font-weight:700;margin-bottom:8px;">QR Thanh toán cọc PayOS</div>
+            <div id="qrBox" style="position:relative;width:150px;height:150px;margin:0 auto 12px;background:#ffffff;border-radius:14px;padding:12px;border:1px solid var(--green-200);overflow:hidden;">
+              <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <rect x="6" y="6" width="26" height="26" rx="4" fill="#132a1c"/><rect x="12" y="12" width="14" height="14" fill="#ffffff"/><rect x="15" y="15" width="8" height="8" fill="#16a34a"/>
+                <rect x="68" y="6" width="26" height="26" rx="4" fill="#132a1c"/><rect x="74" y="12" width="14" height="14" fill="#ffffff"/><rect x="77" y="15" width="8" height="8" fill="#16a34a"/>
+                <rect x="6" y="68" width="26" height="26" rx="4" fill="#132a1c"/><rect x="12" y="74" width="14" height="14" fill="#ffffff"/><rect x="15" y="77" width="8" height="8" fill="#16a34a"/>
+                <rect x="42" y="42" width="18" height="18" rx="3" fill="#22c55e"/><rect x="68" y="68" width="22" height="22" rx="3" fill="#132a1c"/>
+              </svg>
+              <div class="qr-scan-beam"></div>
+            </div>
+            <div id="qrSuccess" hidden style="padding:14px 0;">
+              <svg width="56" height="56" viewBox="0 0 56 56" style="margin:0 auto;">
+                <circle cx="28" cy="28" r="25" fill="#dcfce7" stroke="#22c55e" stroke-width="3"/>
+                <path d="M17 29l7 7 15-15" fill="none" stroke="#16a34a" stroke-width="4" stroke-linecap="round"/>
+              </svg>
+              <div style="font-weight:800;color:var(--green-700);margin-top:8px;">Webhook hợp lệ! Đã xuất biên nhận điện tử</div>
+            </div>
+            <button id="simulateQrPayBtn" class="btn btn-primary btn-premium btn-shine" type="button">Giả lập Webhook thanh toán thành công</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ======================================================================
+       FOOTER (CHUNG TOÀN HỆ THỐNG RIDEHUB)
+       ====================================================================== -->
+  <footer class="site-footer">
+    <div class="footer-road-edge">
+      <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Nền tảng thuê xe thông minh">
+        <svg viewBox="0 0 110 64" width="76" height="32"><path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#4ade80"/><g transform="translate(27,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g><g transform="translate(81,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g></svg>
+      </div>
+    </div>
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Cột 1: Về RideHub -->
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <img src="assets/logo-ridehub.png" alt="RideHub Logo" style="height:34px;width:auto;filter:brightness(0) invert(1);" />
+            <span style="font-family:var(--font-display);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">RideHub</span>
+          </div>
+          <p style="font-size:13px;line-height:1.65;color:#d1fae5;margin:0 0 14px;">
+            Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+          </p>
+          <div style="font-size:12.5px;color:#a7f3d0;display:flex;flex-direction:column;gap:5px;">
+            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868" style="color:var(--green-300);text-decoration:none;">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn" style="color:var(--green-300);text-decoration:none;">support@ridehub.vn</a></div>
+            <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+          </div>
+        </div>
+
+        <!-- Cột 2: Khám phá & Dịch vụ -->
+        <div>
+          <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="index.html">Trang chủ</a></li>
+            <li class="footer-link-item"><a href="vehicles.html">Tìm &amp; Thuê xe máy, Ô tô</a></li>
+            <li class="footer-link-item"><a href="trips.html">Hành trình &amp; Chuyến đi của tôi</a></li>
+            <li class="footer-link-item"><a href="booking.html">Đơn thuê &amp; Thanh toán cọc</a></li>
+            <li class="footer-link-item"><a href="index.html#storySection">Quy trình bàn giao 4 bước</a></li>
+          </ul>
+        </div>
+
+        <!-- Cột 3: Quản trị & Đối tác -->
+        <div>
+          <div class="footer-col-title">Dành cho Đối tác</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="store-portal.html">Cổng Quản lý Cửa hàng</a></li>
+            <li class="footer-link-item"><a href="admin-ops.html">Trung tâm Quản trị Admin</a></li>
+            <li class="footer-link-item"><a href="chat.html">Kênh Hỗ trợ &amp; Tin nhắn trực tuyến</a></li>
+            <li class="footer-link-item"><a href="auth.html">Đăng ký làm Chủ xe / Đối tác</a></li>
+            <li class="footer-link-item"><a href="index.html#featuresSection">Hệ thống đối soát tự động PayOS</a></li>
+          </ul>
+        </div>
+
+        <!-- Cột 4: Cam kết an tâm & Tiêu chuẩn -->
+        <div>
+          <div class="footer-col-title">Cam kết &amp; An toàn</div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#d1fae5;line-height:1.55;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt Face Match.</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Minh bạch bàn giao:</strong> Quay video toàn cảnh 360°, ảnh biên bản &amp; ảnh ODO thực tế.</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Hoàn tiền cọc tự động:</strong> Hoàn 100% trước 24h khi khách hủy theo chính sách.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-divider"></div>
+
+      <div class="footer-bottom-row">
+        <div>
+          © 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Bảo mật PayOS VietQR</span>
+          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Chuẩn an toàn eKYC Chip</span>
+          <a href="index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Điều khoản sử dụng</a>
+          <a href="index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Cancel & Refund Modal -->
+  <div id="cancelModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;">Hủy đơn &amp; Tính tiền hoàn</h3>
+        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+      </div>
+      <div style="padding:14px;border-radius:12px;background:var(--bg-surface-soft);margin-bottom:14px;font-size:14px;">
+        <div class="summary-row"><span>Tiền cọc đã đóng</span><span>105.000đ</span></div>
+        <div class="summary-row"><span>Thời điểm hủy</span><span>Trước giờ nhận 36 giờ</span></div>
+        <div class="summary-row"><span>Tỷ lệ hoàn</span><span>100%</span></div>
+        <div class="summary-row"><span>Số tiền hoàn dự kiến</span><span>105.000đ</span></div>
+      </div>
+      <button data-close-modal class="btn btn-primary btn-premium" style="width:100%;" type="button" onclick="showRideHubToast('Đã tạo yêu cầu hoàn tiền #RF-882 cho Ban quản trị Admin!')">Xác nhận hủy đơn &amp; Tạo yêu cầu hoàn tiền</button>
+    </div>
+  </div>
+
+  <script src="js/vehicle-anim.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/auth-rbac.js"></script>
+  <script>
+    (function () {
+      let draft = {
+        orderCode: 'RH-482910',
+        vehicle: 'VinFast Feliz S (2025)',
+        specs: 'Số tự động • Điện • 2 chỗ',
+        schedule: '12/11 21:00 → 15/11 11:00',
+        deliveryMode: 'Tôi tự đến lấy xe',
+        deliveryAddress: '45 Lý Tự Trọng, Quận 1, TP.HCM',
+        deliveryFee: 0,
+        addons: [],
+        breakdown: '160.000đ × 2 ngày',
+        totalNum: 320000,
+        depositNum: 96000,
+        remainNum: 224000,
+        totalText: '320.000đ'
+      };
+      try {
+        const raw = localStorage.getItem('ridehub_checkout_draft');
+        if (raw) draft = { ...draft, ...JSON.parse(raw) };
+      } catch (_) {}
+
+      document.getElementById('checkoutVehicleHeading').textContent = `Bước 1: Tạo đơn #${draft.orderCode} — ${draft.vehicle}`;
+      document.getElementById('checkoutScheduleSub').textContent = 'Thời gian thuê: ' + draft.schedule;
+      document.getElementById('sumVehicleSpecs').textContent = draft.specs || 'Số tự động';
+      document.getElementById('sumDeliveryMode').textContent = draft.deliveryMode || 'Tôi tự đến lấy xe';
+      document.getElementById('sumDeliveryAddr').textContent = draft.deliveryAddress || 'Tại cửa hàng';
+      document.getElementById('sumAddons').textContent = (draft.addons && draft.addons.length) ? draft.addons.join(', ') : 'Không chọn';
+      document.getElementById('sumBreakdown').textContent = draft.breakdown || draft.totalText;
+      document.getElementById('sumDeliveryFee').textContent = (draft.deliveryFee || 0).toLocaleString('vi-VN') + 'đ';
+      document.getElementById('sumTotalFee').textContent = (draft.totalNum || 320000).toLocaleString('vi-VN') + 'đ';
+      document.getElementById('sumDepositFee').textContent = (draft.depositNum || 96000).toLocaleString('vi-VN') + 'đ';
+      document.getElementById('sumRemainFee').textContent = (draft.remainNum || 224000).toLocaleString('vi-VN') + 'đ';
+      document.getElementById('qrOrderTitle').textContent =
+        `QR Thanh toán cọc đơn #${draft.orderCode} (${(draft.depositNum || 96000).toLocaleString('vi-VN')}đ)`;
+
+      const panels = [0, 1, 2, 3].map((i) => document.getElementById('stepPanel' + i));
+      const qrPanel = document.getElementById('qrPaymentPanel');
+      const qrWaiting = document.getElementById('qrWaitingNotice');
+
+      const goStep = (idx) => {
+        panels.forEach((p, i) => { if (p) p.hidden = i !== idx; });
+        // Chỉ hiển thị QR thanh toán khi tiến trình nhảy đến Bước 3 (idx === 2)
+        if (qrPanel && qrWaiting) {
+          qrPanel.hidden = idx !== 2;
+          qrWaiting.hidden = idx === 2;
+        }
+        if (window.VehicleAnim && typeof window.VehicleAnim.setStepperStep === 'function') {
+          window.VehicleAnim.setStepperStep(idx);
+        }
+      };
+
+      document.addEventListener('DOMContentLoaded', () => goStep(0));
+
+      document.getElementById('goStep2Btn')?.addEventListener('click', () => {
+        goStep(1);
+        showRideHubToast('Đã tạo đơn giữ chỗ! Đang chờ cửa hàng duyệt.');
+      });
+
+      document.getElementById('goStep3Btn')?.addEventListener('click', () => {
+        goStep(2);
+        showRideHubToast(`Cửa hàng đã duyệt đơn #${draft.orderCode}! Vui lòng quét QR đặt cọc.`);
+        if (window.AuthRBAC?.pushNotification) {
+          window.AuthRBAC.pushNotification({
+            role: 'customer',
+            type: 'payment',
+            title: `Đơn #${draft.orderCode} đã được cửa hàng duyệt`,
+            body: `Cửa hàng đã duyệt xe ${draft.vehicle}. Vui lòng quét VietQR để đặt cọc 30%.`,
+            link: 'booking.html'
+          });
+        }
+      });
+
+      const finishOrderOnSystem = () => {
+        const orderId = draft.orderCode || ('RH-' + Math.floor(100000 + Math.random() * 899999));
+        const listRaw = localStorage.getItem('ridehub_trips_list');
+        const list = listRaw ? JSON.parse(listRaw) : [];
+        list.unshift({
+          id: orderId,
+          vehicle: draft.vehicle,
+          specs: draft.specs,
+          schedule: draft.schedule,
+          deliveryMode: draft.deliveryMode,
+          address: draft.deliveryAddress,
+          addons: draft.addons || [],
+          totalNum: draft.totalNum || 320000,
+          depositNum: draft.depositNum || 96000,
+          phase: 'upcoming',
+          remainingSec: 1 * 86400 + 2 * 3600 + 15 * 60
+        });
+        localStorage.setItem('ridehub_trips_list', JSON.stringify(list));
+        if (window.AuthRBAC?.pushNotification) {
+          window.AuthRBAC.pushNotification({
+            role: 'customer',
+            type: 'booking',
+            title: `Tạo đơn thuê #${orderId} thành công`,
+            body: `Xe ${draft.vehicle} đã được giữ chỗ. Theo dõi đếm ngược nhận xe tại Chuyến đi.`,
+            link: 'trips.html'
+          });
+          window.AuthRBAC.pushNotification({
+            roles: ['store_owner', 'store_staff'],
+            type: 'payment',
+            title: `Đơn thuê mới #${orderId} đã cọc 30%`,
+            body: `Khách đã thanh toán cọc cho xe ${draft.vehicle} (${draft.schedule || 'Lịch thuê mới'}).`,
+            link: 'store-portal.html'
+          });
+        }
+        document.getElementById('finalOrderInfo').textContent =
+          `Mã đơn #${orderId} (${draft.vehicle}) đã được tạo thành công trên hệ thống và đồng bộ vào mục Chuyến đi.`;
+        goStep(3);
+        if (window.VehicleAnim) {
+          window.VehicleAnim.launchConfetti(document.getElementById('bookingSuccessConfetti'));
+        }
+        showRideHubToast(`Tạo đơn thuê #${orderId} thành công!`);
+      };
+
+      document.getElementById('goStep4Btn')?.addEventListener('click', finishOrderOnSystem);
+      document.getElementById('simulateQrPayBtn')?.addEventListener('click', () => {
+        setTimeout(finishOrderOnSystem, 550);
+      });
+    })();
+  </script>
+</body>
 </html>
+
