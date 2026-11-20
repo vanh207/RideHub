@@ -129,7 +129,8 @@ CREATE TABLE IF NOT EXISTS delivery_points (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (store_id) REFERENCES stores(id)
+    FOREIGN KEY (store_id) REFERENCES stores(id),
+    INDEX ix_delivery_points_store_active_area (store_id, is_active, area)
 );
 
 CREATE TABLE IF NOT EXISTS vehicles (
@@ -225,7 +226,8 @@ CREATE TABLE IF NOT EXISTS bookings (
     FOREIGN KEY (cancelled_by) REFERENCES users(id),
     INDEX ix_bookings_vehicle_time (vehicle_id, start_time, end_time),
     INDEX ix_bookings_vehicle_status_time (vehicle_id, status, start_time, end_time),
-    INDEX ix_bookings_status_hold_expires (status, hold_expires_at)
+    INDEX ix_bookings_status_hold_expires (status, hold_expires_at),
+    INDEX ix_bookings_end_start_status_vehicle_hold (end_time, start_time, status, vehicle_id, hold_expires_at)
 );
 
 -- Giữ chỗ tạm thời cho xe. Một giữ chỗ mới có hiệu lực tối đa 30 phút.

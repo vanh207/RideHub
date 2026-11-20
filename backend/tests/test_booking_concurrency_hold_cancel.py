@@ -39,7 +39,7 @@ from app import models  # noqa: F401 - đăng ký model với metadata
 from app.core.config import settings
 from app.crud import booking as booking_crud
 from app.crud.booking_cancellation import expire_hold_bookings
-from app.crud.vehicle import vehicle_has_conflict
+from app.crud.vehicle import BOOKING_AVAILABILITY_INDEX, vehicle_has_conflict
 from app.db.session import Base
 from app.main import app
 from app.models.booking import Booking, BookingStatusHistory
@@ -90,12 +90,33 @@ def _get_test_database_url() -> str:
     return url
 
 
+def _ensure_booking_availability_index(engine) -> None:
+    # create_all không sửa bảng đã tồn tại; đảm bảo index cho hint MySQL TF199BD.
+    with engine.begin() as conn:
+        exists = conn.execute(
+            text(
+                "SELECT COUNT(*) FROM information_schema.statistics "
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bookings' "
+                "AND INDEX_NAME = :index_name"
+            ),
+            {"index_name": BOOKING_AVAILABILITY_INDEX},
+        ).scalar()
+        if not exists:
+            conn.execute(
+                text(
+                    f"ALTER TABLE bookings ADD INDEX `{BOOKING_AVAILABILITY_INDEX}` "
+                    "(end_time, start_time, status, vehicle_id, hold_expires_at)"
+                )
+            )
+
+
 @pytest.fixture(scope="session")
 def mysql_engine():
     engine = create_engine(_get_test_database_url(), poolclass=NullPool, pool_pre_ping=True)
     with engine.connect() as conn:
         conn.execute(text("SELECT 1"))
     Base.metadata.create_all(bind=engine)
+    _ensure_booking_availability_index(engine)
     global SessionLocal
     SessionLocal = sessionmaker(
         bind=engine,

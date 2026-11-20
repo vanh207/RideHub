@@ -1,0 +1,78 @@
+{
+  "thoi_diem": "2026-11-20T16:46:49",
+  "database": "ridehub_perf",
+  "so_kich_ban": 10,
+  "tat_ca_giong_nhau": true,
+  "ket_qua": [
+    {
+      "kich_ban": "S1/COUNT",
+      "giong_nhau": true,
+      "so_dong": 1,
+      "fingerprint_truoc": "b35089726e00e17350fe2bd13fbef98598b897d6284ba691eeb68c2e0d44d302",
+      "fingerprint_sau": "b35089726e00e17350fe2bd13fbef98598b897d6284ba691eeb68c2e0d44d302"
+    },
+    {
+      "kich_ban": "S1/SELECT",
+      "giong_nhau": true,
+      "so_dong": 12,
+      "fingerprint_truoc": "23103c0dace9436da499e9c5ce17f7e38eee028d2d8c0dc5db4069cb461dc251",
+      "fingerprint_sau": "23103c0dace9436da499e9c5ce17f7e38eee028d2d8c0dc5db4069cb461dc251"
+    },
+    {
+      "kich_ban": "S2/COUNT",
+      "giong_nhau": true,
+      "so_dong": 1,
+      "fingerprint_truoc": "1cce6417f088088ee431484f82037a24eb2b429d78030d3cc7893350fa0044d6",
+      "fingerprint_sau": "1cce6417f088088ee431484f82037a24eb2b429d78030d3cc7893350fa0044d6"
+    },
+    {
+      "kich_ban": "S2/SELECT",
+      "giong_nhau": true,
+      "so_dong": 12,
+      "fingerprint_truoc": "ba3a23e611ee5f52dd5f8d9f0c5f25acbe2935f8828da9bad27912d1cc241db1",
+      "fingerprint_sau": "ba3a23e611ee5f52dd5f8d9f0c5f25acbe2935f8828da9bad27912d1cc241db1"
+    },
+    {
+      "kich_ban": "S3/COUNT",
+      "giong_nhau": true,
+      "so_dong": 1,
+      "fingerprint_truoc": "6f5f5498e19bca23cc0ff477076c01f78156bad82e8e75b3eea81fa4956ceeba",
+      "fingerprint_sau": "6f5f5498e19bca23cc0ff477076c01f78156bad82e8e75b3eea81fa4956ceeba"
+    },
+    {
+      "kich_ban": "S3/SELECT",
+      "giong_nhau": true,
+      "so_dong": 12,
+      "fingerprint_truoc": "d897318ebe4c5a48e3e9361ef59e8268455c15f48d94fe63ff8946f304876559",
+      "fingerprint_sau": "d897318ebe4c5a48e3e9361ef59e8268455c15f48d94fe63ff8946f304876559"
+    },
+    {
+      "kich_ban": "S4/COUNT",
+      "giong_nhau": true,
+      "so_dong": 1,
+      "fingerprint_truoc": "b35089726e00e17350fe2bd13fbef98598b897d6284ba691eeb68c2e0d44d302",
+      "fingerprint_sau": "b35089726e00e17350fe2bd13fbef98598b897d6284ba691eeb68c2e0d44d302"
+    },
+    {
+      "kich_ban": "S4/SELECT",
+      "giong_nhau": true,
+      "so_dong": 12,
+      "fingerprint_truoc": "81e546d260660acc3bfc320e6da18e804cca689becac8bfa6879ea208191b053",
+      "fingerprint_sau": "81e546d260660acc3bfc320e6da18e804cca689becac8bfa6879ea208191b053"
+    },
+    {
+      "kich_ban": "S5_NORMAL/CONFLICT",
+      "giong_nhau": true,
+      "so_dong": 0,
+      "fingerprint_truoc": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "fingerprint_sau": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "kich_ban": "S5_HOT/CONFLICT",
+      "giong_nhau": true,
+      "so_dong": 0,
+      "fingerprint_truoc": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "fingerprint_sau": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  ]
+}
