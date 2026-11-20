@@ -128,7 +128,35 @@
     recalcTotal();
   }
 
-  function proceedBooking() {
+  function getRentalStart() {
+    const state = picker.getState();
+    const pad = (value) => String(value).padStart(2, '0');
+    return `${state.year}-${pad(state.month + 1)}-${pad(state.startDay)}T${state.pickupHour}:00`;
+  }
+
+  async function proceedBooking() {
+    const button = byId('proceedBookingBtn');
+    const eligibilityMessage = byId('bookingEligibilityMessage');
+    button.disabled = true;
+    window.RideHubBookingEligibility.clearMessage(eligibilityMessage);
+    try {
+      const vehicleType = vehicle.type === 'car' ? 'CAR' : 'MOTORBIKE';
+      const result = await window.RideHubBookingEligibility.check(vehicleType, getRentalStart());
+      if (!result.eligible) {
+        window.RideHubBookingEligibility.showReasons(eligibilityMessage, result.reasons);
+        return;
+      }
+    } catch (error) {
+      console.error('[RideHub] Không thể kiểm tra điều kiện thuê:', error);
+      window.RideHubBookingEligibility.showError(
+        eligibilityMessage,
+        `Không thể kiểm tra điều kiện thuê: ${error.message}`
+      );
+      return;
+    } finally {
+      button.disabled = false;
+    }
+
     const specs = Array.from(document.querySelectorAll('#detailChips .meta-chip')).map((chip) => chip.textContent.trim()).join(' • ');
     const isDelivery = byId('btnDelivery').classList.contains('btn-primary');
     const deliveryMode = isDelivery ? 'Giao xe tận nơi' : 'Tôi tự đến lấy xe';

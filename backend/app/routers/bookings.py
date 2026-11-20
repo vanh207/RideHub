@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -13,7 +15,8 @@ router = APIRouter(prefix="/bookings", tags=["Bookings"])
 
 
 class BookingEligibilityRequest(BaseModel):
-    vehicle_id: int
+    vehicle_id: int | None = None
+    vehicle_type: str | None = None
     rental_start: str | None = None
 
 
@@ -28,11 +31,19 @@ def check_booking_eligibility(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    vehicle = db.query(Vehicle).filter(Vehicle.id == payload.vehicle_id).first()
-    if not vehicle:
+    if payload.vehicle_id is not None:
+        vehicle = db.query(Vehicle).filter(Vehicle.id == payload.vehicle_id).first()
+        if not vehicle:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Không tìm thấy phương tiện.",
+            )
+    elif payload.vehicle_type:
+        vehicle = SimpleNamespace(vehicle_type=payload.vehicle_type)
+    else:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Không tìm thấy phương tiện.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Cần cung cấp vehicle_id hoặc vehicle_type.",
         )
 
     rental_start = None
