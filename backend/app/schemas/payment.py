@@ -111,6 +111,7 @@ class PaymentAnomalyResponse(BaseModel):
     transaction_code: str
     provider_txn_id: Optional[str] = None
     booking_id: int
+    booking_status: Optional[str] = None
     customer_name: Optional[str] = None
     vehicle_name: Optional[str] = None
     vehicle_plate: Optional[str] = None

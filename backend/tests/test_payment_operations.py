@@ -145,11 +145,102 @@ def test_operations_queue_returns_anomalies_without_webhook_payload(operations_c
     assert set(by_code) == {"RH-PAY-LATE", "RH-PAY-MISMATCH"}
     assert by_code["RH-PAY-LATE"]["can_refund"] is True
     assert by_code["RH-PAY-LATE"]["refund_status"] == "PENDING"
+    assert by_code["RH-PAY-LATE"]["booking_status"] == "CANCELLED"
     assert by_code["RH-PAY-LATE"]["customer_name"] == "Nguyễn An"
     assert by_code["RH-PAY-LATE"]["vehicle_name"] == "Honda Vision"
     assert by_code["RH-PAY-LATE"]["vehicle_plate"] == "59A-12345"
     assert by_code["RH-PAY-MISMATCH"]["can_refund"] is False
     assert "accountNumber" not in response.text
+
+
+def test_operations_queue_filters_search_and_paginates(operations_client):
+    client, _, _ = operations_client
+
+    filtered = client.get(
+        "/api/payments/operations/anomalies",
+        params={
+            "refund_status": "PENDING",
+            "transaction_status": "LATE_PAYMENT",
+            "anomaly_type": "LATE_PAYMENT",
+            "q": "RH-PAY-LATE",
+        },
+    )
+    assert filtered.status_code == 200
+    assert [row["transaction_code"] for row in filtered.json()] == ["RH-PAY-LATE"]
+    assert filtered.headers["X-Total-Count"] == "1"
+    assert filtered.headers["X-Page"] == "1"
+    assert filtered.headers["X-Page-Size"] == "200"
+    assert filtered.headers["X-Total-Pages"] == "1"
+
+    second_page = client.get(
+        "/api/payments/operations/anomalies",
+        params={
+            "page": 2,
+            "page_size": 1,
+            "sort_by": "transaction_code",
+            "sort_order": "asc",
+        },
+    )
+    assert second_page.status_code == 200
+    assert [row["transaction_code"] for row in second_page.json()] == [
+        "RH-PAY-MISMATCH"
+    ]
+    assert second_page.headers["X-Total-Count"] == "2"
+    assert second_page.headers["X-Page"] == "2"
+    assert second_page.headers["X-Page-Size"] == "1"
+    assert second_page.headers["X-Total-Pages"] == "2"
+
+
+def test_operations_queue_preserves_legacy_limit_parameter(operations_client):
+    client, _, _ = operations_client
+
+    response = client.get(
+        "/api/payments/operations/anomalies",
+        params={"limit": 1},
+    )
+
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+    assert response.headers["X-Page-Size"] == "1"
+
+
+def test_operations_queue_rejects_conflicting_pagination_parameters(
+    operations_client,
+):
+    client, _, _ = operations_client
+
+    response = client.get(
+        "/api/payments/operations/anomalies",
+        params={"limit": 10, "page_size": 20},
+    )
+
+    assert response.status_code == 422
+
+
+def test_operations_queue_openapi_documents_filters_and_pagination_headers():
+    app = FastAPI()
+    app.include_router(router, prefix="/api")
+    operation = app.openapi()["paths"]["/api/payments/operations/anomalies"]["get"]
+
+    parameters = {parameter["name"] for parameter in operation["parameters"]}
+    headers = set(operation["responses"]["200"]["headers"])
+
+    assert {
+        "page",
+        "page_size",
+        "refund_status",
+        "transaction_status",
+        "anomaly_type",
+        "q",
+        "sort_by",
+        "sort_order",
+    }.issubset(parameters)
+    assert {
+        "X-Total-Count",
+        "X-Page",
+        "X-Page-Size",
+        "X-Total-Pages",
+    }.issubset(headers)
 
 
 def test_operations_queue_empty_response(operations_client):
@@ -281,6 +372,35 @@ def test_cannot_confirm_refund_for_unpaid_transaction(operations_client):
 
     response = client.post(
         "/api/payments/operations/refunds/602/confirm",
+        json={},
+    )
+
+    assert response.status_code == 409
+
+
+def test_confirm_unknown_refund_returns_404(operations_client):
+    client, _, _ = operations_client
+
+    response = client.post(
+        "/api/payments/operations/refunds/9999/confirm",
+        json={},
+    )
+
+    assert response.status_code == 404
+
+
+def test_confirm_refund_rejects_amount_exceeding_paid_transaction(
+    operations_client,
+):
+    client, _, session_factory = operations_client
+    with session_factory() as db:
+        db.query(Refund).filter_by(id=601).update(
+            {Refund.amount: Decimal("250000")}
+        )
+        db.commit()
+
+    response = client.post(
+        "/api/payments/operations/refunds/601/confirm",
         json={},
     )
 
