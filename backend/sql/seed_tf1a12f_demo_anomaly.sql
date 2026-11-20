@@ -102,7 +102,7 @@ VALUES (
     @transaction_code,
     'VALID',
     'LATE_PAYMENT',
-    'TF1A12F demo: thanh toán đến sau khi đơn đã đóng; cần hoàn tiền.',
+    'TF1A12F demo: thanh toán đến sau khi đơn đã đóng, cần hoàn tiền.',
     NOW()
 );
 
