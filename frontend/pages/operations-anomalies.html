@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hàng chờ giao dịch bất thường — RideHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/operations-anomalies.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <header class="page-header">
+      <div>
+        <a class="back-link" href="../index.html">← RideHub</a>
+        <p class="eyebrow">TRUNG TÂM VẬN HÀNH</p>
+        <h1>Hàng chờ giao dịch bất thường</h1>
+        <p class="intro">Theo dõi giao dịch cần đối soát và xác nhận các khoản hoàn tiền đang chờ xử lý.</p>
+      </div>
+      <button id="refreshButton" class="button button--secondary" type="button">Làm mới</button>
+    </header>
+
+    <section id="accessMessage" class="notice" role="status" hidden>
+      <p id="accessMessageText"></p>
+      <a id="loginLink" class="button button--primary" href="./auth.html">Đăng nhập</a>
+    </section>
+
+    <section id="queueContent" hidden>
+      <div class="stats" aria-label="Thống kê hàng chờ">
+        <article class="stat-card"><span id="statTotal">0</span><span>Tổng giao dịch</span></article>
+        <article class="stat-card"><span id="statPending">0</span><span>Chờ hoàn tiền</span></article>
+        <article class="stat-card"><span id="statReview">0</span><span>Cần kiểm tra</span></article>
+        <article class="stat-card"><span id="statCompleted">0</span><span>Đã hoàn tiền</span></article>
+      </div>
+
+      <section class="queue-card" aria-labelledby="queueTitle">
+        <div class="queue-heading">
+          <div>
+            <h2 id="queueTitle">Danh sách giao dịch</h2>
+            <p id="lastUpdated" class="muted">Đang tải dữ liệu…</p>
+          </div>
+          <div class="filters">
+            <label>
+              <span class="sr-only">Tìm giao dịch</span>
+              <input id="searchInput" type="search" placeholder="Tìm mã giao dịch, đơn, khách hàng…" autocomplete="off" />
+            </label>
+            <label>
+              <span class="sr-only">Lọc trạng thái</span>
+              <select id="statusFilter">
+                <option value="all">Tất cả trạng thái</option>
+                <option value="pending">Chờ hoàn tiền</option>
+                <option value="review">Cần kiểm tra</option>
+                <option value="completed">Đã hoàn tiền</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div id="queueStatus" class="inline-status" role="status" aria-live="polite"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Giao dịch / Đơn</th>
+                <th>Khách hàng / Xe</th>
+                <th>Số tiền</th>
+                <th>Bất thường / Thời gian</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="anomalyRows"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" class="empty-state" hidden>Không có giao dịch phù hợp với bộ lọc.</div>
+      </section>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog id="refundDialog" class="refund-dialog">
+    <form method="dialog">
+      <p class="eyebrow">XÁC NHẬN THAO TÁC</p>
+      <h2>Xác nhận hoàn tiền?</h2>
+      <p id="refundDialogSummary" class="muted"></p>
+      <label class="note-label" for="refundNote">Ghi chú (không bắt buộc)</label>
+      <textarea id="refundNote" rows="3" maxlength="500" placeholder="Bổ sung ghi chú cho lần hoàn tiền này"></textarea>
+      <div class="dialog-actions">
+        <button id="cancelRefundButton" class="button button--secondary" type="button">Quay lại</button>
+        <button id="confirmRefundButton" class="button button--danger" type="button">Xác nhận hoàn tiền</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/operations-anomalies.js"></script>
+</body>
+</html>

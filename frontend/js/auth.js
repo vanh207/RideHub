@@ -386,8 +386,8 @@
             customer: '../vehicles.html',
             store_owner: 'store-portal.html',
             store_staff: 'store-portal.html',
-            operator: 'admin-ops.html',
-            admin: 'admin-ops.html',
+            operator: 'operations-anomalies.html',
+            admin: 'operations-anomalies.html',
           };
           const targetUrl = roleHomes[user.role] || '../vehicles.html';
           window.location.href = targetUrl;

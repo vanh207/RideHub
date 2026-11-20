@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="refresh" content="0;url=pages/operations-anomalies.html" />
+  <title>Đang mở trung tâm vận hành — RideHub</title>
+</head>
+<body>
+  <p>Đang chuyển đến <a id="operationsLink" href="pages/operations-anomalies.html">hàng chờ giao dịch bất thường</a>…</p>
+  <script>
+    const target = new URL('pages/operations-anomalies.html', window.location.href);
+    target.search = window.location.search;
+    target.hash = window.location.hash;
+    document.getElementById('operationsLink').href = target.href;
+    window.location.replace(target.href);
+  </script>
+</body>
+</html>

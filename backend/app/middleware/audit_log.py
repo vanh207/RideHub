@@ -133,6 +133,15 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
             "resource_type": "payment",
         },
         {
+            "pattern": re.compile(
+                r"^/api/payments/operations/refunds/(?P<resource_id>\d+)/confirm$"
+            ),
+            "methods": {"POST"},
+            "category": "REFUND",
+            "default_action": "OPERATIONS_PAYMENT_REFUND",
+            "resource_type": "payment_refund",
+        },
+        {
             "pattern": re.compile(r"^/api/payments/payos/refund$"),
             "methods": {"POST"},
             "category": "REFUND",
