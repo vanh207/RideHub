@@ -376,6 +376,7 @@
           <div style="font-size:1.3rem;font-weight:800;color:var(--green-800);">Tổng thuê: <span id="detailTotalPrice">320.000đ</span></div>
         </div>
         <button id="proceedBookingBtn" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button">Thuê xe</button>
+        <div id="bookingEligibilityMessage" class="booking-eligibility-message" role="alert" aria-live="assertive" hidden></div>
       </div>
     </div>
   </div>
@@ -472,6 +473,8 @@
   <script src="js/vehicle-anim.js"></script>
   <script src="js/effects.js"></script>
   <script src="js/auth-rbac.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/booking-eligibility.js"></script>
   <script>
     (function () {
       const user = window.AuthRBAC ? window.AuthRBAC.getCurrentUser() : null;
@@ -484,12 +487,30 @@
         });
       }
 
-      document.getElementById('proceedBookingBtn')?.addEventListener('click', () => {
-        const selectedTimes = window.rideHubBookingTimes && window.rideHubBookingTimes();
-        if (!window.rideHubSelectedVehicleId || !selectedTimes) {
-          window.showRideHubToast?.('Hãy chọn xe và khoảng thời gian thuê hợp lệ.', true);
+      document.getElementById('proceedBookingBtn')?.addEventListener('click', async (event) => {
+        const button = event.currentTarget;
+        const eligibilityMessage = document.getElementById('bookingEligibilityMessage');
+        button.disabled = true;
+        window.RideHubBookingEligibility.clearMessage(eligibilityMessage);
+        try {
+          const rentalStart = window.getBookingRentalStart ? window.getBookingRentalStart() : null;
+          const vehicleType = window.bookingSelectedVehicleType === 'car' ? 'CAR' : 'MOTORBIKE';
+          const eligibility = await window.RideHubBookingEligibility.check(vehicleType, rentalStart);
+          if (!eligibility.eligible) {
+            window.RideHubBookingEligibility.showReasons(eligibilityMessage, eligibility.reasons);
+            return;
+          }
+        } catch (error) {
+          console.error('[RideHub] Không thể kiểm tra điều kiện thuê:', error);
+          window.RideHubBookingEligibility.showError(
+            eligibilityMessage,
+            `Không thể kiểm tra điều kiện thuê: ${error.message}`
+          );
           return;
+        } finally {
+          button.disabled = false;
         }
+
         const specs = Array.from(document.querySelectorAll('#detailChips .meta-chip')).map((c) => c.textContent.trim()).join(' • ');
         const isDelivery = document.getElementById('btnDelivery')?.classList.contains('btn-primary');
         const delFee = isDelivery ? 30000 : 0;
@@ -544,25 +565,25 @@
     defaultEnd.setDate(defaultEnd.getDate() + 3);
 
     // Date & Time Picker State
+    const dtStart = new Date();
+    dtStart.setDate(dtStart.getDate() + 1);
+    const dtEnd = new Date(dtStart);
+    dtEnd.setDate(dtEnd.getDate() + 3);
     const dtState = {
-      year: defaultStart.getFullYear(),
-      month: defaultStart.getMonth(),
+      year: dtStart.getFullYear(),
+      month: dtStart.getMonth(),
       mode: 'day',
-      startDay: defaultStart.getDate(),
-      endDay: defaultEnd.getDate(),
+      startDay: dtStart.getDate(),
+      endDay: dtEnd.getMonth() === dtStart.getMonth()
+        ? dtEnd.getDate()
+        : new Date(dtStart.getFullYear(), dtStart.getMonth() + 1, 0).getDate(),
       pickingEnd: false,
       pickupHour: '21:00',
       returnHour: '11:00'
     };
-    window.rideHubBookingTimes = () => {
+    window.getBookingRentalStart = () => {
       const pad = (value) => String(value).padStart(2, '0');
-      const datePart = `${dtState.year}-${pad(dtState.month + 1)}-`;
-      const endDay = dtState.mode === 'hour' ? dtState.startDay : dtState.endDay;
-      if (!endDay) return null;
-      return {
-        startTime: `${datePart}${pad(dtState.startDay)}T${dtState.pickupHour}`,
-        endTime: `${datePart}${pad(endDay)}T${dtState.returnHour}`
-      };
+      return `${dtState.year}-${pad(dtState.month + 1)}-${pad(dtState.startDay)}T${dtState.pickupHour}:00`;
     };
 
     const getDaysCount = () => {
@@ -591,8 +612,8 @@
       let html = '';
       for (let i = 0; i < offset; i++) html += '<span></span>';
       for (let d = 1; d <= daysInMonth; d++) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const isPast = new Date(dtState.year, dtState.month, d) < today;
         const isStart = d === dtState.startDay;
         const hasEnd = dtState.mode !== 'hour' && dtState.endDay !== null;
@@ -926,7 +947,7 @@
           const v = VEHICLES_DATA.find((x) => x.id === vehId);
           if (!v) return;
 
-          window.rideHubSelectedVehicleId = v.id;
+          window.bookingSelectedVehicleType = v.type;
           activeBasePrice = v.price;
           activeOwner = v.ownerKey === 'car' ? OWNERS_DATA.car : OWNERS_DATA.moto;
 
