@@ -132,6 +132,10 @@ Các API quản trị yêu cầu đăng nhập bằng tài khoản Admin. `statu
 
 Khi lỗi, API trả về JSON dạng `{"detail": "..."}`. Ví dụ: 404 khi không tìm thấy, 422 khi dữ liệu gửi lên sai.
 
+### Dữ liệu demo kiểm duyệt hồ sơ
+
+Để có hồ sơ khách hàng (CCCD/GPLX) và cửa hàng ở đủ trạng thái chờ duyệt, đã duyệt, bị từ chối, mở `sql/seed_review_demo.sql` trong MySQL Workbench và chạy trên schema đã khởi tạo (chọn schema theo `DB_NAME` trong `.env`, mặc định là `app_db`). Script không tạo tài khoản đăng nhập; email và số điện thoại là dữ liệu giả. Các bản ghi có mã `DEMO-` được thêm tối đa một lần.
+
 ## 8. Frontend nối với backend thế nào?
 
 - Frontend gọi tới `http://127.0.0.1:8000/api/...` (cấu hình ở `frontend/js/config.js`).
