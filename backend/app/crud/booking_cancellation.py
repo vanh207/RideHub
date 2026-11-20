@@ -29,6 +29,7 @@ from app.core.booking_status import (
     normalize_status,
 )
 from app.core.config import settings
+from app.crud.booking_status_history import record_booking_status_change
 from app.models.booking import Booking
 from app.models.payment import PaymentTransaction, Refund
 from app.models.store import Store, StoreStaff
@@ -182,7 +183,12 @@ def _actor_can_cancel(db: Session, booking: Booking, actor: BookingActor) -> boo
     return False
 
 
-def _release_schedule(db: Session, booking_id: int) -> bool:
+def _release_schedule(
+    db: Session,
+    booking_id: int,
+    *,
+    reservation_status: str = EXPIRED_STATUS,
+) -> bool:
     reservations = db.scalars(
         select(VehicleReservation).where(
             VehicleReservation.booking_id == booking_id,
@@ -198,7 +204,7 @@ def _release_schedule(db: Session, booking_id: int) -> bool:
 
     released = bool(reservations or schedules)
     for reservation in reservations:
-        reservation.status = EXPIRED_STATUS
+        reservation.status = reservation_status
     for schedule in schedules:
         schedule.status = CANCELLED_STATUS
     return released
@@ -278,7 +284,11 @@ def cancel_booking(
         now=cancel_time,
     )
 
-    released = _release_schedule(db, booking.id)
+    released = _release_schedule(
+        db,
+        booking.id,
+        reservation_status=CANCELLED_STATUS,
+    )
 
     refund_id = None
     refund_status = None
@@ -312,11 +322,24 @@ def cancel_booking(
         db.flush()
         refund_id = refund.id
         refund_status = refund.status
+        if refund_status_value == SUCCESS_STATUS and transaction is not None:
+            transaction.status = "REFUNDED"
 
+    history_reason = f"{quote.policy_code}: {reason}" if reason else quote.policy_code
+    record_booking_status_change(
+        db,
+        booking,
+        booking.status,
+        CANCELLED,
+        changed_by=actor.cancellation_actor(),
+        changed_by_user_id=actor.id,
+        reason=history_reason,
+        created_at=cancel_time,
+    )
     booking.status = CANCELLED
     booking.cancelled_at = cancel_time
     booking.cancelled_by = actor.cancellation_actor()
-    booking.cancel_reason = f"{quote.policy_code}: {reason}" if reason else quote.policy_code
+    booking.cancel_reason = history_reason
 
     db.commit()
 
@@ -347,7 +370,7 @@ def expire_hold_bookings(
     ids = db.scalars(
         _select_for_update(
             select(Booking.id).where(
-                Booking.status == PENDING_PAYMENT,
+                Booking.status.in_((PENDING_PAYMENT, PENDING_STATUS)),
                 Booking.hold_expires_at.is_not(None),
                 Booking.hold_expires_at <= current_time,
             )
@@ -374,6 +397,15 @@ def expire_hold_bookings(
 
         paid_amount = get_paid_amount(db, booking.id)
         if paid_amount > 0:
+            record_booking_status_change(
+                db,
+                booking,
+                booking.status,
+                DEPOSIT_PAID,
+                changed_by=CANCEL_ACTOR_SYSTEM,
+                reason="PAYMENT_AFTER_HOLD_EXPIRY",
+                created_at=current_time,
+            )
             booking.status = DEPOSIT_PAID
             paid_race += 1
             logger.warning(
@@ -382,10 +414,20 @@ def expire_hold_bookings(
             )
             continue
 
+        expiry_reason = "HOLD_EXPIRED: Hết hạn giữ chỗ"
+        record_booking_status_change(
+            db,
+            booking,
+            booking.status,
+            EXPIRED,
+            changed_by=CANCEL_ACTOR_SYSTEM,
+            reason=expiry_reason,
+            created_at=current_time,
+        )
         booking.status = EXPIRED
         booking.cancelled_at = current_time
         booking.cancelled_by = CANCEL_ACTOR_SYSTEM
-        booking.cancel_reason = "HOLD_EXPIRED: Hết hạn giữ chỗ"
+        booking.cancel_reason = expiry_reason
 
         _release_schedule(db, booking.id)
 

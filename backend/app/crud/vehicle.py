@@ -12,7 +12,7 @@ from typing import Optional
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from app.core.booking_status import BLOCKING_STATUSES_INCLUDING_LEGACY
+from app.core.booking_status import BLOCKING_STATUSES_INCLUDING_LEGACY, PENDING_PAYMENT
 from app.core.config import settings
 from app.models.booking import Booking
 from app.models.delivery import DeliveryPoint
@@ -24,6 +24,9 @@ from app.models.vehicle_schedule import VehicleSchedule
 # Các trạng thái booking còn chiếm lịch xe.
 # "PENDING" được giữ lại để tương thích dữ liệu cũ.
 BLOCKING_BOOKING_STATUSES = tuple(sorted(BLOCKING_STATUSES_INCLUDING_LEGACY))
+
+# Hold hết hạn ở các trạng thái này không được chặn xe dù job chưa kịp chạy.
+EXPIRABLE_BOOKING_STATUSES = (PENDING_PAYMENT, "PENDING")
 
 # BR-07: đệm 60 phút trước và sau mỗi lượt thuê.
 AVAILABILITY_BUFFER = timedelta(minutes=settings.BOOKING_BUFFER_MINUTES)
@@ -60,6 +63,18 @@ def _no_conflict_conditions(
     # existing.end_time + 60 phút > start_time
     earliest_end = start_time - AVAILABILITY_BUFFER
 
+    def _expired_hold_for(booking_fk):
+        return (
+            select(Booking.id)
+            .where(
+                Booking.id == booking_fk,
+                Booking.status.in_(EXPIRABLE_BOOKING_STATUSES),
+                Booking.hold_expires_at.is_not(None),
+                Booking.hold_expires_at <= current_time,
+            )
+            .exists()
+        )
+
     booking_conflict = (
         select(Booking.id)
         .where(
@@ -67,6 +82,11 @@ def _no_conflict_conditions(
             Booking.status.in_(BLOCKING_BOOKING_STATUSES),
             Booking.start_time < latest_start,
             Booking.end_time > earliest_end,
+            or_(
+                Booking.status.notin_(EXPIRABLE_BOOKING_STATUSES),
+                Booking.hold_expires_at.is_(None),
+                Booking.hold_expires_at > current_time,
+            ),
         )
         .exists()
     )
@@ -78,6 +98,7 @@ def _no_conflict_conditions(
             VehicleReservation.expires_at > current_time,
             VehicleReservation.start_time < latest_start,
             VehicleReservation.end_time > earliest_end,
+            ~_expired_hold_for(VehicleReservation.booking_id),
         )
         .exists()
     )
@@ -88,6 +109,7 @@ def _no_conflict_conditions(
             VehicleSchedule.status == "ACTIVE",
             VehicleSchedule.start_time < latest_start,
             VehicleSchedule.end_time > earliest_end,
+            ~_expired_hold_for(VehicleSchedule.booking_id),
         )
         .exists()
     )

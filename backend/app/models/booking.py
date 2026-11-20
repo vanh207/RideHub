@@ -9,6 +9,7 @@ from sqlalchemy import (
     Text,
     TIMESTAMP,
 )
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.session import Base
 
@@ -51,3 +52,37 @@ class Booking(Base):
     cancel_reason = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
     updated_at = Column(TIMESTAMP, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
+
+    status_histories = relationship(
+        "BookingStatusHistory",
+        back_populates="booking",
+        cascade="all, delete-orphan",
+        order_by="BookingStatusHistory.created_at",
+    )
+
+
+class BookingStatusHistory(Base):
+    __tablename__ = "booking_status_history"
+
+    __table_args__ = (
+        Index("ix_booking_status_history_booking_created", "booking_id", "created_at"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    booking_id = Column(
+        Integer,
+        ForeignKey("bookings.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    from_status = Column(String(40), nullable=True)
+    to_status = Column(String(40), nullable=False)
+    changed_by = Column(String(30), nullable=False)
+    changed_by_user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    reason = Column(Text, nullable=True)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp())
+
+    booking = relationship("Booking", back_populates="status_histories")

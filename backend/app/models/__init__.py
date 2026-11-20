@@ -1,6 +1,6 @@
 from app.db.session import Base
 from app.models.item import Item  # noqa: F401
-from app.models.booking import Booking
+from app.models.booking import Booking, BookingStatusHistory
 from app.models.vehicle import Vehicle
 from app.models.delivery import DeliveryFeeZone, DeliveryPoint
 from app.models.payment import PaymentTransaction, Refund, PaymentWebhookLog
@@ -27,6 +27,7 @@ __all__ = [
     "VehicleReservation",
     "VehicleSchedule",
     "Booking",
+    "BookingStatusHistory",
     "DeliveryFeeZone",
     "DeliveryPoint",
     "PaymentTransaction",

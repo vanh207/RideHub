@@ -30,7 +30,7 @@ sequenceDiagram
     Note over DB: counts = 1 booking / 1 reservation / 1 schedule
 ```
 
-## B3 — Hết hạn giữ chỗ nhưng xe vẫn bị chặn (lỗi phát hiện)
+## B3 — Hết hạn giữ chỗ, khách khác đặt lại thành công (sau sửa)
 
 ```mermaid
 sequenceDiagram
@@ -38,21 +38,19 @@ sequenceDiagram
     participant T as Test (now = t0)
     participant CRUD as create_booking_with_hold
     participant DB as ridehub_test
-    participant K as Khách khác (now = t0+30p)
+    participant K as Khách khác (now = t0+30p+1s)
 
     T->>CRUD: tạo đơn với now=t0
     CRUD->>DB: booking PENDING_PAYMENT, hold_expires_at=t0+30p
     CRUD->>DB: reservation ACTIVE, expires_at=t0+30p
-    CRUD->>DB: schedule ACTIVE
+    CRUD->>DB: schedule ACTIVE + booking_status_history
     CRUD-->>T: OK
-    Note over DB: Không có job chuyển sang EXPIRED
 
-    T->>DB: đẩy mốc thời sang t0+30p+1s
     K->>DB: create_booking_with_hold(now=t0+30p+1s)
     DB->>DB: vehicle_has_conflict()
-    Note right of DB: booking PENDING_PAYMENT vẫn nằm trong BLOCKING_BOOKING_STATUSES;<br/>schedule ACTIVE vẫn khớp khung giờ
-    DB-->>K: BookingConflictError
-    K-->>T: FAIL: xe bị chặn oan dù reservation đã hết hạn
+    Note right of DB: booking có hold_expires_at <= now bị loại khỏi conflict;<br/>reservation/schedule của booking đó cũng bị loại
+    DB-->>K: OK — đặt lại thành công
+    Note over DB: Booking cũ giữ PENDING_PAYMENT đến khi job chạy; job ghi EXPIRED + release lịch
 ```
 
 ## C1 — Hủy đơn chưa thanh toán, nhả lịch cho khách khác
@@ -67,11 +65,12 @@ sequenceDiagram
 
     K1->>EP: hủy đơn PENDING_PAYMENT
     EP->>DB: SELECT booking ... FOR UPDATE; kiểm tra owner
+    EP->>DB: cancel_booking(): quote BR-04 + booking_status_history
     EP->>DB: booking.status = CANCELLED
     EP->>DB: reservation.status = CANCELLED WHERE booking_id=...
     EP->>DB: schedule.status = CANCELLED WHERE booking_id=...
     EP->>DB: COMMIT
-    EP-->>K1: {status: CANCELLED}
+    EP-->>K1: {status: CANCELLED, refund_amount: 0}
 
     K2->>DB: create_booking_with_hold(cùng xe/cùng khung)
     DB->>DB: conflict query bỏ qua CANCELLED

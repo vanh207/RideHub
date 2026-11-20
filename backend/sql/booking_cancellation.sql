@@ -14,3 +14,20 @@ ALTER TABLE `bookings`
 -- DEPOSIT_PAID, CONFIRMED, IN_PROGRESS, PENDING_SETTLEMENT, COMPLETED,
 -- CANCELLED, EXPIRED.
 -- Giữ lại dữ liệu legacy: PENDING, PENDING_STORE_CONFIRM, BOOKED.
+
+CREATE TABLE IF NOT EXISTS `booking_status_history` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `booking_id` INT NOT NULL,
+  `from_status` VARCHAR(40) NULL,
+  `to_status` VARCHAR(40) NOT NULL,
+  `changed_by` VARCHAR(30) NOT NULL,
+  `changed_by_user_id` INT NULL,
+  `reason` TEXT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `ix_booking_status_history_booking_created` (`booking_id`, `created_at`),
+  CONSTRAINT `fk_booking_status_history_booking`
+    FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_booking_status_history_user`
+    FOREIGN KEY (`changed_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

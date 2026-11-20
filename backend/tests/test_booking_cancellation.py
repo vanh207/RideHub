@@ -181,7 +181,7 @@ def test_customer_cancel_full_refund_and_release(db_session):
 
     reservation = db.scalar(select(VehicleReservation).where(VehicleReservation.booking_id == booking.id))
     schedule = db.scalar(select(VehicleSchedule).where(VehicleSchedule.booking_id == booking.id))
-    assert reservation.status == "EXPIRED"
+    assert reservation.status == "CANCELLED"
     assert schedule.status == "CANCELLED"
 
 

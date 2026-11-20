@@ -15,7 +15,6 @@ chứa "test". Nếu không thỏa, toàn bộ test được skip, không đụn
 from __future__ import annotations
 
 import asyncio
-import importlib.util
 import os
 import sys
 import threading
@@ -39,10 +38,11 @@ if BACKEND_DIR not in sys.path:
 from app import models  # noqa: F401 - đăng ký model với metadata
 from app.core.config import settings
 from app.crud import booking as booking_crud
+from app.crud.booking_cancellation import expire_hold_bookings
 from app.crud.vehicle import vehicle_has_conflict
 from app.db.session import Base
 from app.main import app
-from app.models.booking import Booking
+from app.models.booking import Booking, BookingStatusHistory
 from app.models.delivery import DeliveryPoint
 from app.models.payment import PaymentTransaction, Refund
 from app.models.store import Store
@@ -124,6 +124,11 @@ def _clean_and_seed() -> None:
         )
         db.execute(delete(Refund).where(Refund.booking_id.in_(booking_ids)))
         db.execute(delete(PaymentTransaction).where(PaymentTransaction.booking_id.in_(booking_ids)))
+        db.execute(
+            delete(BookingStatusHistory).where(
+                BookingStatusHistory.booking_id.in_(booking_ids)
+            )
+        )
         db.execute(delete(VehicleStatusHistory).where(VehicleStatusHistory.vehicle_id.in_(VEHICLE_IDS)))
         db.execute(delete(VehicleSchedule).where(VehicleSchedule.vehicle_id.in_(VEHICLE_IDS)))
         db.execute(delete(VehicleReservation).where(VehicleReservation.vehicle_id.in_(VEHICLE_IDS)))
@@ -587,16 +592,27 @@ def test_TC_C2_paid_cancel_refund_policy_BR04(seeded, lead_hours, expected_rate)
 
 
 def test_TC_C3_status_history_row(seeded):
-    tables = set(Base.metadata.tables)
-    has_booking_history = any(
-        "booking" in name and ("history" in name or "log" in name) for name in tables
-    )
-    if not has_booking_history:
-        pytest.skip(
-            "Blocked: develop không có bảng lịch sử đổi trạng thái booking "
-            "(chỉ có vehicle_status_history), không thể kiểm tra dòng changed_by."
-        )
-    assert has_booking_history
+    created = _create_once(_payload(start=_now() + timedelta(days=24)))
+    _cancel_endpoint(created.id, CUSTOMER_IDS[0])
+
+    assert SessionLocal is not None
+    with SessionLocal() as db:
+        rows = db.scalars(
+            select(BookingStatusHistory)
+            .where(BookingStatusHistory.booking_id == created.id)
+            .order_by(BookingStatusHistory.id)
+        ).all()
+
+    assert len(rows) == 2, f"C3 mong 2 dòng lịch sử, thực tế {len(rows)}"
+    assert rows[0].from_status in (None, "")
+    assert rows[0].to_status == "PENDING_PAYMENT"
+    assert rows[0].changed_by == "CUSTOMER"
+    assert rows[0].changed_by_user_id == CUSTOMER_IDS[0]
+    assert rows[1].from_status == "PENDING_PAYMENT"
+    assert rows[1].to_status == "CANCELLED"
+    assert rows[1].changed_by == "CUSTOMER"
+    assert rows[1].changed_by_user_id == CUSTOMER_IDS[0]
+    assert "Khách hủy" in (rows[1].reason or "")
 
 
 def test_TC_C4_cancel_other_customers_booking(seeded):
@@ -704,35 +720,72 @@ def test_TC_B3_rebook_after_hold_expiry(seeded):
     end = start + timedelta(days=2)
     created = _create_once(_payload(start=start, end=end), now=now)
 
-    with pytest.raises(booking_crud.BookingConflictError) as exc:
-        _create_once(
-            _payload(customer_id=CUSTOMER_IDS[1], start=start, end=end),
-            now=now + timedelta(minutes=settings.BOOKING_HOLD_MINUTES, seconds=1),
-        )
-
-    with SessionLocal() as db:
-        reservation_status = db.scalar(
-            select(VehicleReservation.status).where(
-                VehicleReservation.booking_id == created.id
-            )
-        )
-        schedule_status = db.scalar(
-            select(VehicleSchedule.status).where(VehicleSchedule.booking_id == created.id)
-        )
-    assert False, (
-        "B3 sau hết hạn khách khác vẫn không đặt được: "
-        f"{exc.value}; reservation={reservation_status}, schedule={schedule_status}, "
-        "booking=PENDING_PAYMENT; xe bị chặn oan dù reservation đã hết hạn."
+    rebooked = _create_once(
+        _payload(customer_id=CUSTOMER_IDS[1], start=start, end=end),
+        now=now + timedelta(minutes=settings.BOOKING_HOLD_MINUTES, seconds=1),
     )
+    assert rebooked.id > 0, (
+        "B3 sau hết hạn khách khác vẫn không đặt được dù hold đã quá 30 phút."
+    )
+    assert _get_booking(created.id).status == "PENDING_PAYMENT"
 
 
 def test_TC_B4_expiry_job(seeded):
-    if importlib.util.find_spec("app.jobs.booking_expiry_job") is None:
-        pytest.skip(
-            "Blocked: develop chưa có app/jobs/booking_expiry_job.py và lifespan không đăng ký job; "
-            "không thể test tự chuyển EXPIRED/nhả lịch/chạy 2 lần/2 job song song."
+    from app.jobs.booking_expiry_job import run_expiry_once
+
+    assert callable(run_expiry_once)
+
+    _clean_and_seed()
+    now = _now()
+    start = now + timedelta(days=27)
+    end = start + timedelta(days=2)
+    created = _create_once(_payload(start=start, end=end), now=now)
+    expiry_time = now + timedelta(minutes=settings.BOOKING_HOLD_MINUTES)
+
+    with SessionLocal() as db:
+        first = expire_hold_bookings(db, now=expiry_time)
+
+    assert first.expired == 1, f"B4 lượt đầu mong expired=1, thực tế {first}"
+    with SessionLocal() as db:
+        booking = db.get(Booking, created.id)
+        reservation = db.scalar(
+            select(VehicleReservation).where(VehicleReservation.booking_id == created.id)
         )
-    pytest.skip("Blocked: job vừa xuất hiện cần cập nhật test theo implementation mới.")
+        schedule = db.scalar(
+            select(VehicleSchedule).where(VehicleSchedule.booking_id == created.id)
+        )
+        history = db.scalars(
+            select(BookingStatusHistory)
+            .where(BookingStatusHistory.booking_id == created.id)
+            .order_by(BookingStatusHistory.id)
+        ).all()
+    assert booking.status == "EXPIRED"
+    assert reservation.status == "EXPIRED"
+    assert schedule.status == "CANCELLED"
+    assert [row.to_status for row in history] == ["PENDING_PAYMENT", "EXPIRED"]
+    assert history[-1].changed_by == "SYSTEM"
+
+    with SessionLocal() as db:
+        second = expire_hold_bookings(db, now=expiry_time)
+    assert second.expired == 0, f"B4 chạy lại phải idempotent, thực tế {second}"
+
+    rebooked = _create_once(
+        _payload(customer_id=CUSTOMER_IDS[1], start=start, end=end),
+        now=expiry_time,
+    )
+    assert rebooked.id > 0
+
+    _clean_and_seed()
+    parallel_created = _create_once(_payload(start=start, end=end), now=now)
+    with SessionLocal() as db1, SessionLocal() as db2:
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            parallel_results = list(
+                pool.map(lambda db: expire_hold_bookings(db, now=expiry_time), [db1, db2])
+            )
+    assert sum(result.expired for result in parallel_results) == 1, (
+        f"B4 hai job song song chỉ được expire 1 đơn, thực tế {parallel_results}"
+    )
+    assert _get_booking(parallel_created.id).status == "EXPIRED"
 
 
 def test_TC_B5_payment_vs_expiry_race(seeded):

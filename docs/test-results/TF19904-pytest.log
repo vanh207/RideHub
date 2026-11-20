@@ -17,35 +17,17 @@ tests/test_booking_concurrency_hold_cancel.py::test_TC_A6_same_customer_double_c
 tests/test_booking_concurrency_hold_cancel.py::test_TC_A7_no_orphan_rows_after_conflict PASSED [ 39%]
 tests/test_booking_concurrency_hold_cancel.py::test_TC_A8_mid_transaction_rollback SKIPPED [ 43%]
 tests/test_booking_concurrency_hold_cancel.py::test_TC_C1_cancel_unpaid_booking_releases_slot PASSED [ 47%]
-tests/test_booking_concurrency_hold_cancel.py::test_TC_C2_paid_cancel_refund_policy_BR04[48-1.0] FAILED [ 52%]
-tests/test_booking_concurrency_hold_cancel.py::test_TC_C2_paid_cancel_refund_policy_BR04[12-0.5] FAILED [ 56%]
+tests/test_booking_concurrency_hold_cancel.py::test_TC_C2_paid_cancel_refund_policy_BR04[48-1.0] PASSED [ 52%]
+tests/test_booking_concurrency_hold_cancel.py::test_TC_C2_paid_cancel_refund_policy_BR04[12-0.5] PASSED [ 56%]
 tests/test_booking_concurrency_hold_cancel.py::test_TC_C2_paid_cancel_refund_policy_BR04[5-0.0] PASSED [ 60%]
-tests/test_booking_concurrency_hold_cancel.py::test_TC_C3_status_history_row SKIPPED [ 65%]
+tests/test_booking_concurrency_hold_cancel.py::test_TC_C3_status_history_row PASSED [ 65%]
 tests/test_booking_concurrency_hold_cancel.py::test_TC_C4_cancel_other_customers_booking PASSED [ 69%]
 tests/test_booking_concurrency_hold_cancel.py::test_TC_C5_terminal_status_and_repeated_cancel PASSED [ 73%]
 tests/test_booking_concurrency_hold_cancel.py::test_TC_C6_concurrent_cancel_and_cancel_vs_rebook PASSED [ 78%]
 tests/test_booking_concurrency_hold_cancel.py::test_TC_B1_hold_expires_equals_reservation_expires PASSED [ 82%]
-tests/test_booking_concurrency_hold_cancel.py::test_TC_B2_boundary_29_59_vs_30_00 FAILED [ 86%]
-tests/test_booking_concurrency_hold_cancel.py::test_TC_B3_rebook_after_hold_expiry FAILED [ 91%]
-tests/test_booking_concurrency_hold_cancel.py::test_TC_B4_expiry_job SKIPPED [ 95%]
+tests/test_booking_concurrency_hold_cancel.py::test_TC_B2_boundary_29_59_vs_30_00 PASSED [ 86%]
+tests/test_booking_concurrency_hold_cancel.py::test_TC_B3_rebook_after_hold_expiry PASSED [ 91%]
+tests/test_booking_concurrency_hold_cancel.py::test_TC_B4_expiry_job PASSED [ 95%]
 tests/test_booking_concurrency_hold_cancel.py::test_TC_B5_payment_vs_expiry_race SKIPPED [100%]
 
-=================================== FAILURES ===================================
-E   AssertionError: C2 lead=48h BR-04 mong đợi refund_rate=1.0 (200,000đ) nhưng thực tế refunds=0, amount=0, txn_status=SUCCESS; endpoint cancel chỉ hủy txn, không tạo Refund.
-    assert 0 == 1
-/Users/ridole/Desktop/RideHub/RideHub/backend/tests/test_booking_concurrency_hold_cancel.py:578: AssertionError: C2 lead=48h BR-04 mong đợi refund_rate=1.0 (200,000đ) nhưng thực tế refunds=0, amount=0, txn_status=SUCCESS; endpoint cancel chỉ hủy txn, không tạo Refund.
-E   AssertionError: C2 lead=12h BR-04 mong đợi refund_rate=0.5 (100,000đ) nhưng thực tế refunds=0, amount=0, txn_status=SUCCESS; endpoint cancel chỉ hủy txn, không tạo Refund.
-    assert 0 == 1
-/Users/ridole/Desktop/RideHub/RideHub/backend/tests/test_booking_concurrency_hold_cancel.py:578: AssertionError: C2 lead=12h BR-04 mong đợi refund_rate=0.5 (100,000đ) nhưng thực tế refunds=0, amount=0, txn_status=SUCCESS; endpoint cancel chỉ hủy txn, không tạo Refund.
-E   AssertionError: B2 ở 30:00 reservation đã hết hạn nhưng xe vẫn bị chặn; booking_status=PENDING_PAYMENT; nguyên nhân: booking PENDING_PAYMENT + schedule ACTIVE vẫn nằm trong điều kiện conflict.
-    assert True is False
-/Users/ridole/Desktop/RideHub/RideHub/backend/tests/test_booking_concurrency_hold_cancel.py:693: AssertionError: B2 ở 30:00 reservation đã hết hạn nhưng xe vẫn bị chặn; booking_status=PENDING_PAYMENT; nguyên nhân: booking PENDING_PAYMENT + schedule ACTIVE vẫn nằm trong điều kiện conflict.
-E   AssertionError: B3 sau hết hạn khách khác vẫn không đặt được: Xe đã có lịch trong khoảng thời gian này. Vui lòng chọn xe hoặc khung giờ khác.; reservation=ACTIVE, schedule=ACTIVE, booking=PENDING_PAYMENT; xe bị chặn oan dù reservation đã hết hạn.
-    assert False
-/Users/ridole/Desktop/RideHub/RideHub/backend/tests/test_booking_concurrency_hold_cancel.py:722: AssertionError: B3 sau hết hạn khách khác vẫn không đặt được: Xe đã có lịch trong khoảng thời gian này. Vui lòng chọn xe hoặc khung giờ khác.; reservation=ACTIVE, schedule=ACTIVE, booking=PENDING_PAYMENT; xe bị chặn oan dù reservation đã hết hạn.
-=========================== short test summary info ============================
-FAILED tests/test_booking_concurrency_hold_cancel.py::test_TC_C2_paid_cancel_refund_policy_BR04[48-1.0]
-FAILED tests/test_booking_concurrency_hold_cancel.py::test_TC_C2_paid_cancel_refund_policy_BR04[12-0.5]
-FAILED tests/test_booking_concurrency_hold_cancel.py::test_TC_B2_boundary_29_59_vs_30_00
-FAILED tests/test_booking_concurrency_hold_cancel.py::test_TC_B3_rebook_after_hold_expiry
-============ 4 failed, 15 passed, 4 skipped, 315 warnings in 22.68s ============
+================= 21 passed, 2 skipped, 319 warnings in 23.49s =================

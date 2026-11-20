@@ -10,7 +10,13 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.booking_status import DEPOSIT_PAID, TERMINAL_STATUSES, normalize_status
+from app.core.booking_status import (
+    CANCEL_ACTOR_SYSTEM,
+    DEPOSIT_PAID,
+    TERMINAL_STATUSES,
+    normalize_status,
+)
+from app.crud.booking_status_history import record_booking_status_change
 from app.models.booking import Booking
 from app.models.payment import PaymentTransaction, Refund
 
@@ -63,5 +69,13 @@ def apply_successful_payment_to_booking(
         )
         return "REFUND_REQUIRED"
 
+    record_booking_status_change(
+        db,
+        booking,
+        booking.status,
+        DEPOSIT_PAID,
+        changed_by=CANCEL_ACTOR_SYSTEM,
+        reason="PAYMENT_RECONCILED",
+    )
     booking.status = DEPOSIT_PAID
     return "DEPOSIT_PAID"

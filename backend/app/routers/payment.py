@@ -23,8 +23,18 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.booking_status import CANCEL_ACTOR_SYSTEM, DEPOSIT_PAID
 from app.core.dependencies import get_current_admin, get_current_user
 from app.core.config import settings
+from app.crud.booking_cancellation import (
+    BookingActor,
+    BookingCancellationError,
+    BookingNotFoundError,
+    BookingPermissionError,
+    BookingStateError,
+    cancel_booking,
+)
+from app.crud.booking_status_history import record_booking_status_change
 from app.db.session import get_db
 from app.models.booking import Booking
 from app.models.payment import PaymentTransaction, PaymentWebhookLog, Refund
@@ -76,7 +86,20 @@ def _get_owned_booking(db: Session, booking_id: int, current_user: User) -> Book
     return booking
 
 
-def _release_booking_hold(db: Session, booking: Booking) -> None:
+def _release_booking_hold(
+    db: Session,
+    booking: Booking,
+    *,
+    reason: str = "BOOKING_HOLD_RELEASED",
+) -> None:
+    record_booking_status_change(
+        db,
+        booking,
+        booking.status,
+        "CANCELLED",
+        changed_by=CANCEL_ACTOR_SYSTEM,
+        reason=reason,
+    )
     booking.status = "CANCELLED"
     db.query(VehicleReservation).filter(
         VehicleReservation.booking_id == booking.id,
@@ -416,13 +439,21 @@ async def get_booking_payment_status(
             ):
                 transaction.status = "SUCCESS"
                 transaction.paid_at = now
+                record_booking_status_change(
+                    db,
+                    booking,
+                    booking.status,
+                    DEPOSIT_PAID,
+                    changed_by=CANCEL_ACTOR_SYSTEM,
+                    reason="PAYMENT_SUCCESS",
+                )
                 booking.status = "BOOKED"
             else:
                 transaction.status = "LATE_PAYMENT"
                 transaction.paid_at = now
         elif provider_status in ("CANCELLED", "EXPIRED"):
             transaction.status = provider_status
-            _release_booking_hold(db, booking)
+            _release_booking_hold(db, booking, reason="PAYMENT_LINK_CANCELLED")
 
     expired_now = booking.status in PENDING_BOOKING_STATUSES and hold_expired
     if expired_now:
@@ -431,7 +462,7 @@ async def get_booking_payment_status(
                 order_code = int(transaction.transaction_code.removeprefix("PAYOS_"))
                 await payos_service.cancel_payment_link(order_code)
             transaction.status = "EXPIRED"
-        _release_booking_hold(db, booking)
+        _release_booking_hold(db, booking, reason="HOLD_EXPIRED")
     db.commit()
 
     remaining_seconds = _remaining_hold_seconds(booking, now)
@@ -503,13 +534,6 @@ async def cancel_booking_payment(
     current_user: User = Depends(get_current_user),
 ):
     booking = _get_owned_booking(db, booking_id, current_user)
-    if booking.status in ("BOOKED", "COMPLETED"):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Đơn đã thanh toán/xác nhận, không thể hủy giao dịch tại đây.",
-        )
-    if booking.status == "CANCELLED":
-        return {"booking_id": booking.id, "status": "CANCELLED"}
 
     transaction = (
         db.query(PaymentTransaction)
@@ -525,6 +549,7 @@ async def cancel_booking_payment(
         try:
             order_code = int(transaction.transaction_code.removeprefix("PAYOS_"))
         except ValueError as exc:
+            db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Mã giao dịch PayOS không hợp lệ.",
@@ -533,9 +558,34 @@ async def cancel_booking_payment(
 
     if transaction:
         transaction.status = "CANCELLED"
-    _release_booking_hold(db, booking)
-    db.commit()
-    return {"booking_id": booking.id, "status": "CANCELLED"}
+
+    try:
+        result = cancel_booking(
+            db,
+            booking.id,
+            actor=BookingActor(id=current_user.id, role=current_user.role),
+            reason="Khách hủy qua luồng thanh toán",
+        )
+    except BookingNotFoundError as exc:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except BookingPermissionError as exc:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    except BookingStateError as exc:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except BookingCancellationError as exc:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    return {
+        "booking_id": result.booking_id,
+        "status": result.status,
+        "refund_amount": float(result.refund.amount),
+        "refund_id": result.refund_id,
+        "refund_status": result.refund_status,
+    }
 
 
 # ==============================================================================
@@ -1047,13 +1097,16 @@ def process_payment_refund(
         # Kiểm tra xem giao dịch đã được hoàn trước đó chưa
         existing_refund = (
             db.query(Refund)
-            .filter(Refund.payment_transaction_id == transaction.id, Refund.status == "SUCCESS")
+            .filter(
+                Refund.payment_transaction_id == transaction.id,
+                Refund.status.in_(("PENDING", "SUCCESS", "REFUNDED")),
+            )
             .first()
         )
         if existing_refund:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Giao dịch này đã được hoàn tiền thành công trước đó.",
+                detail=f"Giao dịch này đã có yêu cầu hoàn tiền (trạng thái: {existing_refund.status}).",
             )
 
         # B3. Xác định số tiền hoàn

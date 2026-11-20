@@ -27,13 +27,13 @@ def test_free_cancel_full_refund():
 
 
 def test_partial_cancel_half_refund():
-    result = quote(30)
+    result = quote(12)
     assert result.policy_code == "PARTIAL_CANCEL"
     assert result.amount == Decimal("750000.00")
 
 
 def test_late_cancel_no_refund():
-    result = quote(10)
+    result = quote(5)
     assert result.policy_code == "LATE_CANCEL"
     assert result.amount == Decimal("0.00")
 

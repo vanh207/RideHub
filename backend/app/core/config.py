@@ -86,8 +86,8 @@ class Settings(BaseSettings):
     BOOKING_LOCK_RETRY_BASE_DELAY_SECONDS: float = 0.05
 
     # ---- Hủy đơn & hoàn tiền ----
-    BOOKING_CANCEL_FREE_HOURS: int = 48
-    BOOKING_CANCEL_PARTIAL_HOURS: int = 24
+    BOOKING_CANCEL_FREE_HOURS: int = 24
+    BOOKING_CANCEL_PARTIAL_HOURS: int = 6
     BOOKING_CANCEL_PARTIAL_RATE: Decimal = Decimal("0.5")
     BOOKING_CANCEL_STORE_FAULT_RATE: Decimal = Decimal("1.0")
 
