@@ -31,6 +31,10 @@ EXPIRABLE_BOOKING_STATUSES = (PENDING_PAYMENT, "PENDING")
 # BR-07: đệm 60 phút trước và sau mỗi lượt thuê.
 AVAILABILITY_BUFFER = timedelta(minutes=settings.BOOKING_BUFFER_MINUTES)
 
+# TF199BD: index được EXPLAIN chứng minh giúp subquery booking quét theo end_time
+# thay vì materialize toàn bảng. Hint chỉ áp dụng cho dialect MySQL.
+BOOKING_AVAILABILITY_INDEX = "ix_bookings_end_start_status_vehicle_hold"
+
 # BR-02: thời gian thuê tối thiểu 4 giờ và tối đa 30 ngày cho một đơn.
 MIN_RENTAL_DURATION = timedelta(hours=settings.BOOKING_MIN_DURATION_HOURS)
 MAX_RENTAL_DURATION = timedelta(days=settings.BOOKING_MAX_DURATION_DAYS)
@@ -77,6 +81,11 @@ def _no_conflict_conditions(
 
     booking_conflict = (
         select(Booking.id)
+        .with_hint(
+            Booking,
+            f"FORCE INDEX ({BOOKING_AVAILABILITY_INDEX})",
+            dialect_name="mysql",
+        )
         .where(
             Booking.vehicle_id == vehicle_id_column,
             Booking.status.in_(BLOCKING_BOOKING_STATUSES),
