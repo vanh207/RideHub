@@ -313,11 +313,11 @@
     <div class="tc-stats-grid">
       <div class="stat-card">
         <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Tổng số Test Cases</div>
-        <div style="font-size:24px;font-weight:800;color:var(--text-primary);margin-top:4px;">15 Kịch bản</div>
+        <div style="font-size:24px;font-weight:800;color:var(--text-primary);margin-top:4px;">21 Kịch bản</div>
       </div>
       <div class="stat-card">
-        <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Phân hệ Xác nhận đơn</div>
-        <div style="font-size:24px;font-weight:800;color:var(--green-700);margin-top:4px;">7 Test Cases</div>
+        <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Phân hệ Xác nhận đơn & BE</div>
+        <div style="font-size:24px;font-weight:800;color:var(--green-700);margin-top:4px;">13 Test Cases</div>
       </div>
       <div class="stat-card">
         <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Phân hệ Biên bản &amp; Chữ ký</div>
@@ -325,7 +325,7 @@
       </div>
       <div class="stat-card">
         <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Tỉ lệ Đạt (Pass Rate)</div>
-        <div style="font-size:24px;font-weight:800;color:#15803d;margin-top:4px;">100% (15/15)</div>
+        <div style="font-size:24px;font-weight:800;color:#15803d;margin-top:4px;">100% (21/21)</div>
       </div>
     </div>
 
@@ -491,6 +491,62 @@
             <td>In / Xuất PDF biên bản chuẩn khổ A4</td>
             <td>1. Bấm nút "In / Xuất PDF"</td>
             <td>Mở hộp thoại in trình duyệt, CSS @media print ẩn thanh điều hướng, căn lề tài liệu văn bản chuẩn khổ A4.</td>
+            <td><span class="tc-badge-med">Medium</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+
+          <!-- Module 3: [Backend TF1A595] API Cửa Hàng Xác Nhận, Từ Chối Đơn Kèm Lý Do -->
+          <tr>
+            <td><strong>TC-SO-01</strong></td>
+            <td>API Duyệt đơn</td>
+            <td>Cửa hàng xác nhận đơn đặt xe (`POST /api/bookings/{id}/confirm`)</td>
+            <td>1. Store Owner hoặc Staff gửi request POST xác nhận đơn<br>2. Kiểm tra DB và lịch sử</td>
+            <td>HTTP 200 OK, đơn chuyển sang trạng thái CONFIRMED, khóa lịch giữ xe, ghi nhật ký BookingStatusHistory và gửi email thông báo cho khách.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-SO-02</strong></td>
+            <td>API Duyệt đơn</td>
+            <td>Tính Idempotent khi xác nhận lại đơn đã CONFIRMED</td>
+            <td>1. Gửi request POST xác nhận đơn đã ở trạng thái CONFIRMED</td>
+            <td>HTTP 200 OK, trả về `already_confirmed=True`, không sinh trùng lặp lịch sử hoặc gây deadlock.</td>
+            <td><span class="tc-badge-med">Medium</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-SO-03</strong></td>
+            <td>API Từ chối</td>
+            <td>Cửa hàng từ chối nhận đơn kèm lý do (`POST /api/bookings/{id}/reject`)</td>
+            <td>1. Gửi request từ chối kèm lý do: "Xe gặp sự cố kỹ thuật đột xuất cần bảo dưỡng"<br>2. Kiểm tra hoàn cọc</td>
+            <td>HTTP 200 OK, đơn chuyển CANCELLED, hủy lịch giữ xe, tự động sinh bản ghi Refund hoàn 100% cọc qua VietQR và gửi email giải thích lý do cho khách.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-SO-04</strong></td>
+            <td>API Từ chối</td>
+            <td>Chặn từ chối không có lý do hoặc lý do để trống</td>
+            <td>1. Gửi request từ chối với lý do rỗng `""` hoặc chỉ chứa khoảng trắng</td>
+            <td>HTTP 422 Unprocessable Entity, báo lỗi "Lý do từ chối đơn là bắt buộc (tối thiểu 3 ký tự)", bảo toàn trạng thái đơn.</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-SO-05</strong></td>
+            <td>Phân quyền RBAC</td>
+            <td>Chặn người dùng không có quyền thao tác trên đơn của trạm</td>
+            <td>1. Khách hàng hoặc chủ trạm khác gửi request duyệt/từ chối đơn</td>
+            <td>HTTP 403 Forbidden, báo lỗi "Bạn không có quyền thao tác trên đơn hàng của cửa hàng này".</td>
+            <td><span class="tc-badge-high">High</span></td>
+            <td><span class="tc-badge-pass">PASS</span></td>
+          </tr>
+          <tr>
+            <td><strong>TC-SO-06</strong></td>
+            <td>API Quản lý</td>
+            <td>Danh sách đơn và chỉ số KPI cho Cửa hàng (`GET /api/bookings/store/orders`)</td>
+            <td>1. Gọi API lấy danh sách đơn của trạm<br>2. Kiểm tra bộ lọc `status` và KPI</td>
+            <td>HTTP 200 OK, trả về danh sách đơn chi tiết (khách, xe, lịch, cọc) kèm metrics tổng doanh thu, cọc và các chỉ số vận hành.</td>
             <td><span class="tc-badge-med">Medium</span></td>
             <td><span class="tc-badge-pass">PASS</span></td>
           </tr>

@@ -1,6 +1,7 @@
 from pathlib import Path
+from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -8,12 +9,32 @@ from app.controllers.store_controller import register_store_controller
 from app.core.dependencies import get_current_user
 from app.core.store_rate_limit import limit_store_registration
 from app.core.store_errors import StoreAPIError
+from app.crud.booking_cancellation import (
+    BookingCancellationError,
+    BookingNotFoundError,
+    BookingPermissionError,
+    BookingStateError,
+)
+from app.crud.store_order_review import (
+    BookingValidationError,
+    get_store_orders_list,
+    store_confirm_booking,
+    store_reject_booking,
+)
 from app.db.session import get_db
 from app.middleware.store_upload import resolve_private_upload
 from app.models.store import Store
 from app.models.user import User
+from app.schemas.booking import (
+    StoreOrderConfirmRequest,
+    StoreOrderConfirmResponse,
+    StoreOrderListResponse,
+    StoreOrderRejectRequest,
+    StoreOrderRejectResponse,
+)
 
 router = APIRouter(prefix="/stores", tags=["Stores"])
+
 
 
 @router.post("/register", status_code=201)
@@ -91,3 +112,99 @@ def get_business_license(
         media_type=media_type,
         filename=f"business-license-{store.id}{Path(file_path).suffix.lower()}",
     )
+
+
+# ==============================================================================
+# QUẢN LÝ ĐƠN HÀNG CỬA HÀNG (TF1A595)
+# ==============================================================================
+
+@router.get(
+    "/{store_id}/orders",
+    response_model=StoreOrderListResponse,
+    summary="Danh sách đơn đặt xe của cửa hàng theo store_id (TF1A595)",
+)
+def get_store_orders_by_id(
+    store_id: int,
+    status: str = Query("all", description="Bộ lọc trạng thái: all, pending, approved, cancelled, in_progress"),
+    search: Optional[str] = Query(None, description="Từ khóa tìm kiếm"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return get_store_orders_list(
+            db,
+            user=current_user,
+            store_id=store_id,
+            status_filter=status,
+            search=search,
+            page=page,
+            page_size=page_size,
+        )
+    except BookingPermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+
+
+@router.post(
+    "/{store_id}/orders/{booking_id}/confirm",
+    response_model=StoreOrderConfirmResponse,
+    summary="Cửa hàng duyệt xác nhận đơn đặt xe theo store_id (TF1A595)",
+)
+def confirm_store_order(
+    store_id: int,
+    booking_id: int,
+    payload: StoreOrderConfirmRequest = StoreOrderConfirmRequest(),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return store_confirm_booking(
+            db,
+            booking_id=booking_id,
+            user=current_user,
+            note=payload.note,
+        )
+    except BookingNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except BookingPermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except BookingStateError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except BookingValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except BookingCancellationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post(
+    "/{store_id}/orders/{booking_id}/reject",
+    response_model=StoreOrderRejectResponse,
+    summary="Cửa hàng từ chối nhận đơn đặt xe kèm lý do theo store_id (TF1A595)",
+)
+def reject_store_order(
+    store_id: int,
+    booking_id: int,
+    payload: StoreOrderRejectRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return store_reject_booking(
+            db,
+            booking_id=booking_id,
+            user=current_user,
+            reason=payload.reason,
+            note=payload.note,
+        )
+    except BookingNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except BookingPermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except BookingStateError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except BookingValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except BookingCancellationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+

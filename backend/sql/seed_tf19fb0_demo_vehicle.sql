@@ -2,12 +2,12 @@
 -- customer@ridehub.vn and the sample GreenRide store.
 -- Safe to rerun: only the TF19FB0 test vehicles and test driver's license
 -- are inserted/updated, and existing bookings and schedules are never deleted.
+-- Existing demo vehicle availability/active flags are preserved on rerun.
 SET NAMES utf8mb4;
 START TRANSACTION;
 
 UPDATE users
-SET date_of_birth = COALESCE(date_of_birth, '1990-01-01'),
-    status = 'active'
+SET date_of_birth = COALESCE(date_of_birth, '1990-01-01')
 WHERE email = 'customer@ridehub.vn';
 
 UPDATE stores AS sample_store
@@ -176,9 +176,7 @@ ON DUPLICATE KEY UPDATE
     fuel_type = VALUES(fuel_type),
     price_per_day = VALUES(price_per_day),
     price_per_hour = VALUES(price_per_hour),
-    current_status = VALUES(current_status),
-    description = VALUES(description),
-    is_active = VALUES(is_active);
+    description = VALUES(description);
 
 COMMIT;
 

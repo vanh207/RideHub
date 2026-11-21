@@ -18,13 +18,14 @@ Các tính năng cốt lõi:
 """
 from datetime import datetime
 from math import ceil
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
+from sqlalchemy import String, case, cast, func, or_
 from sqlalchemy.orm import Session
 
 from app.core.booking_status import CANCEL_ACTOR_SYSTEM, DEPOSIT_PAID
-from app.core.dependencies import get_current_admin, get_current_user
+from app.core.dependencies import get_current_admin, get_current_user, require_roles
 from app.core.config import settings
 from app.crud.booking_cancellation import (
     BookingActor,
@@ -49,6 +50,8 @@ from app.schemas.payment import (
     PayOSWebhookPayload,
     PaymentCreateRequest,
     PaymentCreateResponse,
+    PaymentAnomalyRefundConfirmRequest,
+    PaymentAnomalyResponse,
     PaymentRefundRequest,
     PaymentSimulateRequest,
     PaymentTransactionResponse,
@@ -69,6 +72,10 @@ router = APIRouter(
 )
 
 PENDING_BOOKING_STATUSES = {"PENDING_PAYMENT", "PENDING"}
+ANOMALOUS_WEBHOOK_RESULTS = {"AMOUNT_MISMATCH", "LATE_PAYMENT"}
+REFUNDABLE_TRANSACTION_STATUSES = {"SUCCESS", "LATE_PAYMENT"}
+COMPLETED_REFUND_STATUSES = {"SUCCESS", "REFUNDED"}
+get_current_payment_operator = require_roles("admin", "operator")
 
 
 def _get_owned_booking(db: Session, booking_id: int, current_user: User) -> Booking:
@@ -1028,6 +1035,357 @@ def process_payment_webhook(
 # ==============================================================================
 # 4. API HOÀN TIỀN (REFUND FLOW)
 # ==============================================================================
+@router.get(
+    "/operations/anomalies",
+    response_model=List[PaymentAnomalyResponse],
+    summary="Danh sách hàng chờ giao dịch bất thường (Admin/Operator)",
+    responses={
+        200: {
+            "description": "Danh sách giao dịch; metadata phân trang được trả trong headers.",
+            "headers": {
+                "X-Total-Count": {
+                    "description": "Tổng số kết quả sau khi áp dụng bộ lọc.",
+                    "schema": {"type": "integer"},
+                },
+                "X-Page": {
+                    "description": "Trang hiện tại, bắt đầu từ 1.",
+                    "schema": {"type": "integer"},
+                },
+                "X-Page-Size": {
+                    "description": "Số kết quả tối đa trong trang.",
+                    "schema": {"type": "integer"},
+                },
+                "X-Total-Pages": {
+                    "description": "Tổng số trang.",
+                    "schema": {"type": "integer"},
+                },
+            },
+        }
+    },
+)
+def list_payment_anomalies(
+    response: Response,
+    page: int = Query(1, ge=1, description="Trang bắt đầu từ 1"),
+    page_size: int = Query(200, ge=1, le=500, description="Số kết quả mỗi trang"),
+    limit: Optional[int] = Query(
+        None,
+        ge=1,
+        le=500,
+        deprecated=True,
+        description="Tham số tương thích ngược; thay thế page_size",
+    ),
+    refund_status: Optional[Literal["PENDING", "SUCCESS", "REFUNDED", "FAILED"]] = None,
+    transaction_status: Optional[
+        Literal["PENDING", "SUCCESS", "FAILED", "REFUNDED", "LATE_PAYMENT", "CANCELLED", "EXPIRED"]
+    ] = None,
+    anomaly_type: Optional[
+        Literal["AMOUNT_MISMATCH", "LATE_PAYMENT", "PENDING_REFUND"]
+    ] = None,
+    q: Optional[str] = Query(
+        None,
+        min_length=1,
+        max_length=200,
+        description="Tìm mã giao dịch, mã đơn, khách hàng, xe hoặc lý do",
+    ),
+    sort_by: Literal["occurred_at", "amount", "transaction_code", "booking_id"] = "occurred_at",
+    sort_order: Literal["asc", "desc"] = "desc",
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_payment_operator),
+):
+    """Trả về hàng chờ đã lọc, giữ body dạng danh sách và trả metadata trang qua headers."""
+    if limit is not None:
+        if page_size != 200 and page_size != limit:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Chỉ dùng một trong hai tham số page_size hoặc limit.",
+            )
+        page_size = limit
+
+    latest_log = (
+        db.query(
+            PaymentWebhookLog.transaction_code.label("transaction_code"),
+            func.max(PaymentWebhookLog.id).label("log_id"),
+        )
+        .filter(PaymentWebhookLog.transaction_code.isnot(None))
+        .group_by(PaymentWebhookLog.transaction_code)
+        .subquery()
+    )
+    latest_refund = (
+        db.query(
+            Refund.payment_transaction_id.label("transaction_id"),
+            func.max(Refund.id).label("refund_id"),
+        )
+        .filter(Refund.payment_transaction_id.isnot(None))
+        .group_by(Refund.payment_transaction_id)
+        .subquery()
+    )
+    anomaly_type_expression = case(
+        (
+            PaymentWebhookLog.process_result.in_(ANOMALOUS_WEBHOOK_RESULTS),
+            PaymentWebhookLog.process_result,
+        ),
+        (Refund.status == "PENDING", "PENDING_REFUND"),
+        else_=PaymentTransaction.status,
+    )
+    occurred_at_expression = func.coalesce(
+        PaymentWebhookLog.processed_at,
+        Refund.created_at,
+        PaymentTransaction.created_at,
+    )
+    query = (
+        db.query(
+            PaymentTransaction,
+            Booking,
+            User,
+            Vehicle,
+            PaymentWebhookLog,
+            Refund,
+        )
+        .join(Booking, Booking.id == PaymentTransaction.booking_id)
+        .outerjoin(User, User.id == Booking.customer_id)
+        .outerjoin(Vehicle, Vehicle.id == Booking.vehicle_id)
+        .outerjoin(
+            latest_log,
+            latest_log.c.transaction_code == PaymentTransaction.transaction_code,
+        )
+        .outerjoin(PaymentWebhookLog, PaymentWebhookLog.id == latest_log.c.log_id)
+        .outerjoin(
+            latest_refund,
+            latest_refund.c.transaction_id == PaymentTransaction.id,
+        )
+        .outerjoin(Refund, Refund.id == latest_refund.c.refund_id)
+        .filter(
+            or_(
+                PaymentWebhookLog.process_result.in_(ANOMALOUS_WEBHOOK_RESULTS),
+                Refund.status == "PENDING",
+                PaymentTransaction.status == "LATE_PAYMENT",
+            )
+        )
+    )
+
+    if refund_status:
+        query = query.filter(Refund.status == refund_status)
+    if transaction_status:
+        query = query.filter(PaymentTransaction.status == transaction_status)
+    if anomaly_type:
+        query = query.filter(anomaly_type_expression == anomaly_type)
+    if q:
+        search_pattern = f"%{q.strip()}%"
+        if q.strip():
+            query = query.filter(
+                or_(
+                    PaymentTransaction.transaction_code.ilike(search_pattern),
+                    PaymentTransaction.provider_txn_id.ilike(search_pattern),
+                    cast(Booking.id, String).ilike(search_pattern),
+                    User.full_name.ilike(search_pattern),
+                    Vehicle.brand.ilike(search_pattern),
+                    Vehicle.model.ilike(search_pattern),
+                    Vehicle.plate_number.ilike(search_pattern),
+                    PaymentWebhookLog.queue_reason.ilike(search_pattern),
+                    Refund.reason.ilike(search_pattern),
+                )
+            )
+
+    total = query.count()
+    sort_columns = {
+        "occurred_at": occurred_at_expression,
+        "amount": PaymentTransaction.amount,
+        "transaction_code": PaymentTransaction.transaction_code,
+        "booking_id": Booking.id,
+    }
+    sort_column = sort_columns[sort_by]
+    ordering = sort_column.asc() if sort_order == "asc" else sort_column.desc()
+    offset = (page - 1) * page_size
+    rows = (
+        query.order_by(ordering, PaymentTransaction.id.desc())
+        .offset(offset)
+        .limit(page_size)
+        .all()
+    )
+
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Page"] = str(page)
+    response.headers["X-Page-Size"] = str(page_size)
+    response.headers["X-Total-Pages"] = str((total + page_size - 1) // page_size)
+
+    transaction_ids = [transaction.id for transaction, *_ in rows]
+    completed_refund_transaction_ids = {
+        transaction_id
+        for (transaction_id,) in (
+            db.query(Refund.payment_transaction_id)
+            .filter(
+                Refund.payment_transaction_id.in_(transaction_ids),
+                Refund.status.in_(COMPLETED_REFUND_STATUSES),
+            )
+            .all()
+        )
+    } if transaction_ids else set()
+
+    anomalies = []
+    for transaction, booking, customer, vehicle, webhook_log, refund in rows:
+        log_result = webhook_log.process_result if webhook_log else None
+        anomaly_type = (
+            log_result
+            if log_result in ANOMALOUS_WEBHOOK_RESULTS
+            else "PENDING_REFUND"
+            if refund and refund.status == "PENDING"
+            else transaction.status
+        )
+        refund_is_pending = bool(refund and refund.status == "PENDING")
+        can_refund = (
+            refund_is_pending
+            and transaction.status in REFUNDABLE_TRANSACTION_STATUSES
+            and refund.amount > 0
+            and refund.amount <= transaction.amount
+            and transaction.id not in completed_refund_transaction_ids
+        )
+        anomalies.append(
+            PaymentAnomalyResponse(
+                id=transaction.id,
+                transaction_code=transaction.transaction_code,
+                provider_txn_id=transaction.provider_txn_id,
+                booking_id=booking.id,
+                customer_name=customer.full_name if customer else None,
+                booking_status=booking.status,
+                vehicle_name=(
+                    f"{vehicle.brand} {vehicle.model}".strip() if vehicle else None
+                ),
+                vehicle_plate=vehicle.plate_number if vehicle else None,
+                amount=float(transaction.amount),
+                transaction_status=transaction.status,
+                refund_id=refund.id if refund else None,
+                refund_status=refund.status if refund else None,
+                anomaly_type=anomaly_type,
+                reason=(
+                    refund.reason
+                    if refund and refund.status == "PENDING"
+                    else webhook_log.queue_reason
+                    if webhook_log
+                    else refund.reason if refund else None
+                ),
+                occurred_at=(
+                    webhook_log.processed_at or webhook_log.created_at
+                    if webhook_log
+                    else refund.created_at
+                    if refund
+                    else transaction.created_at
+                ),
+                can_refund=can_refund,
+            )
+        )
+    return anomalies
+
+
+@router.post(
+    "/operations/refunds/{refund_id}/confirm",
+    response_model=RefundResponse,
+    summary="Xác nhận xử lý hoàn tiền đang chờ (Admin/Operator)",
+)
+def confirm_pending_payment_refund(
+    refund_id: int,
+    request: PaymentAnomalyRefundConfirmRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_payment_operator),
+):
+    """Gọi gateway và chốt Refund PENDING; các lần xác nhận sau bị từ chối."""
+    try:
+        refund = (
+            db.query(Refund)
+            .filter(Refund.id == refund_id)
+            .with_for_update()
+            .first()
+        )
+        if not refund:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Không tìm thấy yêu cầu hoàn tiền.",
+            )
+        if refund.status != "PENDING":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Yêu cầu hoàn tiền đã được xử lý (trạng thái: {refund.status}).",
+            )
+        if not refund.payment_transaction_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Yêu cầu hoàn tiền chưa liên kết với giao dịch thanh toán.",
+            )
+
+        transaction = (
+            db.query(PaymentTransaction)
+            .filter(PaymentTransaction.id == refund.payment_transaction_id)
+            .with_for_update()
+            .first()
+        )
+        if not transaction:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Không tìm thấy giao dịch thanh toán liên kết với yêu cầu hoàn tiền.",
+            )
+        if transaction.status not in REFUNDABLE_TRANSACTION_STATUSES:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    "Giao dịch hiện không đủ điều kiện hoàn tiền "
+                    f"(trạng thái: {transaction.status})."
+                ),
+            )
+        completed_refund = (
+            db.query(Refund)
+            .filter(
+                Refund.payment_transaction_id == transaction.id,
+                Refund.id != refund.id,
+                Refund.status.in_(COMPLETED_REFUND_STATUSES),
+            )
+            .first()
+        )
+        if completed_refund:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Giao dịch này đã có một khoản hoàn tiền thành công.",
+            )
+        if refund.amount <= 0 or refund.amount > transaction.amount:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Số tiền hoàn không hợp lệ so với số tiền giao dịch.",
+            )
+
+        reason = (
+            request.reason.strip()
+            if request.reason and request.reason.strip()
+            else refund.reason or "Hoàn tiền giao dịch bất thường"
+        )
+        gateway_result = payment_gateway_service.process_refund(
+            transaction_code=transaction.transaction_code,
+            amount=float(refund.amount),
+            reason=reason,
+        )
+        if gateway_result.get("status") != "SUCCESS":
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Cổng thanh toán chưa xác nhận hoàn tiền. Vui lòng thử lại sau.",
+            )
+
+        refund.reason = reason
+        refund.status = "SUCCESS"
+        refund.processed_by = current_user.id
+        refund.processed_at = datetime.now()
+        if refund.amount >= transaction.amount:
+            transaction.status = "REFUNDED"
+        db.commit()
+        db.refresh(refund)
+        return refund
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Lỗi hệ thống khi xác nhận hoàn tiền.",
+        ) from exc
+
+
 @router.post(
     "/refund",
     response_model=RefundResponse,

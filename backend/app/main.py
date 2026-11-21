@@ -39,6 +39,7 @@ from app.routers import (
     store_staff,
     stores,
     vehicles,
+    vehicle_schedules
 )
 
 logger = logging.getLogger("ridehub.startup")
@@ -115,6 +116,7 @@ app.include_router(stores.router, prefix="/api")
 app.include_router(admin_reviews.router, prefix="/api")
 app.include_router(login.router)
 app.include_router(login.router, prefix="/api")
+app.include_router(vehicle_schedules.router, prefix="/api")
 
 # Phục vụ toàn bộ giao diện Frontend tĩnh qua HTTP (hỗ trợ Google OAuth & tránh lỗi file:///)
 frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))
