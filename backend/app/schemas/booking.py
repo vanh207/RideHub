@@ -92,3 +92,121 @@ class BookingCancelResponse(BaseModel):
     reservation_released: bool = False
     schedule_released: bool = False
     already_cancelled: bool = False
+
+
+# ==============================================================================
+# SCHEMAS DÀNH RIÊNG CHO CỬA HÀNG XÁC NHẬN / TỪ CHỐI ĐƠN (TF1A595)
+# ==============================================================================
+
+class StoreOrderConfirmRequest(BaseModel):
+    """Payload khi cửa hàng duyệt xác nhận đơn đặt xe."""
+    note: Optional[str] = Field(None, max_length=500, description="Ghi chú xác nhận của cửa hàng")
+
+
+class StoreOrderConfirmResponse(BaseModel):
+    """Kết quả phản hồi sau khi cửa hàng xác nhận đơn."""
+    success: bool = True
+    message: str = "Cửa hàng đã xác nhận duyệt đơn đặt xe thành công."
+    booking_id: int
+    status: str
+    confirmed_at: datetime
+    confirmed_by_user_id: Optional[int] = None
+    already_confirmed: bool = False
+
+
+class StoreOrderRejectRequest(BaseModel):
+    """Payload khi cửa hàng từ chối đơn đặt xe (bắt buộc kèm lý do)."""
+    reason: str = Field(
+        ...,
+        min_length=3,
+        max_length=500,
+        description="Lý do từ chối nhận đơn (bắt buộc: xe hỏng, hết xe, không đủ điều kiện eKYC,...)",
+        examples=["Xe gặp sự cố kỹ thuật đột xuất cần bảo dưỡng"]
+    )
+    note: Optional[str] = Field(None, max_length=500, description="Ghi chú nội bộ thêm")
+
+
+class StoreOrderRejectResponse(BaseModel):
+    """Kết quả phản hồi sau khi cửa hàng từ chối đơn."""
+    success: bool = True
+    message: str = "Đã từ chối đơn đặt xe và tự động kích hoạt hoàn 100% tiền cọc cho khách hàng."
+    booking_id: int
+    status: str
+    cancelled_at: Optional[datetime] = None
+    cancelled_by: Optional[str] = None
+    cancel_reason: Optional[str] = None
+    refund_amount: float = 0.0
+    refund_rate: float = 1.0
+    refund_status: Optional[str] = None
+    refund_id: Optional[int] = None
+    already_cancelled: bool = False
+
+
+class StoreOrderCustomerInfo(BaseModel):
+    id: int
+    full_name: str
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    cccd: Optional[str] = None
+    ekyc_status: str = "pass"
+
+
+class StoreOrderVehicleInfo(BaseModel):
+    id: int
+    name: str
+    license_plate: str
+    vehicle_type: Optional[str] = None
+    category_label: Optional[str] = None
+    image_url: Optional[str] = None
+
+
+class StoreOrderScheduleInfo(BaseModel):
+    start_time: datetime
+    end_time: datetime
+    duration_days: float
+    schedule_display: str
+
+
+class StoreOrderPricingInfo(BaseModel):
+    rental_amount: float
+    delivery_fee: float
+    deposit_amount: float
+    total_amount: float
+    paid_deposit: float
+    remaining_amount: float
+    collateral_note: Optional[str] = None
+
+
+class StoreOrderItem(BaseModel):
+    id: int
+    booking_code: str
+    store_id: Optional[int] = None
+    status: str
+    status_label: str
+    cancel_reason: Optional[str] = None
+    cancelled_by: Optional[str] = None
+    customer: StoreOrderCustomerInfo
+    vehicle: StoreOrderVehicleInfo
+    schedule: StoreOrderScheduleInfo
+    pricing: StoreOrderPricingInfo
+    created_at: datetime
+
+
+class StoreOrderKPIMetrics(BaseModel):
+    total_orders: int = 0
+    pending_orders: int = 0
+    approved_orders: int = 0
+    cancelled_orders: int = 0
+    total_deposit: float = 0.0
+    total_revenue: float = 0.0
+    remain_collection: float = 0.0
+
+
+class StoreOrderListResponse(BaseModel):
+    success: bool = True
+    total: int
+    page: int
+    page_size: int
+    metrics: StoreOrderKPIMetrics
+    orders: list[StoreOrderItem]
+
