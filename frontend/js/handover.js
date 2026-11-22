@@ -1228,6 +1228,31 @@ function bindEvents() {
 // BOOT
 // ─────────────────────────────────────────────────────────────────────────────
 function boot() {
+  // Đọc query parameters truyền từ trang danh sách đơn store-orders.html (nếu có)
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const bookingId = params.get('booking_id');
+    const customer = params.get('customer');
+    const phone = params.get('phone');
+    const vehicle = params.get('vehicle');
+    const plate = params.get('plate');
+    const deposit = params.get('deposit');
+
+    if (bookingId) state.contract.contractId = bookingId;
+    if (customer) {
+      state.contract.customerName = customer;
+      state.checkout.customerName = customer;
+      state.checkin.customerName = customer;
+    }
+    if (phone) state.contract.customerPhone = phone;
+    if (plate) state.contract.licensePlate = plate;
+    if (vehicle) {
+      state.contract.brand = vehicle;
+      state.contract.model = '';
+    }
+    if (deposit) state.contract.deposit = Number(deposit) || state.contract.deposit;
+  } catch (_) {}
+
   // Init checklists
   initChecklist('checkout');
   initChecklist('checkin');
