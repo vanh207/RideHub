@@ -20,6 +20,7 @@ from sqlalchemy.pool import StaticPool
 
 from app import models  # noqa: F401
 from app.db.session import Base
+from app.models.audit_log import AuditLog  # noqa: F401
 from app.models.booking import Booking
 from app.models.driver_license import DriverLicense
 from app.models.payment import PaymentTransaction, Refund, PaymentWebhookLog
@@ -160,8 +161,8 @@ def run_all_tests():
     txn_db = db.query(PaymentTransaction).filter(PaymentTransaction.transaction_code == txn_code).first()
     booking_db = db.query(Booking).filter(Booking.id == 1).first()
     assert txn_db.status == "SUCCESS"
-    assert booking_db.status == "BOOKED"
-    print("[PASSED] TC005: Xử lý Webhook thành công -> Giao dịch SUCCESS, Booking BOOKED (khóa xe).")
+    assert booking_db.status == "DEPOSIT_PAID"
+    print("[PASSED] TC005: Xử lý Webhook thành công -> Giao dịch SUCCESS, Booking DEPOSIT_PAID.")
 
     # TEST CASE 5: Kiểm tra chống lặp Idempotency (TF1B039-TC007)
     res_repeat = process_payment_webhook(payload=valid_payload, db=db)

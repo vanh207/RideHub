@@ -32,6 +32,14 @@ class Booking(Base):
             "end_time",
         ),
         Index("ix_bookings_status_hold_expires", "status", "hold_expires_at"),
+        Index(
+            "ix_bookings_end_start_status_vehicle_hold",
+            "end_time",
+            "start_time",
+            "status",
+            "vehicle_id",
+            "hold_expires_at",
+        ),
     )
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)

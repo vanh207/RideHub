@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 from types import SimpleNamespace
+from types import SimpleNamespace
 
 import pytest
 from fastapi import FastAPI
@@ -14,7 +15,7 @@ from app.core.config import Settings
 from app.core.dependencies import get_current_user
 from app.db.session import Base, get_db
 from app.models.booking import Booking
-from app.models.payment import PaymentTransaction, PaymentWebhookLog
+from app.models.payment import PaymentTransaction, PaymentWebhookLog, Refund
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.routers import payment as payment_router
@@ -224,6 +225,48 @@ def test_customer_cannot_simulate_or_refund_payments(payment_client):
     assert refunded.status_code == 403
 
 
+def test_failed_legacy_refund_gateway_does_not_update_payment(
+    payment_client, monkeypatch
+):
+    client, app, session_factory = payment_client
+    with session_factory() as db:
+        db.add(
+            PaymentTransaction(
+                booking_id=9401,
+                transaction_code="PAYOS_REFUND_FAILED",
+                provider="PAYOS",
+                amount=Decimal("200000"),
+                status="SUCCESS",
+            )
+        )
+        db.commit()
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+        id=900,
+        role="admin",
+    )
+    monkeypatch.setattr(
+        payment_router.payment_gateway_service,
+        "process_refund",
+        lambda **_kwargs: {"status": "FAILED"},
+    )
+
+    response = client.post(
+        "/api/payments/refund",
+        json={"transaction_code": "PAYOS_REFUND_FAILED"},
+    )
+
+    assert response.status_code == 502
+    with session_factory() as db:
+        transaction = (
+            db.query(PaymentTransaction)
+            .filter_by(transaction_code="PAYOS_REFUND_FAILED")
+            .one()
+        )
+        assert transaction.status == "SUCCESS"
+        assert db.get(Booking, 9401).status == "PENDING_PAYMENT"
+        assert db.query(Refund).count() == 0
+
+
 def test_expired_hold_is_terminal_and_releases_booking(payment_client):
     client, _, session_factory = payment_client
     with session_factory() as db:
@@ -327,10 +370,13 @@ def test_payos_webhook_rejects_amount_mismatch(payment_client, monkeypatch):
         )
         db.commit()
 
+    async def accept_signature(_payload):
+        return True
+
     monkeypatch.setattr(
         payment_router.payos_service,
         "verify_payment_webhook_data",
-        lambda _payload: True,
+        accept_signature,
     )
     response = client.post(
         "/api/payments/webhook/payos",
@@ -357,3 +403,166 @@ def test_payos_webhook_rejects_amount_mismatch(payment_client, monkeypatch):
         )
         assert transaction.status == "AMOUNT_MISMATCH"
         assert db.get(Booking, 9401).status == "PENDING_PAYMENT"
+
+
+def _seed_pending_payos_transaction(session_factory, order_code):
+    with session_factory() as db:
+        db.add(
+            PaymentTransaction(
+                booking_id=9401,
+                transaction_code=f"PAYOS_{order_code}",
+                provider="PAYOS",
+                provider_txn_id=f"payos-link-{order_code}",
+                amount=Decimal("200000"),
+                status="PENDING",
+                payment_method="QR_CODE",
+            )
+        )
+        db.commit()
+
+
+def _payos_webhook_body(order_code, amount):
+    return {
+        "code": "00",
+        "desc": "success",
+        "success": True,
+        "data": {
+            "orderCode": order_code,
+            "amount": amount,
+            "description": "Coc xe don 9401",
+            "reference": f"bank-ref-{order_code}",
+        },
+        "signature": "test-signature",
+    }
+
+
+async def _accept_payos_signature(_payload):
+    return True
+
+
+def test_payos_duplicate_webhook_is_idempotent(payment_client, monkeypatch):
+    client, _, session_factory = payment_client
+    order_code = 123458
+    _seed_pending_payos_transaction(session_factory, order_code)
+    monkeypatch.setattr(
+        payment_router.payos_service,
+        "verify_payment_webhook_data",
+        _accept_payos_signature,
+    )
+    body = _payos_webhook_body(order_code, 200000)
+
+    first = client.post("/api/payments/webhook/payos", json=body)
+    with session_factory() as db:
+        paid_at = (
+            db.query(PaymentTransaction)
+            .filter_by(transaction_code=f"PAYOS_{order_code}")
+            .one()
+            .paid_at
+        )
+    duplicate = client.post("/api/payments/webhook/payos", json=body)
+
+    assert first.status_code == duplicate.status_code == 200
+    assert first.json()["status"] == duplicate.json()["status"] == "OK"
+    assert "Idempotent" in duplicate.json()["message"]
+    with session_factory() as db:
+        transaction = (
+            db.query(PaymentTransaction)
+            .filter_by(transaction_code=f"PAYOS_{order_code}")
+            .one()
+        )
+        assert transaction.status == "SUCCESS"
+        assert transaction.paid_at == paid_at
+        assert db.get(Booking, 9401).status == "DEPOSIT_PAID"
+        assert db.query(Refund).count() == 0
+        assert [
+            log.process_result
+            for log in db.query(PaymentWebhookLog)
+            .filter_by(transaction_code=f"PAYOS_{order_code}")
+            .order_by(PaymentWebhookLog.id)
+            .all()
+        ] == ["SUCCESS", "IDEMPOTENT_IGNORED"]
+
+
+def test_payos_webhook_rejects_invalid_signature_without_state_change(
+    payment_client, monkeypatch
+):
+    client, _, session_factory = payment_client
+    order_code = 123459
+    _seed_pending_payos_transaction(session_factory, order_code)
+
+    monkeypatch.setattr(
+        payment_router.payos_service,
+        "verify_payment_webhook_data",
+        PayOSService(
+            client_id="test-client",
+            api_key="test-api",
+            checksum_key="test-checksum",
+        ).verify_payment_webhook_data,
+    )
+    response = client.post(
+        "/api/payments/webhook/payos",
+        json=_payos_webhook_body(order_code, 200000),
+    )
+
+    assert response.status_code == 401
+    with session_factory() as db:
+        transaction = (
+            db.query(PaymentTransaction)
+            .filter_by(transaction_code=f"PAYOS_{order_code}")
+            .one()
+        )
+        log = (
+            db.query(PaymentWebhookLog)
+            .filter_by(transaction_code=f"PAYOS_{order_code}")
+            .one()
+        )
+        assert transaction.status == "PENDING"
+        assert transaction.paid_at is None
+        assert db.get(Booking, 9401).status == "PENDING_PAYMENT"
+        assert db.query(Refund).count() == 0
+        assert log.signature_valid == "INVALID"
+        assert log.process_result == "REJECTED_INVALID_SIGNATURE"
+
+
+@pytest.mark.parametrize(
+    ("reported_amount", "direction", "difference"),
+    [(199000, "thiếu", "1000"), (201000, "thừa", "1000")],
+)
+def test_payos_webhook_records_under_and_overpayment(
+    payment_client, monkeypatch, reported_amount, direction, difference
+):
+    client, _, session_factory = payment_client
+    order_code = 123460 + (reported_amount > 200000)
+    _seed_pending_payos_transaction(session_factory, order_code)
+    monkeypatch.setattr(
+        payment_router.payos_service,
+        "verify_payment_webhook_data",
+        _accept_payos_signature,
+    )
+
+    response = client.post(
+        "/api/payments/webhook/payos",
+        json=_payos_webhook_body(order_code, reported_amount),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "OK"
+    with session_factory() as db:
+        transaction = (
+            db.query(PaymentTransaction)
+            .filter_by(transaction_code=f"PAYOS_{order_code}")
+            .one()
+        )
+        log = (
+            db.query(PaymentWebhookLog)
+            .filter_by(transaction_code=f"PAYOS_{order_code}")
+            .one()
+        )
+        assert transaction.status == "AMOUNT_MISMATCH"
+        assert db.get(Booking, 9401).status == "PENDING_PAYMENT"
+        assert db.query(Refund).count() == 0
+        assert log.signature_valid == "VALID"
+        assert log.process_result == "AMOUNT_MISMATCH"
+        assert log.payload["data"]["amount"] == reported_amount
+        assert direction in log.queue_reason
+        assert difference in log.queue_reason

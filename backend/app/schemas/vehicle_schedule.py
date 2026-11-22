@@ -34,3 +34,56 @@ class VehicleScheduleResponse(VehicleScheduleBase):
 
     class Config:
         from_attributes = True
+
+class ScheduleEventItem(BaseModel):
+    """Một ca hoạt động của xe (Đơn thuê, Bảo dưỡng, Vệ sinh)."""
+    id: str  # Ví dụ "booking-1" hoặc "schedule-5"
+    event_type: str  # "RENTAL", "MAINTENANCE", "CLEANING"
+    vehicle_id: int
+    vehicle_name: str
+    plate_number: str
+    title: str
+    start_time: datetime
+    end_time: datetime
+    status: str
+    customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
+    note: Optional[str] = None
+    has_conflict: bool = False
+    conflict_reason: Optional[str] = None
+    class Config:
+        from_attributes = True
+class ConflictAlert(BaseModel):
+    """Cảnh báo 2 ca bị trùng giờ trên cùng một phương tiện."""
+    vehicle_id: int
+    vehicle_name: str
+    plate_number: str
+    conflict_type: str  # "DOUBLE_BOOKING", "MAINTENANCE_OVERLAP"
+    event_id_1: str
+    event_id_2: str
+    description: str
+class MaintenanceAlert(BaseModel):
+    """Cảnh báo xe tới hạn hoặc đang trong ca bảo trì (FR-60)."""
+    vehicle_id: int
+    vehicle_name: str
+    plate_number: str
+    title: str
+    description: str
+    maintenance_date: datetime
+    status: str
+class ScheduleSummary(BaseModel):
+    """Chỉ số KPIs tổng quan trong khoảng thời gian xem."""
+    total_events: int
+    total_conflicts: int
+    total_maintenance_due: int
+    total_active_rentals: int
+class StoreVehicleScheduleOverview(BaseModel):
+    """Dữ liệu trả về đầy đủ cho giao diện Lịch xe & Cảnh báo cửa hàng."""
+    store_id: int
+    start_date: datetime
+    end_date: datetime
+    view_mode: str  # "day", "week", "month"
+    summary: ScheduleSummary
+    conflicts: list[ConflictAlert]
+    maintenance_alerts: list[MaintenanceAlert]
+    events: list[ScheduleEventItem]

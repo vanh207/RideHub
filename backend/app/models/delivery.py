@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, Integer, Numeric, String, Boolean, TIMESTAMP, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, Numeric, String, Boolean, TIMESTAMP, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.sql import func
 from app.db.session import Base
 
@@ -26,6 +26,9 @@ class DeliveryFeeZone(Base):
 
 class DeliveryPoint(Base):
     __tablename__ = "delivery_points"
+    __table_args__ = (
+        Index("ix_delivery_points_store_active_area", "store_id", "is_active", "area"),
+    )
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     store_id = Column(Integer, nullable=False)

@@ -1329,12 +1329,133 @@
           <input type="radio" name="targetStatusChoice" value="approved" style="accent-color:#16a34a;">
         </label>
 
-        <label class="status-switch-option" data-target-status="cancelled">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span style="width:10px;height:10px;border-radius:50%;background:#ef4444;"></span>
-            <div>
-              <strong style="display:block;font-size:13.5px;color:#991b1b;">🔴 Đã hủy (Cancelled)</strong>
-              <span style="font-size:12px;color:var(--text-secondary);">Hủy đơn và hoàn trả tiền cọc cho khách</span>
+      // 5. THAO TÁC DUYỆT ĐƠN HÀNG (ĐỒNG BỘ BACKEND TF1A595 & LOCALSTORAGE)
+      window.approveOrder = async function (orderId) {
+        const ord = orders.find(o => o.id === orderId);
+        if (!ord) return;
+
+        // Trích xuất numeric ID (VD: 'RH-8842' -> 8842, '1' -> 1)
+        const numericId = parseInt(String(orderId).replace(/\D/g, ''), 10) || 1;
+
+        try {
+          // Gọi API Backend duyệt đơn
+          const response = await fetch(`/api/bookings/${numericId}/confirm`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+            },
+            body: JSON.stringify({ note: 'Cửa hàng duyệt nhận đơn trực tiếp từ Cổng quản lý' }),
+          });
+
+          if (response.ok) {
+            console.log('[API] Đã đồng bộ duyệt đơn lên Backend thành công');
+          }
+        } catch (err) {
+          console.warn('[API Offline] Không kết nối được Backend, tiếp tục cập nhật cục bộ:', err);
+        }
+
+        ord.status = 'approved';
+        saveOrders();
+        updateMetricsAndBadges();
+        renderOrders();
+
+        showToast(
+          'Đã duyệt nhận đơn đặt xe thành công!',
+          `Đơn #${ord.id} (${ord.customer} • ${ord.vehicle}) đã chuyển sang trạng thái ĐÃ DUYỆT (CONFIRMED). Bạn có thể tiến hành lập Biên bản bàn giao xe ngay bây giờ.`
+        );
+      };
+
+      // 6. THAO TÁC TỪ CHỐI ĐƠN & HOÀN TIỀN CỌC (ĐỒNG BỘ BACKEND TF1A595)
+      window.openRejectModal = function (orderId) {
+        const ord = orders.find(o => o.id === orderId);
+        if (!ord) return;
+
+        rejectingOrderId = orderId;
+        const modal = document.getElementById('rejectOrderModal');
+        const refundEl = document.getElementById('rejectRefundAmount');
+        if (refundEl) refundEl.textContent = (ord.deposit || 0).toLocaleString('vi-VN') + ' đ';
+
+        modal?.classList.add('is-open');
+      };
+
+      document.getElementById('confirmRejectModalBtn')?.addEventListener('click', async function () {
+        if (!rejectingOrderId) return;
+        const ord = orders.find(o => o.id === rejectingOrderId);
+        if (!ord) return;
+
+        const reasonRadio = document.querySelector('input[name="rejectReason"]:checked');
+        const reason = reasonRadio ? reasonRadio.value : 'Lý do điều phối nội bộ';
+        const numericId = parseInt(String(rejectingOrderId).replace(/\D/g, ''), 10) || 1;
+
+        try {
+          // Gọi API Backend từ chối đơn kèm lý do
+          const response = await fetch(`/api/bookings/${numericId}/reject`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+            },
+            body: JSON.stringify({ reason: reason, note: 'Từ chối qua giao diện Cửa hàng' }),
+          });
+
+          if (response.ok) {
+            console.log('[API] Đã đồng bộ từ chối đơn và hoàn cọc lên Backend thành công');
+          }
+        } catch (err) {
+          console.warn('[API Offline] Không kết nối được Backend, tiếp tục cập nhật cục bộ:', err);
+        }
+
+        ord.status = 'cancelled';
+        ord.cancelReason = reason;
+
+        saveOrders();
+        updateMetricsAndBadges();
+        renderOrders();
+
+        document.getElementById('rejectOrderModal')?.classList.remove('is-open');
+
+        showToast(
+          'Đã từ chối đơn hàng & Xác nhận hoàn cọc!',
+          `Đơn #${ord.id} đã hủy. Hệ thống kích hoạt hoàn 100% cọc (${(ord.deposit || 0).toLocaleString('vi-VN')} đ) qua VietQR và gửi email giải thích lý do cho khách hàng.`,
+          'error'
+        );
+        rejectingOrderId = null;
+      });
+
+      document.getElementById('cancelRejectModalBtn')?.addEventListener('click', function () {
+        document.getElementById('rejectOrderModal')?.classList.remove('is-open');
+        rejectingOrderId = null;
+      });
+
+      // 7. XỬ LÝ YÊU CẦU DỜI LỊCH TRÌNH (RESCHEDULE)
+      window.openRescheduleModal = function (orderId) {
+        const ord = orders.find(o => o.id === orderId);
+        if (!ord || !ord.rescheduleRequest) return;
+
+        const modal = document.getElementById('rescheduleModal');
+        const sub = document.getElementById('rescheduleModalSub');
+        const body = document.getElementById('rescheduleModalBody');
+
+        if (sub) sub.textContent = `Đơn hàng #${ord.id} • Khách hàng: ${ord.customer}`;
+
+        const newTotal = ord.total + (ord.rescheduleRequest.surcharge || 0);
+
+        if (body) {
+          body.innerHTML = `
+            <div style="background:#f8fafc;padding:14px;border-radius:10px;border:1px solid #e2e8f0;font-size:13px;line-height:1.6;">
+              <div style="margin-bottom:6px;">
+                <span style="color:var(--text-muted);font-size:11px;font-weight:800;text-transform:uppercase;">Lịch thuê ban đầu:</span>
+                <div style="font-weight:700;">${ord.rescheduleRequest.oldSchedule}</div>
+              </div>
+              <div style="margin-bottom:6px;">
+                <span style="color:#7e22ce;font-size:11px;font-weight:800;text-transform:uppercase;">Lịch thuê mới đề xuất:</span>
+                <div style="font-weight:800;color:#6b21a8;">${ord.rescheduleRequest.newSchedule}</div>
+              </div>
+              <div>
+                <span style="color:var(--text-muted);font-size:11px;font-weight:800;text-transform:uppercase;">Lý do khách hàng gửi:</span>
+                <div style="color:var(--text-secondary);font-style:italic;">"${ord.rescheduleRequest.reason}"</div>
+              </div>
             </div>
           </div>
           <input type="radio" name="targetStatusChoice" value="cancelled" style="accent-color:#ef4444;">

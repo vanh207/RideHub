@@ -480,6 +480,152 @@ class EmailService:
 
         return self.send_raw(to_email, subject, html, text_content)
 
+    # --------------------------------------------------------------------------
+    # 4. THÔNG BÁO CỬA HÀNG XÁC NHẬN ĐƠN ĐẶT XE (TF1A595)
+    # --------------------------------------------------------------------------
+    def send_store_order_confirmation(
+        self,
+        to_email: str,
+        customer_name: str,
+        booking_id: Any,
+        vehicle_name: str,
+        license_plate: str,
+        start_time: str,
+        end_time: str,
+        store_name: str = "Trạm RideHub",
+        store_phone: str = "1900-7433",
+        store_address: str = "Trạm đối tác RideHub",
+    ) -> bool:
+        """Gửi email thông báo cửa hàng đã xác nhận duyệt đơn đặt xe."""
+        subject = f"[RideHub] Cửa hàng đã xác nhận đơn đặt xe #{booking_id}"
+        preheader = f"Đơn đặt xe #{booking_id} của bạn đã được {store_name} xác nhận chuẩn bị phương tiện."
+
+        body_html = f"""
+        <p>Xin chào <strong>{customer_name}</strong>,</p>
+        <p>Tin vui! Đơn đặt xe <strong>#{booking_id}</strong> của Quý khách đã được <strong>{store_name}</strong> duyệt xác nhận. Xe đang được vệ sinh, kiểm tra kỹ thuật để sẵn sàng bàn giao đúng lịch trình.</p>
+        
+        <table class="data-table">
+            <tr>
+                <td class="label">Mã đơn đặt xe</td>
+                <td class="value"><span class="badge badge-success">#{booking_id}</span></td>
+            </tr>
+            <tr>
+                <td class="label">Trạng thái</td>
+                <td class="value" style="color: #16a34a; font-weight: 700;">ĐÃ XÁC NHẬN (CONFIRMED)</td>
+            </tr>
+            <tr>
+                <td class="label">Phương tiện bàn giao</td>
+                <td class="value"><strong>{vehicle_name}</strong> ({license_plate})</td>
+            </tr>
+            <tr>
+                <td class="label">Thời gian nhận xe</td>
+                <td class="value">{start_time}</td>
+            </tr>
+            <tr>
+                <td class="label">Thời gian trả xe dự kiến</td>
+                <td class="value">{end_time}</td>
+            </tr>
+            <tr>
+                <td class="label">Cửa hàng phục vụ</td>
+                <td class="value"><strong>{store_name}</strong> - 📞 {store_phone}<br/><small>{store_address}</small></td>
+            </tr>
+        </table>
+
+        <div style="background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px; margin-top: 14px; font-size: 13px; color: #166534;">
+            🚗 <strong>Lưu ý nhận xe:</strong> Quý khách vui lòng có mặt đúng giờ và mang theo CCCD gắn chip cùng GPLX hợp lệ để ký Biên bản bàn giao điện tử.
+        </div>
+        """
+
+        text_content = (
+            f"Xin chào {customer_name},\n\n"
+            f"Đơn đặt xe #{booking_id} đã được {store_name} duyệt xác nhận thành công!\n"
+            f"- Phương tiện: {vehicle_name} ({license_plate})\n"
+            f"- Nhận xe: {start_time}\n"
+            f"- Trả xe: {end_time}\n"
+            f"- Cửa hàng: {store_name} (Hotline: {store_phone})\n\n"
+            f"RideHub chúc Quý khách một chuyến đi an toàn và thú vị!"
+        )
+
+        html = self._render_base_template(
+            title="Đơn Đặt Xe Đã Được Cửa Hàng Xác Nhận",
+            preheader=preheader,
+            body_html=body_html,
+        )
+        return self.send_raw(to_email, subject, html, text_content)
+
+    # --------------------------------------------------------------------------
+    # 5. THÔNG BÁO CỬA HÀNG TỪ CHỐI ĐƠN & HOÀN 100% CỌC (TF1A595)
+    # --------------------------------------------------------------------------
+    def send_store_order_rejection(
+        self,
+        to_email: str,
+        customer_name: str,
+        booking_id: Any,
+        vehicle_name: str,
+        reject_reason: str,
+        refund_amount: float = 0,
+        bank_name: str = "Tài khoản VietQR thanh toán ban đầu",
+    ) -> bool:
+        """Gửi email thông báo cửa hàng từ chối đơn đặt xe và thông tin hoàn 100% cọc."""
+        subject = f"[RideHub] Thông báo về đơn đặt xe #{booking_id} (Đã hủy & Hoàn cọc)"
+        preheader = f"Đơn đặt xe #{booking_id} không thể thực hiện do: {reject_reason}."
+
+        body_html = f"""
+        <p>Xin chào <strong>{customer_name}</strong>,</p>
+        <p>RideHub rất lấy làm tiếc phải thông báo rằng cửa hàng không thể tiếp nhận đơn đặt xe <strong>#{booking_id}</strong> của Quý khách vì lý do kỹ thuật/vận hành dưới đây:</p>
+        
+        <table class="data-table">
+            <tr>
+                <td class="label">Mã đơn đặt xe</td>
+                <td class="value">#{booking_id}</td>
+            </tr>
+            <tr>
+                <td class="label">Phương tiện đặt trước</td>
+                <td class="value">{vehicle_name}</td>
+            </tr>
+            <tr>
+                <td class="label">Trạng thái xử lý</td>
+                <td class="value" style="color: #dc2626; font-weight: 700;">TỪ CHỐI / ĐÃ HỦY (CANCELLED)</td>
+            </tr>
+            <tr>
+                <td class="label">Lý do từ chối</td>
+                <td class="value" style="color: #b91c1c; font-weight: 600;">{reject_reason}</td>
+            </tr>
+            <tr>
+                <td class="label">Chính sách bồi hoàn</td>
+                <td class="value" style="color: #16a34a; font-weight: 700;">Hoàn 100% tiền cọc (Không mất phí)</td>
+            </tr>
+            <tr>
+                <td class="label">Số tiền hoàn trả</td>
+                <td class="value" style="color: #16a34a; font-size: 15px; font-weight: 800;">{refund_amount:,.0f} VNĐ</td>
+            </tr>
+            <tr>
+                <td class="label">Kênh hoàn tiền</td>
+                <td class="value">{bank_name}</td>
+            </tr>
+        </table>
+
+        <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin-top: 14px; font-size: 13px; color: #991b1b;">
+            💳 <strong>Tiến độ hoàn cọc:</strong> Hệ thống đã tự động kích hoạt lệnh hoàn 100% tiền cọc qua cổng VietQR/PayOS. Quý khách vui lòng kiểm tra tài khoản ngân hàng trong vòng 15 - 30 phút.
+        </div>
+        """
+
+        text_content = (
+            f"Xin chào {customer_name},\n\n"
+            f"RideHub rất tiếc thông báo đơn đặt xe #{booking_id} ({vehicle_name}) đã bị từ chối.\n"
+            f"- Lý do: {reject_reason}\n"
+            f"- Hoàn cọc 100%: {refund_amount:,.0f} VNĐ về {bank_name}.\n\n"
+            f"Mọi thắc mắc xin vui lòng liên hệ tổng đài 1900-7433 để được nhân viên hỗ trợ đổi xe tương đương."
+        )
+
+        html = self._render_base_template(
+            title="Thông Báo Từ Chối Đơn Đặt Xe",
+            preheader=preheader,
+            body_html=body_html,
+        )
+        return self.send_raw(to_email, subject, html, text_content)
+
+
 
 # Khởi tạo một singleton instance dùng chung toàn ứng dụng backend
 email_service = EmailService()

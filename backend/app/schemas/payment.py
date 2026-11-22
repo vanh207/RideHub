@@ -106,6 +106,36 @@ class PaymentRefundRequest(BaseModel):
     reason: Optional[str] = Field("Khách hàng hủy đặt xe hợp lệ", description="Lý do hoàn tiền")
 
 
+class PaymentAnomalyResponse(BaseModel):
+    id: int
+    transaction_code: str
+    provider_txn_id: Optional[str] = None
+    booking_id: int
+    booking_status: Optional[str] = None
+    customer_name: Optional[str] = None
+    vehicle_name: Optional[str] = None
+    vehicle_plate: Optional[str] = None
+    amount: float
+    transaction_status: str
+    refund_id: Optional[int] = None
+    refund_status: Optional[str] = None
+    anomaly_type: str
+    reason: Optional[str] = None
+    occurred_at: Optional[datetime] = None
+    can_refund: bool
+
+    class Config:
+        from_attributes = True
+
+
+class PaymentAnomalyRefundConfirmRequest(BaseModel):
+    reason: Optional[str] = Field(
+        None,
+        max_length=500,
+        description="Ghi chú của nhân viên vận hành khi xác nhận hoàn tiền",
+    )
+
+
 class PaymentSimulateRequest(BaseModel):
     """Yêu cầu giả lập thanh toán nhanh qua Swagger (Simulator tool)."""
     transaction_code: str = Field(..., description="Mã giao dịch cần mô phỏng")
