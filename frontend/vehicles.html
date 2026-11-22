@@ -14,6 +14,40 @@
   <link rel="stylesheet" href="css/components/site-footer.css" />
   <link rel="stylesheet" href="css/components/chat-widget.css" />
   <link rel="stylesheet" href="css/pages/search.css" />
+  <style>
+    /* Custom Scrollbar & Modal Refinement Cho Popup Chi Tiết Xe */
+    #vehicleDetailModal .modal-dialog {
+      border-radius: 20px;
+      padding: 24px;
+      max-height: 90vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #86efac transparent;
+      box-shadow: 0 25px 60px -15px rgba(20, 83, 45, 0.25);
+    }
+    #vehicleDetailModal .modal-dialog::-webkit-scrollbar {
+      width: 6px;
+    }
+    #vehicleDetailModal .modal-dialog::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #vehicleDetailModal .modal-dialog::-webkit-scrollbar-thumb {
+      background: #bbf7d0;
+      border-radius: 999px;
+    }
+    #vehicleDetailModal .modal-dialog::-webkit-scrollbar-thumb:hover {
+      background: #86efac;
+    }
+    #detailImageBox {
+      background: linear-gradient(145deg, #f0fdf4 0%, #e6f7ec 100%) !important;
+      border: 1.5px solid #dcfce7 !important;
+      border-radius: 16px !important;
+      padding: 16px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+  </style>
 </head>
 <body>
   <div class="noise-overlay" aria-hidden="true"></div>
@@ -817,9 +851,72 @@
 
     function getVehSvg(v) {
       if (v.type === 'car') {
-        return `<svg viewBox="0 0 180 96" width="100%" height="110" fill="none"><rect width="180" height="96" rx="12" fill="#ecfdf5"/><circle cx="50" cy="68" r="14" fill="#14532d"/><circle cx="50" cy="68" r="7" fill="#bbf7d0"/><circle cx="130" cy="68" r="14" fill="#14532d"/><circle cx="130" cy="68" r="7" fill="#bbf7d0"/><path d="M28 66c0-12 8-22 20-24l22-18h50l24 16c14 4 20 14 20 26H28z" fill="#22c55e" opacity="0.85" stroke="#15803d" stroke-width="2.5"/><path d="M68 26l-14 16h40V26H68zm30 0v16h34l-14-16H98z" fill="#f0fdf4" stroke="#15803d" stroke-width="1.5"/></svg>`;
+        return `<svg viewBox="0 0 240 120" width="100%" height="135" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="carBodyGrad_${v.id || 'c'}" x1="0" y1="0" x2="240" y2="120" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#22c55e"/>
+              <stop offset="60%" stop-color="#16a34a"/>
+              <stop offset="100%" stop-color="#14532d"/>
+            </linearGradient>
+            <linearGradient id="carGlassGrad_${v.id || 'c'}" x1="80" y1="20" x2="160" y2="60" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#f0fdf4"/>
+              <stop offset="100%" stop-color="#bbf7d0"/>
+            </linearGradient>
+          </defs>
+          <!-- Bóng đổ xe -->
+          <ellipse cx="120" cy="106" rx="95" ry="8" fill="#132a1c" opacity="0.12"/>
+          <!-- Bánh xe & Vành mâm thể thao -->
+          <circle cx="62" cy="90" r="22" fill="#0f172a"/>
+          <circle cx="62" cy="90" r="14" fill="#334155"/>
+          <circle cx="62" cy="90" r="7" fill="#e2e8f0"/>
+          <circle cx="178" cy="90" r="22" fill="#0f172a"/>
+          <circle cx="178" cy="90" r="14" fill="#334155"/>
+          <circle cx="178" cy="90" r="7" fill="#e2e8f0"/>
+          <!-- Khung gầm & Thân vỏ khí động học -->
+          <path d="M26 80C26 70 34 64 45 64L72 38C78 32 86 30 96 30H150C160 30 170 36 178 46L202 64C214 66 222 72 222 82C222 90 216 92 204 92H40C30 92 26 88 26 80Z" fill="url(#carBodyGrad_${v.id || 'c'})"/>
+          <!-- Kính xe & Cột nóc -->
+          <path d="M78 42L98 34H144C150 34 156 38 162 44L174 62H70L78 42Z" fill="url(#carGlassGrad_${v.id || 'c'})" opacity="0.95"/>
+          <!-- Viền kính phân cách cửa xe -->
+          <line x1="124" y1="34" x2="124" y2="62" stroke="#15803d" stroke-width="2.5"/>
+          <!-- Đèn pha LED trước -->
+          <path d="M210 68L222 74L212 78Z" fill="#fef08a"/>
+          <!-- Đèn hậu LED sau -->
+          <rect x="25" y="70" width="6" height="8" rx="2" fill="#ef4444"/>
+          <!-- Đường gân dập nổi thể thao -->
+          <path d="M52 72H198" stroke="#86efac" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+        </svg>`;
       }
-      return `<svg viewBox="0 0 180 96" width="100%" height="110" fill="none"><rect width="180" height="96" rx="12" fill="#f0fdf4"/><circle cx="48" cy="68" r="14" fill="#14532d"/><circle cx="48" cy="68" r="6" fill="#bbf7d0"/><circle cx="132" cy="68" r="14" fill="#14532d"/><circle cx="132" cy="68" r="6" fill="#bbf7d0"/><path d="M48 68c0-8 6-16 16-16h24l16-24h20l-12 24h18" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M76 52l12-20h22" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"/><path d="M78 48c10-14 26-14 36 0" fill="#22c55e" opacity="0.6"/></svg>`;
+      return `<svg viewBox="0 0 240 120" width="100%" height="135" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="motoGrad_${v.id || 'm'}" x1="0" y1="0" x2="240" y2="120" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#4ade80"/>
+            <stop offset="60%" stop-color="#16a34a"/>
+            <stop offset="100%" stop-color="#15803d"/>
+          </linearGradient>
+        </defs>
+        <!-- Bóng xe -->
+        <ellipse cx="120" cy="106" rx="88" ry="7" fill="#132a1c" opacity="0.12"/>
+        <!-- Bánh sau -->
+        <circle cx="58" cy="85" r="21" fill="#0f172a"/>
+        <circle cx="58" cy="85" r="13" fill="#334155"/>
+        <circle cx="58" cy="85" r="6" fill="#cbd5e1"/>
+        <!-- Bánh trước -->
+        <circle cx="182" cy="85" r="21" fill="#0f172a"/>
+        <circle cx="182" cy="85" r="13" fill="#334155"/>
+        <circle cx="182" cy="85" r="6" fill="#cbd5e1"/>
+        <!-- Ốp phuộc & Giảm xóc trước -->
+        <line x1="154" y1="36" x2="182" y2="85" stroke="#15803d" stroke-width="4.5" stroke-linecap="round"/>
+        <!-- Thân vỏ xe điện VinFast Feliz / Dat Bike -->
+        <path d="M58 85L84 62H118L106 85H142L162 52L146 36H118C98 36 78 50 70 70L58 85Z" fill="url(#motoGrad_${v.id || 'm'})"/>
+        <!-- Khối pin lithium & cốp xe -->
+        <path d="M88 64Q116 38 144 64Z" fill="#bbf7d0" opacity="0.9"/>
+        <!-- Yên xe công thái học màu tối -->
+        <path d="M84 46C96 42 124 40 144 46C140 50 126 52 84 52V46Z" fill="#1e293b"/>
+        <!-- Tay lái & Ghi đông điện -->
+        <path d="M146 36L158 20H176" stroke="#0f172a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Đèn LED ban ngày DRL -->
+        <circle cx="166" cy="38" r="4" fill="#fef08a"/>
+      </svg>`;
     }
 
     const FAV_KEY = 'ridehub_favorite_vehicles';
