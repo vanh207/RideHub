@@ -1481,6 +1481,11 @@ def process_payment_refund(
             amount=refund_amount,
             reason=request.reason or "Khách hàng hủy chuyến hợp lệ",
         )
+        if gateway_refund_res.get("status") != "SUCCESS":
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Cổng thanh toán chưa xác nhận hoàn tiền. Vui lòng thử lại sau.",
+            )
 
         # B5. Tạo bản ghi Refund trong CSDL
         refund_record = Refund(
