@@ -12,6 +12,7 @@ Chức năng:
 import re
 import unicodedata
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, Optional
 from urllib.parse import parse_qsl, quote_plus, urlencode, urlsplit, urlunsplit
 
@@ -312,10 +313,10 @@ class PayOSService:
                 detail="Không thể hủy liên kết thanh toán PayOS.",
             ) from exc
 
-    def verify_payment_webhook_data(self, webhook_body: Dict[str, Any]) -> Any:
+    async def verify_payment_webhook_data(self, webhook_body: Dict[str, Any]) -> Any:
         """Xác thực chữ ký dữ liệu Webhook từ PayOS."""
         client = self._get_client()
-        return client.verifyPaymentWebhookData(webhook_body)
+        return await client.verifyPaymentWebhookData(webhook_body)
 
     async def process_payos_webhook(
         self,
@@ -352,7 +353,7 @@ class PayOSService:
         try:
             # B1. Xác thực chữ ký từ PayOS SDK (sử dụng PAYOS_CHECKSUM_KEY)
             try:
-                verified_data = self.verify_payment_webhook_data(webhook_body)
+                verified_data = await self.verify_payment_webhook_data(webhook_body)
                 is_valid = True
             except Exception:
                 is_valid = False
@@ -459,20 +460,35 @@ class PayOSService:
             if is_success:
                 reported_amount = data_block.get("amount")
                 try:
-                    amount_matches = (
-                        not isinstance(reported_amount, bool)
-                        and float(reported_amount) == float(transaction.amount)
-                    )
-                except (TypeError, ValueError):
+                    if isinstance(reported_amount, bool):
+                        raise InvalidOperation
+                    actual_amount = Decimal(str(reported_amount))
+                    expected_amount = Decimal(str(transaction.amount))
+                    if not actual_amount.is_finite():
+                        raise InvalidOperation
+                    amount_matches = actual_amount == expected_amount
+                except (InvalidOperation, TypeError, ValueError):
+                    actual_amount = None
+                    expected_amount = Decimal(str(transaction.amount))
                     amount_matches = False
 
                 if not amount_matches:
                     transaction.status = "AMOUNT_MISMATCH"
                     transaction.paid_at = datetime.now()
                     webhook_log.process_result = "AMOUNT_MISMATCH"
-                    webhook_log.queue_reason = (
-                        "Số tiền PayOS báo không khớp số tiền của giao dịch."
-                    )
+                    if actual_amount is None:
+                        webhook_log.queue_reason = (
+                            "Số tiền PayOS báo không hợp lệ; "
+                            f"số tiền giao dịch yêu cầu là {expected_amount:f} VND."
+                        )
+                    else:
+                        difference = abs(expected_amount - actual_amount)
+                        direction = "thiếu" if actual_amount < expected_amount else "thừa"
+                        webhook_log.queue_reason = (
+                            f"Thanh toán {direction} {difference:f} VND: "
+                            f"yêu cầu {expected_amount:f} VND, "
+                            f"PayOS báo {actual_amount:f} VND."
+                        )
                     db.commit()
                     return {
                         "status": "OK",
