@@ -79,6 +79,7 @@
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
+
     .portal-nav-links::-webkit-scrollbar {
       display: none;
     }
@@ -174,11 +175,13 @@
         flex-wrap: wrap;
         padding: 8px 12px;
       }
+
       .portal-nav-links {
         order: 3;
         width: 100%;
         justify-content: flex-start;
       }
+
       .portal-station-pill {
         display: none;
       }
@@ -188,18 +191,22 @@
       .portal-brand-text {
         font-size: 17px !important;
       }
+
       .portal-brand-badge {
         font-size: 9.5px !important;
         padding: 2px 6px !important;
       }
+
       .portal-nav-pill {
         font-size: 12px;
         padding: 5px 10px;
       }
+
       .portal-btn-back {
         font-size: 11.5px;
         padding: 5px 10px;
       }
+
       .kpi-metrics-grid {
         grid-template-columns: 1fr 1fr;
       }
@@ -296,6 +303,7 @@
       .orders-layout-grid {
         grid-template-columns: 1fr;
       }
+
       .store-side-menu {
         display: none;
       }
@@ -444,7 +452,7 @@
       color: #0f172a;
       padding: 14px 18px;
       border-radius: 12px;
-      box-shadow: 0 12px 30px -6px rgba(0,0,0,0.22);
+      box-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.22);
       font-size: 13.5px;
       pointer-events: auto;
       display: flex;
@@ -459,9 +467,17 @@
     }
 
     @keyframes toastSlideIn {
-      from { transform: translateX(50px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+      from {
+        transform: translateX(50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
+
     /* Modal Detail Vehicle Theme RideHub (Form Chuẩn Mẫu) */
     .modal-box-soft {
       padding: 14px 16px;
@@ -579,13 +595,16 @@
     .app-modal-dialog::-webkit-scrollbar {
       width: 6px;
     }
+
     .app-modal-dialog::-webkit-scrollbar-track {
       background: transparent;
     }
+
     .app-modal-dialog::-webkit-scrollbar-thumb {
       background: #bbf7d0;
       border-radius: 999px;
     }
+
     .app-modal-dialog::-webkit-scrollbar-thumb:hover {
       background: #86efac;
     }
@@ -698,6 +717,7 @@
       .reschedule-compare-grid {
         grid-template-columns: 1fr;
       }
+
       .reschedule-arrow-col {
         transform: rotate(90deg);
         margin: 6px 0;
@@ -792,13 +812,16 @@
   <div class="noise-overlay" aria-hidden="true"></div>
 
   <!-- Toast Floating Container -->
-  <div id="toastContainer" style="position:fixed;top:24px;right:24px;z-index:999999;display:flex;flex-direction:column;gap:12px;pointer-events:none;"></div>
+  <div id="toastContainer"
+    style="position:fixed;top:24px;right:24px;z-index:999999;display:flex;flex-direction:column;gap:12px;pointer-events:none;">
+  </div>
 
   <!-- Header / Navbar Cửa Hàng Đồng Bộ Responsive Pill -->
   <header class="portal-nav">
     <div class="container portal-nav-inner">
       <a href="../index.html" class="portal-brand-wrap" aria-label="RideHub Homepage">
-        <svg width="34" height="34" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+        <svg width="34" height="34" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"
+          style="flex-shrink:0;">
           <defs>
             <linearGradient id="navLogoBg" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stop-color="#22c55e" />
@@ -811,14 +834,18 @@
             </linearGradient>
           </defs>
           <rect x="2" y="2" width="40" height="40" rx="12" fill="url(#navLogoBg)" />
-          <path d="M14 32V13C14 13 19 11 25 11C31 11 35 14 35 19C35 23 31 26 25 26H14" stroke="url(#navLogoTrack)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M14 32V13C14 13 19 11 25 11C31 11 35 14 35 19C35 23 31 26 25 26H14" stroke="url(#navLogoTrack)"
+            stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M22 25L32 34" stroke="url(#navLogoTrack)" stroke-width="3.2" stroke-linecap="round" />
           <circle cx="33" cy="13" r="3" fill="#86efac" />
         </svg>
-        <span class="portal-brand-text" style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text-primary);">
+        <span class="portal-brand-text"
+          style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text-primary);">
           Ride<span style="color:var(--green-600);">Hub</span>
         </span>
-        <span class="portal-brand-badge" style="font-size:10.5px;font-weight:800;letter-spacing:0.8px;padding:3px 8px;border-radius:999px;background:var(--green-100);color:var(--green-800);text-transform:uppercase;margin-left:2px;">Cổng Cửa Hàng</span>
+        <span class="portal-brand-badge"
+          style="font-size:10.5px;font-weight:800;letter-spacing:0.8px;padding:3px 8px;border-radius:999px;background:var(--green-100);color:var(--green-800);text-transform:uppercase;margin-left:2px;">Cổng
+          Cửa Hàng</span>
       </a>
 
       <!-- 3 Nút Chức Năng Cửa Hàng Đồng Bộ Phong Cách Pill Active -->
@@ -848,7 +875,8 @@
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
         <div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
-            <span class="status-badge" style="background:rgba(255,255,255,0.2);color:#ffffff;border:1px solid rgba(255,255,255,0.3);font-size:11px;font-weight:800;letter-spacing:0.8px;">
+            <span class="status-badge"
+              style="background:rgba(255,255,255,0.2);color:#ffffff;border:1px solid rgba(255,255,255,0.3);font-size:11px;font-weight:800;letter-spacing:0.8px;">
               💎 ĐỐI TÁC KIM CƯƠNG RIDEHUB
             </span>
             <span style="font-size:13px;color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:4px;">
@@ -859,13 +887,18 @@
             Duyệt &amp; Quản Lý Đơn Đặt Xe — Trạm GreenRide Q.1
           </h1>
           <p style="font-size:14px;color:rgba(255,255,255,0.88);margin:0;max-width:760px;line-height:1.6;">
-            Thẩm định hồ sơ eKYC khách thuê, phê duyệt giữ chỗ nhận xe, xử lý yêu cầu dời lịch trình tự động và liên kết lập biên bản bàn giao điện tử 6 phần có chữ ký số.
+            Thẩm định hồ sơ eKYC khách thuê, phê duyệt giữ chỗ nhận xe, xử lý yêu cầu dời lịch trình tự động và liên kết
+            lập biên bản bàn giao điện tử 6 phần có chữ ký số.
           </p>
         </div>
 
-        <div style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);padding:14px 18px;border-radius:12px;text-align:right;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.75);">Địa chỉ trạm chính</div>
-          <div style="font-size:13.5px;font-weight:700;color:#ffffff;margin:2px 0;">120 Nguyễn Huệ, P. Bến Nghé, Q.1, TP.HCM</div>
+        <div
+          style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);padding:14px 18px;border-radius:12px;text-align:right;">
+          <div
+            style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:rgba(255,255,255,0.75);">
+            Địa chỉ trạm chính</div>
+          <div style="font-size:13.5px;font-weight:700;color:#ffffff;margin:2px 0;">120 Nguyễn Huệ, P. Bến Nghé, Q.1,
+            TP.HCM</div>
           <div style="font-size:12px;color:rgba(255,255,255,0.85);">Hotline trạm xe: <strong>0902.222.222</strong></div>
         </div>
       </div>
@@ -881,7 +914,10 @@
       <div class="kpi-metric-card">
         <div class="kpi-title">
           <span>Tổng số đơn đặt xe</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <path d="M16 2v4M8 2v4M3 10h18" />
+          </svg>
         </div>
         <div class="kpi-value" id="kpiTotalOrders">5</div>
         <div class="kpi-sub">Toàn bộ hồ sơ trên hệ thống</div>
@@ -891,7 +927,8 @@
       <div class="kpi-metric-card" style="border-color:#fde68a;">
         <div class="kpi-title" style="color:#b45309;">
           <span>Cần duyệt gấp</span>
-          <span style="display:inline-flex;width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 6px #f59e0b;"></span>
+          <span
+            style="display:inline-flex;width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 6px #f59e0b;"></span>
         </div>
         <div class="kpi-value" id="kpiPendingOrders" style="color:#b45309;">2</div>
         <div class="kpi-sub">Cần cửa hàng xác nhận giữ xe</div>
@@ -901,7 +938,9 @@
       <div class="kpi-metric-card" style="border-color:#bbf7d0;">
         <div class="kpi-title" style="color:#15803d;">
           <span>Đã duyệt & Sẵn sàng</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
         </div>
         <div class="kpi-value" id="kpiApprovedOrders" style="color:#15803d;">2</div>
         <div class="kpi-sub">Sẵn sàng lập biên bản bàn giao</div>
@@ -911,7 +950,9 @@
       <div class="kpi-metric-card" style="border-color:#e9d5ff;">
         <div class="kpi-title" style="color:#7e22ce;">
           <span>Yêu cầu dời lịch</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7e22ce" stroke-width="2"><path d="M12 8v4l3 3M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7e22ce" stroke-width="2">
+            <path d="M12 8v4l3 3M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z" />
+          </svg>
         </div>
         <div class="kpi-value" id="kpiRescheduleOrders" style="color:#7e22ce;">1</div>
         <div class="kpi-sub">Khách xin gia hạn / đổi ngày</div>
@@ -921,10 +962,14 @@
       <div class="kpi-metric-card" style="background:linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);">
         <div class="kpi-title" style="color:var(--green-900);">
           <span>Cọc VietQR đã nhận (30%)</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+          </svg>
         </div>
         <div class="kpi-value" id="kpiTotalDeposit" style="font-size:1.35rem;color:var(--green-800);">1.399.500 đ</div>
-        <div class="kpi-sub">Còn lại thu lúc giao: <strong id="kpiRemainCollection" style="color:#b91c1c;">3.265.500 đ</strong></div>
+        <div class="kpi-sub">Còn lại thu lúc giao: <strong id="kpiRemainCollection" style="color:#b91c1c;">3.265.500
+            đ</strong></div>
       </div>
     </div>
 
@@ -935,44 +980,70 @@
       <aside class="store-side-menu">
         <div class="panel-card" style="padding:18px;border:1px solid var(--green-200);box-shadow:var(--shadow-soft);">
           <!-- Station Profile Info -->
-          <div style="display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--green-100);">
-            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;display:grid;place-items:center;font-weight:800;font-size:17px;box-shadow:var(--shadow-soft);">GR</div>
+          <div
+            style="display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--green-100);">
+            <div
+              style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;display:grid;place-items:center;font-weight:800;font-size:17px;box-shadow:var(--shadow-soft);">
+              GR</div>
             <div style="flex:1;min-width:0;">
-              <strong style="font-size:14.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--green-950);">GreenRide Q.1</strong>
-              <span class="status-badge status-badge--available" style="font-size:10px;padding:1px 6px;">Cửa Hàng Xác Thực</span>
+              <strong
+                style="font-size:14.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--green-950);">GreenRide
+                Q.1</strong>
+              <span class="status-badge status-badge--available" style="font-size:10px;padding:1px 6px;">Cửa Hàng Xác
+                Thực</span>
             </div>
           </div>
 
-          <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin:16px 0 10px;">
+          <div
+            style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin:16px 0 10px;">
             MENU QUẢN TRỊ CỬA HÀNG
           </div>
 
           <div style="display:flex;flex-direction:column;gap:6px;">
             <a href="store-orders.html" class="side-nav-item is-active">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
               <span>Duyệt / Hủy đơn thuê</span>
-              <span id="sidebarPendingCount" style="margin-left:auto;background:#ef4444;color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;">2</span>
+              <span id="sidebarPendingCount"
+                style="margin-left:auto;background:#ef4444;color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;">2</span>
             </a>
 
             <a href="handover.html" class="side-nav-item">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+              </svg>
               <span>Biên bản bàn giao xe</span>
             </a>
 
             <a href="test-cases.html" class="side-nav-item">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M5 11l2-6h10l2 6"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="10" rx="2" />
+                <circle cx="7" cy="18" r="2" />
+                <circle cx="17" cy="18" r="2" />
+                <path d="M5 11l2-6h10l2 6" />
+              </svg>
               <span>Bảng kiểm thử QA</span>
             </a>
 
             <a href="../vehicles.html" class="side-nav-item">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h10l3 5v4h-2M9 17h6"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="7" cy="17" r="2" />
+                <circle cx="17" cy="17" r="2" />
+                <path d="M5 17H3v-4l2-5h10l3 5v4h-2M9 17h6" />
+              </svg>
               <span>Kho xe RideHub</span>
             </a>
           </div>
 
           <!-- Quick Tip Box -->
-          <div style="margin-top:20px;padding:12px;border-radius:10px;background:var(--green-50);border:1px dashed var(--green-300);font-size:12px;color:var(--green-900);line-height:1.5;">
-            <strong>💡 Quy chuẩn BR-25:</strong> Khi duyệt đơn xe máy/ô tô, hệ thống tự động thẩm định eKYC. Khách đạt chuẩn sẽ được giảm hoặc miễn tiền cọc thế chấp.
+          <div
+            style="margin-top:20px;padding:12px;border-radius:10px;background:var(--green-50);border:1px dashed var(--green-300);font-size:12px;color:var(--green-900);line-height:1.5;">
+            <strong>💡 Quy chuẩn BR-25:</strong> Khi duyệt đơn xe máy/ô tô, hệ thống tự động thẩm định eKYC. Khách đạt
+            chuẩn sẽ được giảm hoặc miễn tiền cọc thế chấp.
           </div>
         </div>
       </aside>
@@ -981,24 +1052,39 @@
       <section style="display:flex;flex-direction:column;gap:18px;">
 
         <!-- BANNER TÍCH HỢP BIÊN BẢN GIAO NHẬN & TEST CASES (SPRINT 2) -->
-        <div class="panel-card" style="padding:16px 20px;background:linear-gradient(135deg,#f0fdf4 0%,#ffffff 100%);border:1.5px solid var(--green-300);">
+        <div class="panel-card"
+          style="padding:16px 20px;background:linear-gradient(135deg,#f0fdf4 0%,#ffffff 100%);border:1.5px solid var(--green-300);">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
             <div>
               <div style="display:flex;align-items:center;gap:8px;">
-                <span class="status-badge status-badge--available" style="font-size:10px;font-weight:800;">SPRINT 2 • TÍCH HỢP ĐẦY ĐỦ</span>
-                <strong style="color:var(--green-900);font-size:14.5px;">Biên Bản Giao/Nhận Xe Điện Tử &amp; Bảng Kiểm Thử QA</strong>
+                <span class="status-badge status-badge--available" style="font-size:10px;font-weight:800;">SPRINT 2 •
+                  TÍCH HỢP ĐẦY ĐỦ</span>
+                <strong style="color:var(--green-900);font-size:14.5px;">Biên Bản Giao/Nhận Xe Điện Tử &amp; Bảng Kiểm
+                  Thử QA</strong>
               </div>
               <p style="font-size:12.5px;color:var(--text-secondary);margin:4px 0 0;line-height:1.5;">
-                Bạn có thể tạo biên bản bàn giao xe điện tử có chữ ký số hoặc đối soát 15 kịch bản kiểm thử Sprint 2 trực tiếp:
+                Bạn có thể tạo biên bản bàn giao xe điện tử có chữ ký số hoặc đối soát 15 kịch bản kiểm thử Sprint 2
+                trực tiếp:
               </p>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <a href="handover.html" class="btn btn-outline btn-sm" style="background:#fff;border-color:var(--green-400);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+              <a href="handover.html" class="btn btn-outline btn-sm"
+                style="background:#fff;border-color:var(--green-400);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                </svg>
                 Lập Biên bản giao/nhận xe →
               </a>
-              <a href="test-cases.html" class="btn btn-outline btn-sm" style="background:#fff;border-color:var(--green-400);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M5 11l2-6h10l2 6"/></svg>
+              <a href="test-cases.html" class="btn btn-outline btn-sm"
+                style="background:#fff;border-color:var(--green-400);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="10" rx="2" />
+                  <circle cx="7" cy="18" r="2" />
+                  <circle cx="17" cy="18" r="2" />
+                  <path d="M5 11l2-6h10l2 6" />
+                </svg>
                 Bảng 15 Test Cases QA →
               </a>
             </div>
@@ -1007,14 +1093,17 @@
 
         <!-- Filter & Search Toolbar -->
         <div class="panel-card" style="padding:18px 20px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:16px;">
+          <div
+            style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:16px;">
             <div>
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
                 <h2 style="margin:0;font-size:1.25rem;color:var(--green-950);">Danh Sách Đơn Đặt Xe Từ Khách Thuê</h2>
-                <span id="apiStatusBadge" class="status-badge" style="background:#fef3c7;color:#b45309;font-size:11px;font-weight:700;">
+                <span id="apiStatusBadge" class="status-badge"
+                  style="background:#fef3c7;color:#b45309;font-size:11px;font-weight:700;">
                   <span class="status-dot" style="background:#f59e0b;"></span> Đang kiểm tra API...
                 </span>
-                <button type="button" class="btn btn-soft btn-sm" onclick="window.refreshOrdersFromApi()" style="padding:2px 8px;font-size:11px;min-height:26px;" title="Tải lại từ API">
+                <button type="button" class="btn btn-soft btn-sm" onclick="window.refreshOrdersFromApi()"
+                  style="padding:2px 8px;font-size:11px;min-height:26px;" title="Tải lại từ API">
                   🔄 Đồng bộ
                 </button>
               </div>
@@ -1025,29 +1114,39 @@
 
             <!-- Search Input -->
             <div style="position:relative;min-width:280px;">
-              <input id="orderSearchInput" class="form-input" type="text" placeholder="Tìm theo mã đơn, khách, SĐT, xe..." style="padding-left:36px;min-height:38px;font-size:13px;" />
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <input id="orderSearchInput" class="form-input" type="text"
+                placeholder="Tìm theo mã đơn, khách, SĐT, xe..."
+                style="padding-left:36px;min-height:38px;font-size:13px;" />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5"
+                style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </div>
           </div>
 
           <!-- Multi-Status Tabs Bar -->
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid #f1f5f9;padding-top:14px;">
+          <div
+            style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid #f1f5f9;padding-top:14px;">
             <div style="display:flex;gap:6px;flex-wrap:wrap;" id="orderFilterBar">
-              <button type="button" class="btn btn-primary" data-filter="all" style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
+              <button type="button" class="btn btn-primary" data-filter="all"
+                style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
                 Tất cả (<span id="countAll">5</span>)
               </button>
-              <button type="button" class="btn btn-soft" data-filter="pending" style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
+              <button type="button" class="btn btn-soft" data-filter="pending"
+                style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
                 Chờ duyệt (<span id="countPending">2</span>)
               </button>
-              <button type="button" class="btn btn-soft" data-filter="approved" style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
+              <button type="button" class="btn btn-soft" data-filter="approved"
+                style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
                 Đã duyệt (<span id="countApproved">2</span>)
               </button>
-              <button type="button" class="btn btn-soft" data-filter="reschedule" style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
+              <button type="button" class="btn btn-soft" data-filter="reschedule"
+                style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
                 Yêu cầu đổi lịch (<span id="countResched">1</span>)
               </button>
-              <button type="button" class="btn btn-soft" data-filter="cancelled" style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
+              <button type="button" class="btn btn-soft" data-filter="cancelled"
+                style="min-height:34px;padding:6px 14px;font-size:12.5px;font-weight:700;">
                 Đã hủy (<span id="countCancelled">1</span>)
               </button>
             </div>
@@ -1055,7 +1154,8 @@
             <!-- Vehicle Segment Filter -->
             <div style="display:flex;align-items:center;gap:8px;">
               <span style="font-size:12px;color:var(--text-muted);font-weight:700;">Loại xe:</span>
-              <select id="vehicleCategoryFilter" class="form-input" style="min-height:32px;padding:4px 8px;font-size:12px;width:auto;">
+              <select id="vehicleCategoryFilter" class="form-input"
+                style="min-height:32px;padding:4px 8px;font-size:12px;width:auto;">
                 <option value="all">Tất cả phương tiện</option>
                 <option value="car">Ô tô điện & xăng</option>
                 <option value="moto">Xe máy điện & xe số</option>
@@ -1075,9 +1175,11 @@
 
   <!-- Modal 1: Chi Tiết Đơn Hàng & Duyệt Đơn Đặt Xe — Chuẩn 100% Theo Form Ảnh Mẫu -->
   <div id="storeOrderDetailModal" class="app-modal-backdrop" role="dialog" aria-modal="true">
-    <div class="app-modal-dialog" style="max-width:580px;max-height:92vh;overflow-y:auto;padding:20px 24px;border-radius:18px;">
+    <div class="app-modal-dialog"
+      style="max-width:580px;max-height:92vh;overflow-y:auto;padding:20px 24px;border-radius:18px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <h3 id="sodModalTitle" style="margin:0;font-size:1.25rem;font-family:var(--font-display);color:#0f172a;font-weight:800;letter-spacing:-0.2px;">
+        <h3 id="sodModalTitle"
+          style="margin:0;font-size:1.25rem;font-family:var(--font-display);color:#0f172a;font-weight:800;letter-spacing:-0.2px;">
           VinFast Feliz S (2025)
         </h3>
         <button id="closeOrderModalBtn" class="btn-close-pill" type="button" aria-label="Đóng">
@@ -1094,7 +1196,8 @@
 
   <!-- Modal 2: Từ Chối Đơn & Quy Trình Hoàn Tiền Cọc (Giao Diện Mới Đẹp Chuẩn UI/UX) -->
   <div id="rejectOrderModal" class="app-modal-backdrop" role="dialog" aria-modal="true">
-    <div class="app-modal-dialog" style="max-width:520px;border-radius:20px;padding:24px 28px;box-shadow:0 25px 60px -15px rgba(220,38,38,0.25);">
+    <div class="app-modal-dialog"
+      style="max-width:520px;border-radius:20px;padding:24px 28px;box-shadow:0 25px 60px -15px rgba(220,38,38,0.25);">
       <!-- Header -->
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:12px;">
         <div style="display:flex;align-items:flex-start;gap:14px;">
@@ -1115,10 +1218,13 @@
       </div>
 
       <!-- Refund Info Card -->
-      <div style="background:linear-gradient(135deg, #fff1f2 0%, #fef2f2 100%);border:1.5px solid #fecaca;padding:14px 18px;border-radius:14px;margin-bottom:16px;">
+      <div
+        style="background:linear-gradient(135deg, #fff1f2 0%, #fef2f2 100%);border:1.5px solid #fecaca;padding:14px 18px;border-radius:14px;margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:0.5px;">Số tiền cọc hoàn trả tự động:</span>
-          <strong id="rejectRefundAmount" style="font-size:1.35rem;font-weight:800;color:#dc2626;font-family:var(--font-display);">96.000 đ</strong>
+          <span style="font-size:12px;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:0.5px;">Số
+            tiền cọc hoàn trả tự động:</span>
+          <strong id="rejectRefundAmount"
+            style="font-size:1.35rem;font-weight:800;color:#dc2626;font-family:var(--font-display);">96.000 đ</strong>
         </div>
         <div style="font-size:12px;color:#b91c1c;display:flex;align-items:center;gap:6px;">
           <span>⚡</span>
@@ -1127,28 +1233,33 @@
       </div>
 
       <!-- Lý Do Từ Chối (Dạng Card Nút Chọn Đẹp Mắt) -->
-      <div style="font-size:11.5px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;">
+      <div
+        style="font-size:11.5px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;">
         Chọn lý do từ chối (được gửi qua email cho khách):
       </div>
 
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;" id="rejectReasonOptionsGroup">
         <label class="reject-reason-card is-active">
-          <input type="radio" name="rejectReason" value="Xe gặp sự cố kỹ thuật đột xuất cần bảo dưỡng" checked style="display:none;">
+          <input type="radio" name="rejectReason" value="Xe gặp sự cố kỹ thuật đột xuất cần bảo dưỡng" checked
+            style="display:none;">
           <span class="custom-radio-dot"></span>
           <span>Xe gặp sự cố kỹ thuật đột xuất cần bảo dưỡng</span>
         </label>
         <label class="reject-reason-card">
-          <input type="radio" name="rejectReason" value="Hết xe cùng phân khúc vào khung giờ này do trùng lịch" style="display:none;">
+          <input type="radio" name="rejectReason" value="Hết xe cùng phân khúc vào khung giờ này do trùng lịch"
+            style="display:none;">
           <span class="custom-radio-dot"></span>
           <span>Hết xe cùng phân khúc vào khung giờ này do trùng lịch</span>
         </label>
         <label class="reject-reason-card">
-          <input type="radio" name="rejectReason" value="Khách hàng chưa đủ điều kiện GPLX hoặc hồ sơ eKYC bị từ chối" style="display:none;">
+          <input type="radio" name="rejectReason" value="Khách hàng chưa đủ điều kiện GPLX hoặc hồ sơ eKYC bị từ chối"
+            style="display:none;">
           <span class="custom-radio-dot"></span>
           <span>Khách hàng chưa đủ điều kiện GPLX hoặc eKYC</span>
         </label>
         <label class="reject-reason-card">
-          <input type="radio" name="rejectReason" value="Điều phối trạm xe: Khu vực giao nhận ngoài phạm vi hỗ trợ" style="display:none;">
+          <input type="radio" name="rejectReason" value="Điều phối trạm xe: Khu vực giao nhận ngoài phạm vi hỗ trợ"
+            style="display:none;">
           <span class="custom-radio-dot"></span>
           <span>Khu vực giao nhận ngoài phạm vi hỗ trợ của trạm</span>
         </label>
@@ -1156,10 +1267,12 @@
 
       <!-- Action Buttons -->
       <div style="display:flex;justify-content:flex-end;gap:12px;border-top:1px solid #f1f5f9;padding-top:16px;">
-        <button type="button" class="btn btn-soft" id="cancelRejectModalBtn" style="border-radius:10px;padding:10px 20px;font-weight:700;">
+        <button type="button" class="btn btn-soft" id="cancelRejectModalBtn"
+          style="border-radius:10px;padding:10px 20px;font-weight:700;">
           Bỏ qua
         </button>
-        <button type="button" class="btn btn-danger-red" id="confirmRejectModalBtn" style="border-radius:10px;padding:10px 24px;font-size:13.5px;">
+        <button type="button" class="btn btn-danger-red" id="confirmRejectModalBtn"
+          style="border-radius:10px;padding:10px 24px;font-size:13.5px;">
           ✕ Xác nhận Từ chối &amp; Hoàn Cọc
         </button>
       </div>
@@ -1197,7 +1310,8 @@
             <span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;"></span>
             <div>
               <strong style="display:block;font-size:13.5px;color:#92400e;">🟡 Chờ duyệt (Pending)</strong>
-              <span style="font-size:12px;color:var(--text-secondary);">Khôi phục về trạng thái ban đầu để kiểm tra lại</span>
+              <span style="font-size:12px;color:var(--text-secondary);">Khôi phục về trạng thái ban đầu để kiểm tra
+                lại</span>
             </div>
           </div>
           <input type="radio" name="targetStatusChoice" value="pending" style="accent-color:#f59e0b;">
@@ -1208,7 +1322,8 @@
             <span style="width:10px;height:10px;border-radius:50%;background:#16a34a;"></span>
             <div>
               <strong style="display:block;font-size:13.5px;color:#166534;">🟢 Đã duyệt (Approved)</strong>
-              <span style="font-size:12px;color:var(--text-secondary);">Xác nhận giữ xe &amp; sẵn sàng lập biên bản</span>
+              <span style="font-size:12px;color:var(--text-secondary);">Xác nhận giữ xe &amp; sẵn sàng lập biên
+                bản</span>
             </div>
           </div>
           <input type="radio" name="targetStatusChoice" value="approved" style="accent-color:#16a34a;">
@@ -1228,18 +1343,23 @@
 
       <!-- Ghi chú cập nhật -->
       <div style="margin-bottom:18px;">
-        <label for="changeStatusNoteInput" style="display:block;font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">
+        <label for="changeStatusNoteInput"
+          style="display:block;font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">
           Ghi chú lý do thay đổi (tùy chọn):
         </label>
-        <input id="changeStatusNoteInput" class="form-input" type="text" placeholder="VD: Khách gọi điện xác nhận lại, bấm nhầm..." style="font-size:13px;" />
+        <input id="changeStatusNoteInput" class="form-input" type="text"
+          placeholder="VD: Khách gọi điện xác nhận lại, bấm nhầm..." style="font-size:13px;" />
       </div>
 
       <!-- Actions -->
       <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #f1f5f9;padding-top:14px;">
-        <button type="button" class="btn btn-soft" onclick="document.getElementById('changeStatusModal').classList.remove('is-open');" style="border-radius:10px;padding:8px 18px;font-weight:700;">
+        <button type="button" class="btn btn-soft"
+          onclick="document.getElementById('changeStatusModal').classList.remove('is-open');"
+          style="border-radius:10px;padding:8px 18px;font-weight:700;">
           Đóng
         </button>
-        <button type="button" class="btn btn-primary" id="confirmChangeStatusBtn" style="border-radius:10px;padding:8px 22px;font-weight:700;">
+        <button type="button" class="btn btn-primary" id="confirmChangeStatusBtn"
+          style="border-radius:10px;padding:8px 22px;font-weight:700;">
           ✓ Lưu cập nhật trạng thái
         </button>
       </div>
@@ -1248,22 +1368,29 @@
 
   <!-- Modal 3: Xử Lý Yêu Cầu Dời Lịch Trình (Reschedule Modal — Giao Diện So Sánh Hiện Đại Chuẩn UI/UX) -->
   <div id="rescheduleModal" class="app-modal-backdrop" role="dialog" aria-modal="true">
-    <div class="app-modal-dialog" style="max-width:620px;border-radius:22px;padding:26px 28px;box-shadow:0 25px 65px -12px rgba(124,58,237,0.3);">
+    <div class="app-modal-dialog"
+      style="max-width:620px;border-radius:22px;padding:26px 28px;box-shadow:0 25px 65px -12px rgba(124,58,237,0.3);">
       <!-- Header -->
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:1.5px solid #f3e8ff;">
-        <span style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%);border:1.5px solid #ddd6fe;color:#7c3aed;display:grid;place-items:center;font-weight:900;font-size:24px;flex-shrink:0;box-shadow:0 4px 12px rgba(124,58,237,0.15);">⚡</span>
+      <div
+        style="display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:1.5px solid #f3e8ff;">
+        <span
+          style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%);border:1.5px solid #ddd6fe;color:#7c3aed;display:grid;place-items:center;font-weight:900;font-size:24px;flex-shrink:0;box-shadow:0 4px 12px rgba(124,58,237,0.15);">⚡</span>
         <div style="flex:1;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
             <h3 style="margin:0;font-size:1.3rem;font-family:var(--font-display);color:#4c1d95;font-weight:800;">
               Xử lý yêu cầu dời lịch trình thuê
             </h3>
-            <span style="font-size:11px;font-weight:800;background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:999px;border:1px solid #ddd6fe;">Cần xử lý</span>
+            <span
+              style="font-size:11px;font-weight:800;background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:999px;border:1px solid #ddd6fe;">Cần
+              xử lý</span>
           </div>
           <div style="font-size:12.5px;color:var(--text-muted);" id="rescheduleModalSub">
             Đơn hàng #RH-8835 • Khách hàng: Lê Kim Chi
           </div>
         </div>
-        <button type="button" class="btn-close-pill" onclick="document.getElementById('rescheduleModal').classList.remove('is-open');" style="background:#f5f3ff;border-color:#ddd6fe;color:#6d28d9;cursor:pointer;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;">
+        <button type="button" class="btn-close-pill"
+          onclick="document.getElementById('rescheduleModal').classList.remove('is-open');"
+          style="background:#f5f3ff;border-color:#ddd6fe;color:#6d28d9;cursor:pointer;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;">
           Đóng ✕
         </button>
       </div>
