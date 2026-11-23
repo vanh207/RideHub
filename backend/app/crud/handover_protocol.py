@@ -34,10 +34,14 @@ from app.models.handover import (
 )
 from app.models.store import Store, StoreStaff
 from app.models.user import User
+from app.models.vehicle import Vehicle, VehicleStatusHistory
+from app.crud.booking_status_history import record_booking_status_change
 from app.schemas.handover import (
     HandoverCheckinCreate,
     HandoverProtocolCreate,
     HandoverSignRequest,
+    PhotoConfirmationRequest,
+    PhotoConfirmationResponse,
 )
 
 logger = logging.getLogger("ridehub.handover")
@@ -155,10 +159,10 @@ def create_handover_protocol(
     # Lấy thông tin khách hàng từ booking/user liên kết
     cust_id = booking.customer_id
     cust_user = db.query(User).filter(User.id == cust_id).first() if cust_id else None
-    customer_name = cust_user.full_name if (cust_user and cust_user.full_name) else (payload.customer_name or "Khách thuê")
-    customer_phone = cust_user.phone if (cust_user and cust_user.phone) else (payload.customer_phone or "")
-    customer_cccd = getattr(cust_user, "cccd_number", None) or ""
-    customer_license = getattr(cust_user, "license_number", None) or ""
+    customer_name = getattr(payload, "customer_name", None) or (cust_user.full_name if (cust_user and cust_user.full_name) else "Khách thuê")
+    customer_phone = getattr(payload, "customer_phone", None) or (cust_user.phone if (cust_user and cust_user.phone) else "")
+    customer_cccd = getattr(payload, "customer_cccd", None) or getattr(cust_user, "cccd_number", None) or ""
+    customer_license = getattr(payload, "customer_license", None) or getattr(cust_user, "license_number", None) or ""
 
     is_signed = bool(payload.customer_signature and payload.staff_signature)
 
@@ -402,7 +406,7 @@ def sign_protocol(
 # 4. Upload ảnh xe / ảnh biên bản đã ký
 # ---------------------------------------------------------------------------
 
-async def upload_handover_media(
+def upload_handover_media(
     protocol_id: int,
     files: List[UploadFile],
     media_type: str,
@@ -410,7 +414,7 @@ async def upload_handover_media(
     db: Session,
     captions: Optional[List[str]] = None,
 ) -> List[HandoverMedia]:
-    """Upload ảnh đính kèm biên bản.
+    """Upload ảnh đính kèm biên bản (đồng bộ, an toàn, hiệu năng cao).
 
     An toàn:
     - Kiểm tra MIME type và map sang extension chuẩn (không tin đuôi file từ client).
@@ -439,8 +443,9 @@ async def upload_handover_media(
                        f"Chỉ chấp nhận: {', '.join(sorted(_MIME_TO_EXT.keys()))}",
             )
 
-        # Đọc có giới hạn để chống DoS
-        content = await file.read(_MAX_FILE_SIZE + 1)
+        # Đọc qua file handle nội bộ
+        file_obj = getattr(file, "file", file)
+        content = file_obj.read(_MAX_FILE_SIZE + 1)
         if len(content) > _MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
@@ -624,3 +629,160 @@ def compute_summary(protocol: HandoverProtocol) -> dict:
         "excess_km": excess_km,
         "is_fully_signed": is_fully_signed,
     }
+
+
+# ---------------------------------------------------------------------------
+# 7. Xác nhận ảnh giao/nhận xe của 2 bên & Tự động chuyển trạng thái xe, đơn
+# ---------------------------------------------------------------------------
+
+def confirm_handover_photos(
+    protocol_id: int,
+    payload: PhotoConfirmationRequest,
+    actor: User,
+    db: Session,
+) -> dict:
+    """Xác nhận ảnh và tình trạng giao/nhận xe từ một bên (Khách thuê hoặc Nhân viên/Cửa hàng).
+    
+    Khi CẢ HAI BÊN đã xác nhận ảnh:
+    - protocol.both_confirmed = True, protocol.status = COMPLETED.
+    - CHECK_OUT: Booking CONFIRMED -> IN_PROGRESS, Vehicle AVAILABLE -> RENTED.
+    - CHECK_IN: Booking IN_PROGRESS -> COMPLETED, Vehicle RENTED -> AVAILABLE (hoặc MAINTENANCE nếu có hỏng).
+    - Tự động ghi nhật ký trạng thái BookingStatusHistory và VehicleStatusHistory.
+    """
+    protocol = _get_protocol_or_404(protocol_id, db)
+    booking = _get_booking_or_404(protocol.booking_id, db)
+
+    is_customer = (booking.customer_id == actor.id)
+    is_operator = _is_store_operator(actor, booking, db)
+    role = (actor.role or "").lower()
+
+    if not is_customer and not is_operator and role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Chỉ khách thuê của đơn hoặc nhân viên phụ trách cửa hàng mới có quyền xác nhận ảnh.",
+        )
+
+    # Chặn xác nhận lại khi hai bên đã xác nhận xong
+    if protocol.both_confirmed:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Hai bên đã xác nhận ảnh, biên bản đã hoàn tất, không thể xác nhận lại.",
+        )
+
+     # Chỉ cho xác nhận khi booking đang ở đúng trạng thái
+    expected_booking_status = (
+        "CONFIRMED" if protocol.protocol_type == ProtocolType.CHECK_OUT.value else "IN_PROGRESS"
+    )
+    current_booking_status = getattr(booking.status, "value", booking.status)
+    if str(current_booking_status) != expected_booking_status:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Đơn đang ở trạng thái {current_booking_status}, cần {expected_booking_status} để xác nhận ảnh.",
+        )
+
+    # Ghi nhận theo vai trò người gọi
+    if is_customer:
+        protocol.customer_confirmed = payload.confirmed
+        protocol.customer_confirmed_at = datetime.now() if payload.confirmed else None
+        protocol.customer_confirm_note = payload.note
+    elif is_operator or role == "admin":
+        protocol.staff_confirmed = payload.confirmed
+        protocol.staff_confirmed_at = datetime.now() if payload.confirmed else None
+        protocol.staff_confirm_note = payload.note
+
+    vehicle = db.query(Vehicle).filter(Vehicle.id == booking.vehicle_id).first() if booking.vehicle_id else None
+    actor_name = actor.full_name or "SYSTEM"
+    status_msg = "Đã ghi nhận xác nhận ảnh từ bạn. Đang chờ đối tác xác nhận để hoàn tất bàn giao."
+
+    # KIỂM TRA ĐIỀU KIỆN CẢ HAI BÊN ĐÃ XÁC NHẬN
+    if protocol.customer_confirmed and protocol.staff_confirmed:
+        protocol.both_confirmed = True
+        protocol.both_confirmed_at = datetime.now()
+        protocol.status = HandoverStatus.COMPLETED.value
+
+        if protocol.protocol_type == ProtocolType.CHECK_OUT.value:
+            # 1. GIAO XE THÀNH CÔNG: Chuyển đơn sang IN_PROGRESS, chuyển xe sang RENTED
+            old_b_status = booking.status
+            booking.status = "IN_PROGRESS"
+            record_booking_status_change(
+                db=db,
+                booking=booking,
+                from_status=old_b_status,
+                to_status="IN_PROGRESS",
+                changed_by="HANDOVER_CHECKOUT",
+                changed_by_user_id=actor.id,
+                reason="Cả khách thuê và cửa hàng đã xác nhận toàn bộ ảnh giao xe.",
+            )
+
+            if vehicle:
+                old_v_status = vehicle.current_status
+                vehicle.current_status = "RENTED"
+                v_history = VehicleStatusHistory(
+                    vehicle_id=vehicle.id,
+                    from_status=old_v_status,
+                    to_status="RENTED",
+                    changed_by=actor_name,
+                    reason="Khách đã nhận xe sau khi hai bên xác nhận ảnh bàn giao",
+                    note=f"Booking #{booking.id}, Protocol {protocol.protocol_code}",
+                )
+                db.add(v_history)
+
+            status_msg = "Cả hai bên đã xác nhận ảnh giao xe! Đơn hàng tự động chuyển sang IN_PROGRESS và xe chuyển sang RENTED."
+
+        elif protocol.protocol_type == ProtocolType.CHECK_IN.value:
+            # 2. NHẬN LẠI XE THÀNH CÔNG: Chuyển đơn sang COMPLETED, chuyển xe về AVAILABLE (hoặc MAINTENANCE)
+            old_b_status = booking.status
+            booking.status = "COMPLETED"
+            record_booking_status_change(
+                db=db,
+                booking=booking,
+                from_status=old_b_status,
+                to_status="COMPLETED",
+                changed_by="HANDOVER_CHECKIN",
+                changed_by_user_id=actor.id,
+                reason="Cả khách thuê và cửa hàng đã xác nhận toàn bộ ảnh nhận lại xe.",
+            )
+
+            if vehicle:
+                old_v_status = vehicle.current_status
+                # Nếu có phụ phí hư hại xe -> chuyển sang MAINTENANCE để kiểm tra sửa chữa
+                new_v_status = "MAINTENANCE" if (protocol.fee_damage and protocol.fee_damage > 0) else "AVAILABLE"
+                vehicle.current_status = new_v_status
+                v_history = VehicleStatusHistory(
+                    vehicle_id=vehicle.id,
+                    from_status=old_v_status,
+                    to_status=new_v_status,
+                    changed_by=actor_name,
+                    reason="Khách đã hoàn trả xe sau khi hai bên xác nhận ảnh",
+                    note=f"Booking #{booking.id}, Protocol {protocol.protocol_code}",
+                )
+                db.add(v_history)
+
+            status_msg = f"Cả hai bên đã xác nhận ảnh trả xe! Đơn hàng tự động chuyển sang COMPLETED và xe chuyển sang {vehicle.current_status if vehicle else 'AVAILABLE'}."
+
+    db.commit()
+    db.refresh(protocol)
+    db.refresh(booking)
+    if vehicle:
+        db.refresh(vehicle)
+
+    return {
+        "protocol_id": protocol.id,
+        "protocol_code": protocol.protocol_code,
+        "protocol_type": protocol.protocol_type,
+        "customer_confirmed": protocol.customer_confirmed,
+        "customer_confirmed_at": protocol.customer_confirmed_at,
+        "customer_confirm_note": protocol.customer_confirm_note,
+        "staff_confirmed": protocol.staff_confirmed,
+        "staff_confirmed_at": protocol.staff_confirmed_at,
+        "staff_confirm_note": protocol.staff_confirm_note,
+        "both_confirmed": protocol.both_confirmed,
+        "both_confirmed_at": protocol.both_confirmed_at,
+        "booking_id": booking.id,
+        "booking_status": booking.status,
+        "vehicle_id": vehicle.id if vehicle else None,
+        "vehicle_status": vehicle.current_status if vehicle else None,
+        "protocol_status": protocol.status,
+        "message": status_msg,
+    }
+

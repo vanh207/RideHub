@@ -102,6 +102,18 @@ class HandoverProtocol(Base):
     staff_signature = Column(Text, nullable=True)
     signed_at = Column(TIMESTAMP, nullable=True)
 
+    # Xác nhận ảnh của hai bên (Photo confirmation)
+    customer_confirmed = Column(Boolean, default=False, nullable=False)
+    customer_confirmed_at = Column(TIMESTAMP, nullable=True)
+    customer_confirm_note = Column(String(255), nullable=True)
+
+    staff_confirmed = Column(Boolean, default=False, nullable=False)
+    staff_confirmed_at = Column(TIMESTAMP, nullable=True)
+    staff_confirm_note = Column(String(255), nullable=True)
+
+    both_confirmed = Column(Boolean, default=False, nullable=False)
+    both_confirmed_at = Column(TIMESTAMP, nullable=True)
+
     status = Column(String(30), default=HandoverStatus.DRAFT.value, nullable=False)
     notes = Column(Text, nullable=True)
 

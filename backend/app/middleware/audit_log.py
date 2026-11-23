@@ -169,6 +169,13 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
             "resource_type": "handover",
         },
         {
+            "pattern": re.compile(r"^/api/handover/(?P<resource_id>[^/]+)/confirm-photos$"),
+            "methods": {"POST"},
+            "category": "STATUS_CHANGE",
+            "default_action": "HANDOVER_CONFIRM_PHOTOS",
+            "resource_type": "handover",
+        },
+        {
             "pattern": re.compile(r"^/api/handover/(?P<resource_id>[^/]+)/media$"),
             "methods": {"POST"},
             "category": "STATUS_CHANGE",

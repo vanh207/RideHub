@@ -67,6 +67,12 @@ class HandoverProtocolCreate(BaseModel):
     license_plate: str = Field(..., min_length=1, max_length=20)
     vehicle_category: str = Field("CAR", max_length=20)
 
+    # Thông tin khách hàng (tuỳ chọn gửi kèm, nếu không hệ thống tự lấy từ booking/user)
+    customer_name: Optional[str] = None
+    customer_cccd: Optional[str] = None
+    customer_phone: Optional[str] = None
+    customer_license: Optional[str] = None
+
     # Vận hành lúc giao
     odo_checkout: int = Field(0, ge=0, description="Số km lúc giao xe (ODO)")
     fuel_checkout: str = Field("FULL", description="Mức nhiên liệu: FULL|3/4|1/2|1/4|EMPTY")
@@ -186,6 +192,46 @@ class HandoverSignRequest(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Xác nhận ảnh giao/nhận xe (Photo Confirmation)
+# ---------------------------------------------------------------------------
+
+class PhotoConfirmationRequest(BaseModel):
+    """Yêu cầu xác nhận ảnh và tình trạng xe."""
+
+    confirmed: bool = Field(True, description="Xác nhận ảnh và tình trạng xe")
+    note: Optional[str] = Field(None, max_length=255, description="Ghi chú xác nhận (nếu có)")
+
+
+class PhotoConfirmationResponse(BaseModel):
+    """Kết quả xác nhận ảnh và trạng thái chuyển đổi tự động."""
+
+    protocol_id: int
+    protocol_code: str
+    protocol_type: str
+
+    # Trạng thái xác nhận của từng bên
+    customer_confirmed: bool
+    customer_confirmed_at: Optional[datetime] = None
+    customer_confirm_note: Optional[str] = None
+
+    staff_confirmed: bool
+    staff_confirmed_at: Optional[datetime] = None
+    staff_confirm_note: Optional[str] = None
+
+    both_confirmed: bool
+    both_confirmed_at: Optional[datetime] = None
+
+    # Tự động chuyển trạng thái đơn & xe
+    booking_id: int
+    booking_status: str
+    vehicle_id: Optional[int] = None
+    vehicle_status: Optional[str] = None
+    protocol_status: str
+
+    message: str
+
+
+# ---------------------------------------------------------------------------
 # Response
 # ---------------------------------------------------------------------------
 
@@ -233,6 +279,16 @@ class HandoverProtocolResponse(BaseModel):
     customer_signature: Optional[str] = None
     staff_signature: Optional[str] = None
     signed_at: Optional[datetime] = None
+
+    # Xác nhận ảnh
+    customer_confirmed: bool = False
+    customer_confirmed_at: Optional[datetime] = None
+    customer_confirm_note: Optional[str] = None
+    staff_confirmed: bool = False
+    staff_confirmed_at: Optional[datetime] = None
+    staff_confirm_note: Optional[str] = None
+    both_confirmed: bool = False
+    both_confirmed_at: Optional[datetime] = None
 
     status: str
     notes: Optional[str] = None
