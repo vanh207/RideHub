@@ -662,24 +662,6 @@ def confirm_handover_photos(
             detail="Chỉ khách thuê của đơn hoặc nhân viên phụ trách cửa hàng mới có quyền xác nhận ảnh.",
         )
 
-    # Chặn xác nhận lại khi hai bên đã xác nhận xong
-    if protocol.both_confirmed:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Hai bên đã xác nhận ảnh, biên bản đã hoàn tất, không thể xác nhận lại.",
-        )
-
-     # Chỉ cho xác nhận khi booking đang ở đúng trạng thái
-    expected_booking_status = (
-        "CONFIRMED" if protocol.protocol_type == ProtocolType.CHECK_OUT.value else "IN_PROGRESS"
-    )
-    current_booking_status = getattr(booking.status, "value", booking.status)
-    if str(current_booking_status) != expected_booking_status:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Đơn đang ở trạng thái {current_booking_status}, cần {expected_booking_status} để xác nhận ảnh.",
-        )
-
     # Ghi nhận theo vai trò người gọi
     if is_customer:
         protocol.customer_confirmed = payload.confirmed

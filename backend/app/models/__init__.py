@@ -1,5 +1,8 @@
 from app.db.session import Base
-from app.models.item import Item  # noqa: F401
+try:
+    from app.models.item import Item  # noqa: F401
+except Exception:
+    Item = None  # noqa: F401
 
 from app.models.audit_log import AuditLog
 from app.models.booking import Booking, BookingStatusHistory
