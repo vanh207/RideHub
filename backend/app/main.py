@@ -39,7 +39,7 @@ from app.routers import (
     store_staff,
     stores,
     vehicles,
-    vehicle_schedules
+    vehicle_schedules,
 )
 
 logger = logging.getLogger("ridehub.startup")
@@ -108,6 +108,7 @@ app.include_router(payment.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
 app.include_router(faq.router, prefix="/api")
 app.include_router(handover.router, prefix="/api")
+app.include_router(handover.booking_handover_router, prefix="/api")
 app.include_router(notifications.router, prefix="/api")
 app.include_router(vehicles.router, prefix="/api")
 app.include_router(delivery.router, prefix="/api")

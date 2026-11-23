@@ -54,21 +54,29 @@ SENSITIVE_FIELD_NAMES = {
     "cvv",
     "card_number",
     "bank_account",
+    "customer_cccd",
+    "customer_license",
+    "customer_phone",
+    "customer_signature",
+    "staff_signature",
+    "signature",
 }
 
 
-def _mask_sensitive_data(data: Any) -> Any:
-    """Đệ quy ẩn các thông tin nhạy cảm trong dữ liệu payload."""
+def _mask_sensitive_data(data: Any, max_str_len: int = 255) -> Any:
+    """Đệ quy ẩn các thông tin nhạy cảm trong dữ liệu payload và cắt ngắn chuỗi quá dài."""
     if isinstance(data, dict):
         masked = {}
         for key, value in data.items():
             if str(key).lower() in SENSITIVE_FIELD_NAMES:
                 masked[key] = "********"
             else:
-                masked[key] = _mask_sensitive_data(value)
+                masked[key] = _mask_sensitive_data(value, max_str_len)
         return masked
     elif isinstance(data, list):
-        return [_mask_sensitive_data(item) for item in data]
+        return [_mask_sensitive_data(item, max_str_len) for item in data]
+    elif isinstance(data, str) and len(data) > max_str_len:
+        return f"{data[:max_str_len]}...[truncated, total_len={len(data)}]"
     return data
 
 
@@ -131,7 +139,43 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
             "default_action": "STORE_ORDER_REVIEW",
             "resource_type": "booking",
         },
-        # Quyết toán / Hoàn tất bàn giao xe (Handover settlement)
+        # Biên bản giao nhận xe — tạo, check-in, ký (Handover Protocol)
+        {
+            "pattern": re.compile(r"^/api/handover$"),
+            "methods": {"POST"},
+            "category": "STATUS_CHANGE",
+            "default_action": "HANDOVER_CREATE",
+            "resource_type": "handover",
+        },
+        {
+            "pattern": re.compile(r"^/api/handover/checkin$"),
+            "methods": {"POST"},
+            "category": "STATUS_CHANGE",
+            "default_action": "HANDOVER_CHECKIN",
+            "resource_type": "handover",
+        },
+        {
+            "pattern": re.compile(r"^/api/handover/(?P<resource_id>[^/]+)/checkin$"),
+            "methods": {"PUT", "PATCH"},
+            "category": "STATUS_CHANGE",
+            "default_action": "HANDOVER_CHECKIN",
+            "resource_type": "handover",
+        },
+        {
+            "pattern": re.compile(r"^/api/handover/(?P<resource_id>[^/]+)/sign$"),
+            "methods": {"POST"},
+            "category": "STATUS_CHANGE",
+            "default_action": "HANDOVER_SIGN",
+            "resource_type": "handover",
+        },
+        {
+            "pattern": re.compile(r"^/api/handover/(?P<resource_id>[^/]+)/media$"),
+            "methods": {"POST"},
+            "category": "STATUS_CHANGE",
+            "default_action": "HANDOVER_MEDIA_UPLOAD",
+            "resource_type": "handover",
+        },
+        # Quyết toán / Hoàn tất bàn giao xe (Handover settlement — legacy pattern)
         {
             "pattern": re.compile(r"^/api/handover/(?P<resource_id>[^/]+)/settlement$"),
             "methods": {"POST", "PATCH", "PUT"},
@@ -178,22 +222,28 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
         # ----------------------------------------------------------------------
         # 1. ĐỌC & SAO CHÉP REQUEST BODY AN TOÀN (STREAM PRESERVATION)
         # ----------------------------------------------------------------------
-        body_bytes = await request.body()
-
-        # Tạo lại hàm receive để downstream handler trong FastAPI vẫn đọc được request body
-        async def receive():
-            return {"type": "http.request", "body": body_bytes}
-
-        request._receive = receive
-
+        content_type = request.headers.get("content-type", "")
         payload_dict = None
-        if body_bytes:
-            try:
-                raw_json = json.loads(body_bytes.decode("utf-8"))
-                payload_dict = _mask_sensitive_data(raw_json)
-            except Exception:
-                # Nếu không phải JSON, không ghi payload dạng object
-                payload_dict = None
+
+        if "multipart/form-data" in content_type:
+            # Bỏ đọc body khi upload file để tránh nghẽn stream và tiết kiệm RAM
+            payload_dict = {"_info": "multipart/form-data upload omitted"}
+        else:
+            body_bytes = await request.body()
+
+            # Tạo lại hàm receive để downstream handler trong FastAPI vẫn đọc được request body
+            async def receive():
+                return {"type": "http.request", "body": body_bytes}
+
+            request._receive = receive
+
+            if body_bytes:
+                try:
+                    raw_json = json.loads(body_bytes.decode("utf-8"))
+                    payload_dict = _mask_sensitive_data(raw_json)
+                except Exception:
+                    # Nếu không phải JSON, không ghi payload dạng object
+                    payload_dict = None
 
         # ----------------------------------------------------------------------
         # 2. XÁC ĐỊNH THÔNG TIN "AI" (WHO)
