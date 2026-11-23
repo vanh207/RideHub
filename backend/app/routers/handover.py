@@ -29,6 +29,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user
 from app.crud.handover_protocol import (
     compute_summary,
+    confirm_handover_photos,
     create_checkin_protocol,
     create_handover_protocol,
     delete_handover_media,
@@ -49,6 +50,8 @@ from app.schemas.handover import (
     HandoverProtocolResponse,
     HandoverSignRequest,
     PaginatedHandoverResponse,
+    PhotoConfirmationRequest,
+    PhotoConfirmationResponse,
 )
 
 router = APIRouter(prefix="/handover", tags=["Handover Protocol — Biên bản Giao/Nhận xe"])
@@ -162,7 +165,7 @@ def api_sign_handover(
     status_code=status.HTTP_201_CREATED,
     summary="Upload ảnh đính kèm biên bản (Ảnh xe 360°, Ảnh biên bản ký)",
 )
-async def api_upload_media(
+def api_upload_media(
     protocol_id: int,
     files: List[UploadFile] = File(..., description="Danh sách file ảnh (JPEG, PNG, WEBP, PDF)"),
     media_type: str = Form("VEHICLE_PHOTO", description="VEHICLE_PHOTO | SIGNED_DOCUMENT | DAMAGE_PHOTO"),
@@ -177,7 +180,7 @@ async def api_upload_media(
     - Lưu với UUID đầy đủ.
     """
     caption_list = [c.strip() for c in captions.split("|")] if captions else None
-    saved = await upload_handover_media(
+    saved = upload_handover_media(
         protocol_id=protocol_id,
         files=files,
         media_type=media_type,
@@ -206,7 +209,63 @@ def api_delete_media(
 
 
 # ---------------------------------------------------------------------------
-# 6. Chi tiết biên bản
+# 6. Xác nhận ảnh giao/nhận xe & Tự động chuyển trạng thái đơn hàng & xe
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/{protocol_id}/confirm-photos",
+    response_model=PhotoConfirmationResponse,
+    summary="Xác nhận ảnh giao/nhận xe của hai bên và tự động chuyển trạng thái",
+)
+def api_confirm_photos(
+    protocol_id: int,
+    payload: PhotoConfirmationRequest,
+    db: Session = Depends(get_db),
+    actor: User = Depends(get_current_user),
+):
+    """Xác nhận ảnh giao hoặc nhận xe từ Khách thuê hoặc Cửa hàng.
+
+    - Khách thuê (Customer) gọi -> ghi nhận customer_confirmed = True.
+    - Cửa hàng (Store Staff/Owner) gọi -> ghi nhận staff_confirmed = True.
+    - Khi CẢ HAI BÊN đều đã xác nhận -> Tự động chuyển trạng thái đơn (Booking) và xe (Vehicle):
+      * CHECK_OUT: Booking -> IN_PROGRESS, Vehicle -> RENTED.
+      * CHECK_IN: Booking -> COMPLETED, Vehicle -> AVAILABLE (hoặc MAINTENANCE nếu có hỏng hóc).
+      * Tự động ghi nhật ký trạng thái BookingStatusHistory và VehicleStatusHistory.
+    """
+    return confirm_handover_photos(protocol_id, payload, actor, db)
+
+
+@router.get(
+    "/{protocol_id}/confirm-status",
+    summary="Xem trạng thái xác nhận ảnh của hai bên",
+)
+def api_get_confirm_status(
+    protocol_id: int,
+    db: Session = Depends(get_db),
+    actor: User = Depends(get_current_user),
+):
+    """Xem tiến độ xác nhận ảnh của Khách và Cửa hàng."""
+    protocol = get_protocol_detail(protocol_id, actor, db)
+    booking = db.query(Booking).filter(Booking.id == protocol.booking_id).first()
+    return {
+        "protocol_id": protocol.id,
+        "protocol_code": protocol.protocol_code,
+        "protocol_type": protocol.protocol_type,
+        "customer_confirmed": protocol.customer_confirmed,
+        "customer_confirmed_at": protocol.customer_confirmed_at,
+        "customer_confirm_note": protocol.customer_confirm_note,
+        "staff_confirmed": protocol.staff_confirmed,
+        "staff_confirmed_at": protocol.staff_confirmed_at,
+        "staff_confirm_note": protocol.staff_confirm_note,
+        "both_confirmed": protocol.both_confirmed,
+        "both_confirmed_at": protocol.both_confirmed_at,
+        "booking_status": booking.status if booking else None,
+        "protocol_status": protocol.status,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 7. Chi tiết biên bản
 # ---------------------------------------------------------------------------
 
 @router.get(

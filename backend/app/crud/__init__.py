@@ -1,4 +1,5 @@
-from . import item
-
-__all__ = ["item"]
-
+try:
+    from . import item
+    __all__ = ["item"]
+except Exception:
+    __all__ = []
