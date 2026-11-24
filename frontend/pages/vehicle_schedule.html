@@ -25,7 +25,7 @@
     
       </div>
       <!-- Nút chuyển chế độ xem: Theo Tháng / Theo Tuần -->
-      <div style="display: flex; gap: 6px; background: var(--bg-surface-soft); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--green-100);">
+      <div class="schedule-mode-toggle" style="display: flex; gap: 6px; background: var(--bg-surface-soft); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--green-100);">
         <button id="viewMonthBtn" class="btn btn-primary" type="button" style="min-height: 32px; padding: 4px 14px; font-size: 12.5px;">Chế độ Tháng</button>
         <button id="viewWeekBtn" class="btn btn-soft" type="button" style="min-height: 32px; padding: 4px 14px; font-size: 12.5px;">Chế độ Tuần</button>
       </div>
@@ -45,15 +45,15 @@
               Theo dõi lịch giao xe, nhận lại xe và bảo dưỡng theo ngày
             </div>
           </div>
-          <div style="display: flex; gap: 6px; align-items: center;">
-            <button id="calPrevBtn" class="btn btn-soft" type="button" style="min-height: 34px; padding: 4px 12px;" title="Lùi lại">‹</button>
-            <button id="calTodayBtn" class="btn btn-soft" type="button" style="min-height: 34px; padding: 4px 14px; font-size: 12px;">Hôm nay</button>
-            <button id="calNextBtn" class="btn btn-soft" type="button" style="min-height: 34px; padding: 4px 12px;" title="Tiến tới">›</button>
+          <div class="cal-nav-group" style="display: flex; gap: 6px; align-items: center;">
+            <button id="calPrevBtn" class="btn btn-soft cal-nav-btn" type="button" style="min-height: 34px; padding: 4px 12px;" title="Lùi lại">‹</button>
+            <button id="calTodayBtn" class="btn btn-soft cal-nav-btn" type="button" style="min-height: 34px; padding: 4px 14px; font-size: 12px;">Hôm nay</button>
+            <button id="calNextBtn" class="btn btn-soft cal-nav-btn" type="button" style="min-height: 34px; padding: 4px 12px;" title="Tiến tới">›</button>
           </div>
         </div>
 
         <!-- Chú thích màu sắc (Legend Pills) -->
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; font-size: 11px; font-weight: 700;">
+        <div class="cal-legend-bar" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; font-size: 11px; font-weight: 700;">
           <span class="rh-cal-pill rh-cal-pill--pickup">● Giao xe</span>
           <span class="rh-cal-pill rh-cal-pill--return">● Trả xe</span>
           <span class="rh-cal-pill rh-cal-pill--maint">● Bảo dưỡng / Cleaning</span>

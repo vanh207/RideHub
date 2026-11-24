@@ -50,14 +50,14 @@
         <h1 class="fleet-title">Quản Lý Kho Phương Tiện (Thêm, Sửa, Tải Ảnh)</h1>
         <p class="fleet-subtitle">Quản trị danh sách xe máy, ô tô tự lái, cập nhật giá thuê và kiểm soát trạng thái xe</p>
       </div>
-      <div style="display: flex; gap: 8px;">
+      <div class="fleet-actions" style="display: flex; gap: 8px;">
         <button id="sortFleetTableBtn" class="btn btn-soft" type="button">Sắp xếp theo giá</button>
         <button id="openAddVehicleBtn" class="btn btn-primary btn-premium btn-shine" type="button">+ Thêm xe mới</button>
       </div>
     </div>
 
     <!-- 1. BẢNG PHƯƠNG TIỆN -->
-    <div class="panel-card" style="overflow-x: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid rgba(22,163,74,0.15);">
+    <div class="panel-card fleet-table-wrapper" style="overflow-x: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid rgba(22,163,74,0.15);">
       <table class="fleet-table">
         <thead>
           <tr>
