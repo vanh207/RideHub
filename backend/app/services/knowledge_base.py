@@ -115,15 +115,18 @@ class KnowledgeBaseService:
 
     @staticmethod
     def build_rag_context(knowledge_items: List[KnowledgeItem]) -> str:
-        """Đóng gói các đoạn tri thức thành đoạn Context để gửi vào Prompt cho AI Model."""
+        """Đóng gói các đoạn tri thức thành Context gọn gàng để gửi vào Prompt AI.
+        
+        Định dạng mới: chỉ ghi câu hỏi + câu trả lời, không có header [Tài liệu X]
+        để AI dễ tóm tắt thành câu trả lời tự nhiên hơn.
+        """
         if not knowledge_items:
             return "Không tìm thấy thông tin cụ thể trong kho tri thức cho câu hỏi này."
 
         context_parts = []
-        for idx, item in enumerate(knowledge_items, 1):
+        for item in knowledge_items:
             context_parts.append(
-                f"[Tài liệu {idx} - Chủ đề: {item.category_name}]\n"
-                f"Câu hỏi thường gặp: {item.question}\n"
-                f"Chính sách & Hướng dẫn: {item.answer}"
+                f"Q: {item.question}\n"
+                f"A: {item.answer}"
             )
         return "\n\n".join(context_parts)
