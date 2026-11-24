@@ -120,3 +120,85 @@
   gap: 8px;
   margin-bottom: 14px;
 }
+
+/* ==========================================================================
+   RESPONSIVE DESIGN CHO TRANG QUẢN LÝ XE (MOBILE & TABLET)
+   ========================================================================== */
+
+.fleet-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fleet-table {
+  width: 100%;
+  min-width: 580px;
+  border-collapse: collapse;
+}
+
+/* Tablet & Mobile (< 768px): Cụm nút dàn thành 2 cột đều 100% */
+@media (max-width: 768px) {
+  .fleet-main {
+    padding-top: 70px;
+    gap: 16px;
+  }
+
+  .fleet-top-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .fleet-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .fleet-actions .btn {
+    width: 100%;
+    min-height: 40px;
+    font-size: 13px;
+    justify-content: center;
+  }
+}
+
+/* Màn hình nhỏ (< 540px): Modal 95vw, Form 1 cột dọc, lưới ảnh linh hoạt */
+@media (max-width: 540px) {
+  .modal-dialog,
+  .fleet-modal-dialog {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 18px 14px !important;
+    margin: 10px auto;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .fleet-title {
+    font-size: 1.3rem;
+  }
+
+  /* Chuyển các ô form 2 cột trong modal thành 1 cột dọc */
+  .modal-dialog .split-layout,
+  form .split-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  /* Khung kéo thả & preview ảnh co giãn linh hoạt */
+  .fleet-dropzone {
+    padding: 14px 10px;
+  }
+
+  .fleet-photo-preview {
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 6px;
+  }
+
+  .fleet-gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 6px;
+  }
+}

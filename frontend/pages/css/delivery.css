@@ -126,3 +126,83 @@
   font-size: 14px;
   line-height: 1.9;
 }
+
+@media (max-width: 768px) {
+  .delivery-main {
+    padding-top: 70px;
+    gap: 16px;
+  }
+  /* Thẻ thống kê KPI: Tự động chuyển từ 4 cột sang lưới 2 cột */
+  .delivery-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+  .kpi-card {
+    padding: 10px 12px;
+  }
+  .kpi-val {
+    font-size: 1.2rem;
+  }
+  /* Nút thêm điểm chiếm 100% chiều rộng */
+  .delivery-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .delivery-tabs {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .tab-btn {
+    text-align: center;
+    padding: 8px 6px;
+    font-size: 12.5px;
+  }
+  .add-point-btn {
+    width: 100%;
+    min-height: 40px;
+    justify-content: center;
+  }
+  /* Bộ lọc khu vực & tìm kiếm xếp 2 cột */
+  .delivery-filter-bar {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  /* Tab Bảng phí & Bán kính: Bố cục 2 cột tự chuyển thành 1 cột dọc */
+  .fee-matrix-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+/* Mobile nhỏ (< 640px) */
+@media (max-width: 640px) {
+  /* Lưới thẻ Điểm giao nhận: Chuyển sang 1fr toàn màn hình */
+  .delivery-grid {
+    grid-template-columns: 1fr;
+  }
+  .delivery-filter-bar {
+    grid-template-columns: 1fr;
+  }
+  .delivery-title {
+    font-size: 1.35rem;
+  }
+  .delivery-btn-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+/* Mobile hẹp (< 520px) cho Modal Thêm/Sửa điểm */
+@media (max-width: 520px) {
+  .point-modal-dialog {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 18px 14px !important;
+    margin: 10px auto;
+  }
+  /* Cụm nhập liệu 2 cột tự động dàn thành 1 cột */
+  .point-form-split {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+}
