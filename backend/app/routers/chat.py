@@ -4,14 +4,17 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, get_current_admin
 from app.core.rate_limiter import chatbot_rate_limiter
 from app.crud.chat import (
     add_knowledge_entry,
     delete_knowledge_entry,
     get_conversation_history,
+    lookup_user_bookings_for_chat,
     process_ai_chat_message,
     reset_conversation,
+    search_vehicles_for_chat,
+    update_knowledge_entry,
 )
 from app.db.session import get_db
 from app.models.faq import FAQ
@@ -21,9 +24,12 @@ from app.schemas.chat import (
     ChatMessageResponse,
     ConversationHistoryResponse,
     KnowledgeEntryCreate,
+    KnowledgeEntryUpdate,
     KnowledgeItemResponse,
     RateLimitMeta,
     UUID4_PATTERN,
+    UserBookingLookupItem,
+    VehicleSearchResultItem,
 )
 from app.services.knowledge_base import KnowledgeBaseService
 
@@ -47,23 +53,52 @@ def _get_client_identifier(request: Request, session_id: str) -> str:
     return f"{session_id}@{client_ip}"
 
 
+def _try_get_optional_user(request: Request, db: Session) -> Optional[User]:
+    """Lấy user nếu có gửi token hợp lệ, nếu không có token hoặc lỗi token thì trả về None (cho phép khách vãng lai chat)."""
+    from app.core.security import decode_access_token
+    token = None
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ", 1)[1].strip()
+    elif request:
+        token = (
+            request.cookies.get("ridehub_token")
+            or request.cookies.get("access_token")
+            or request.cookies.get("token")
+        )
+
+    if not token:
+        return None
+
+    try:
+        payload = decode_access_token(token)
+        subject = payload.get("sub") if payload else None
+        if not subject:
+            return None
+        user_id = int(subject)
+        return db.query(User).filter(User.id == user_id, User.status == "active").first()
+    except Exception:
+        return None
+
+
 # ---------------------------------------------------------------------------
-# 1. Gửi tin nhắn & Nhận phản hồi AI (có Rate Limiting & RAG)
+# 1. Gửi tin nhắn & Nhận phản hồi AI (có Rate Limiting, RAG & Tool Execution)
 # ---------------------------------------------------------------------------
 
 @router.post(
     "/message",
     response_model=ChatMessageResponse,
-    summary="Gửi tin nhắn tới Chatbot AI (Tự động tra cứu Kho tri thức & Giới hạn lượt gọi)",
+    summary="Gửi tin nhắn tới Chatbot AI (Tự động tra cứu Kho tri thức, Tìm xe & Tra cứu đơn chính chủ)",
 )
 def handle_chat_message(
     payload: ChatMessageRequest,
     request: Request,
     db: Session = Depends(get_db),
 ):
-    """Tiếp nhận câu hỏi của người dùng, kiểm tra hạn mức gọi, tìm kiếm tri thức và sinh phản hồi thông minh."""
+    """Tiếp nhận câu hỏi của người dùng, kiểm tra hạn mức gọi, tìm kiếm tri thức, tìm xe hoặc tra cứu đơn của chính user."""
     client_key = _get_client_identifier(request, payload.session_id)
-    return process_ai_chat_message(payload, client_key, db)
+    current_user = _try_get_optional_user(request, db)
+    return process_ai_chat_message(payload, client_key, db, current_user=current_user)
 
 
 # ---------------------------------------------------------------------------
@@ -187,6 +222,27 @@ def api_add_knowledge_entry(
     return KnowledgeItemResponse.model_validate(faq)
 
 
+@router.put(
+    "/knowledge-base/{faq_id}",
+    response_model=KnowledgeItemResponse,
+    summary="Cập nhật một câu hỏi / chính sách trong Kho tri thức (Chỉ Admin)",
+)
+def api_update_knowledge_entry(
+    faq_id: int,
+    payload: KnowledgeEntryUpdate,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_admin),
+):
+    """Cập nhật nội dung câu hỏi hoặc chính sách trong kho tri thức."""
+    faq = update_knowledge_entry(faq_id, payload, db)
+    if not faq:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy mục tri thức #{faq_id} để cập nhật.",
+        )
+    return KnowledgeItemResponse.model_validate(faq)
+
+
 @router.delete(
     "/knowledge-base/{faq_id}",
     summary="Xóa một mục khỏi Kho tri thức (Chỉ Admin)",
@@ -204,3 +260,53 @@ def api_delete_knowledge_entry(
             detail=f"Không tìm thấy mục tri thức #{faq_id}.",
         )
     return {"message": f"Đã xóa thành công mục tri thức #{faq_id}."}
+
+
+# ---------------------------------------------------------------------------
+# 5. Các API trợ lý Chatbot tìm xe & tra cứu đơn có kiểm soát
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/tools/search-vehicles",
+    response_model=List[VehicleSearchResultItem],
+    summary="Công cụ tìm xe khả dụng cho Chatbot",
+)
+def api_search_vehicles_tool(
+    keyword: Optional[str] = Query(None, description="Tên hãng hoặc mẫu xe"),
+    vehicle_type: Optional[str] = Query(None, description="MOTORBIKE hoặc CAR"),
+    max_price: Optional[float] = Query(None, description="Mức giá thuê tối đa theo ngày"),
+    seats: Optional[int] = Query(None, description="Số chỗ ngồi (4, 5, 7...)"),
+    limit: int = Query(5, ge=1, le=20),
+    db: Session = Depends(get_db),
+):
+    """API tìm kiếm phương tiện có sẵn để Chatbot gợi ý cho khách thuê."""
+    return search_vehicles_for_chat(
+        keyword=keyword,
+        vehicle_type=vehicle_type,
+        max_price=max_price,
+        seats=seats,
+        db=db,
+        limit=limit,
+    )
+
+
+@router.get(
+    "/tools/my-bookings",
+    response_model=List[UserBookingLookupItem],
+    summary="Công cụ tra cứu đơn thuê có kiểm soát cho Chatbot (Chỉ trả đơn của chính user)",
+)
+def api_my_bookings_tool(
+    booking_id: Optional[int] = Query(None, description="Mã đơn thuê cụ thể"),
+    status: Optional[str] = Query(None, description="Lọc theo trạng thái đơn"),
+    limit: int = Query(5, ge=1, le=20),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """API tra cứu đơn thuê có kiểm soát: CHỈ TRẢ ĐƠN CỦA CHÍNH NGƯỜI DÙNG ĐANG ĐĂNG NHẬP."""
+    return lookup_user_bookings_for_chat(
+        current_user_id=current_user.id,
+        booking_id=booking_id,
+        status_filter=status,
+        db=db,
+        limit=limit,
+    )
