@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -10,8 +11,11 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.rate_limiter import enforce_chatbot_rate_limit
+from app.models.booking import Booking
 from app.models.chat import ChatConversation, ChatMessage
 from app.models.faq import FAQ
+from app.models.user import User
+from app.models.vehicle import Vehicle
 from app.schemas.chat import (
     ChatMessageItem,
     ChatMessageRequest,
@@ -19,7 +23,10 @@ from app.schemas.chat import (
     ConversationHistoryResponse,
     KnowledgeCitation,
     KnowledgeEntryCreate,
+    KnowledgeEntryUpdate,
     RateLimitMeta,
+    UserBookingLookupItem,
+    VehicleSearchResultItem,
 )
 from app.services.ai_service import ai_service
 from app.services.knowledge_base import KnowledgeBaseService
@@ -138,16 +145,20 @@ def process_ai_chat_message(
     payload: ChatMessageRequest,
     client_identifier: str,
     db: Session,
+    current_user: Optional[User] = None,
 ) -> ChatMessageResponse:
     """Quy trình xử lý tin nhắn Chatbot AI hoàn chỉnh:
     
     1. Kiểm tra Giới hạn lượt gọi (Rate Limiting).
     2. Lưu tin nhắn người dùng.
-    3. Tra cứu Kho tri thức (RAG - Knowledge Base Search).
-    4. Xử lý kịch bản leo thang nhân viên (Agent Escalation) nếu có khiếu nại.
-    5. Gọi Lớp tích hợp Mô hình AI (AI Integration Layer) với RAG Context.
-    6. Lưu phản hồi của BOT kèm trích dẫn (Citations).
-    7. Trả về Response chuẩn xác cho Frontend.
+    3. Nhận diện ý định gọi công cụ:
+       - Tra cứu đơn thuê của chính người dùng (được kiểm soát chặt theo current_user.id).
+       - Tìm kiếm xe sẵn sàng phục vụ theo tiêu chí (giá, loại xe, chỗ ngồi).
+    4. Tra cứu Kho tri thức (RAG - Knowledge Base Search).
+    5. Xử lý kịch bản leo thang nhân viên (Agent Escalation) nếu có khiếu nại.
+    6. Gọi Lớp tích hợp Mô hình AI (AI Integration Layer) với RAG Context.
+    7. Lưu phản hồi của BOT kèm trích dẫn (Citations).
+    8. Trả về Response chuẩn xác cho Frontend.
     """
     # 1. KIỂM TRA RATE LIMIT
     rate_limit_info = enforce_chatbot_rate_limit(client_identifier)
@@ -238,6 +249,132 @@ def process_ai_chat_message(
             rate_limit=RateLimitMeta(**rate_limit_info),
         )
 
+    # 5.5. NHẬN DIỆN Ý ĐỊNH TRA CỨU ĐƠN THUÊ CỦA CHÍNH NGƯỜI DÙNG
+    booking_intent_keywords = ["đơn của tôi", "tra cứu đơn", "đơn thuê", "lịch sử thuê", "kiểm tra đơn", "đơn số", "đơn hàng"]
+    if any(k in query_lower for k in booking_intent_keywords):
+        # Yêu cầu bảo mật: Nếu chưa đăng nhập thì thông báo đăng nhập
+        if not current_user:
+            auth_msg = (
+                "Dạ để bảo mật thông tin cá nhân và tài khoản, Quý khách vui lòng đăng nhập "
+                "để em có thể tra cứu chính xác danh sách đơn thuê của Quý khách ạ! 🔐"
+            )
+            add_chat_message(
+                session_id=payload.session_id,
+                sender="BOT",
+                message=auth_msg,
+                detected_intent="lookup_booking_unauthorized",
+                payload_json={"requires_auth": True},
+                db=db,
+            )
+            return ChatMessageResponse(
+                sender="bot",
+                message=auth_msg,
+                detected_intent="lookup_booking_unauthorized",
+                payload={"requires_auth": True},
+                is_escalated=False,
+                ai_model="booking-assistant",
+                citations=[],
+                rate_limit=RateLimitMeta(**rate_limit_info),
+            )
+
+        # Trích xuất mã đơn nếu người dùng có nhập (vd: "đơn số 12", "đơn #12")
+        booking_id_match = re.search(r"(?:đơn|mã đơn|đơn số|#)\s*(\d+)", query_lower)
+        target_booking_id = int(booking_id_match.group(1)) if booking_id_match else None
+
+        # Tra cứu: Đảm bảo CHỈ lấy đơn có customer_id == current_user.id
+        user_bookings = lookup_user_bookings_for_chat(
+            current_user_id=current_user.id,
+            booking_id=target_booking_id,
+            db=db,
+            limit=5,
+        )
+
+        if not user_bookings:
+            if target_booking_id:
+                reply = f"Dạ em đã kiểm tra trên hệ thống, Quý khách không có đơn thuê nào mang mã #{target_booking_id} (hoặc đơn này thuộc tài khoản khác) ạ."
+            else:
+                reply = f"Dạ chào Quý khách {current_user.full_name or ''}, hiện tại Quý khách chưa có đơn thuê xe nào trên hệ thống RideHub ạ."
+        else:
+            reply_lines = [f"Dạ em xin gửi thông tin đơn thuê của Quý khách {current_user.full_name or ''}:"]
+            for b in user_bookings:
+                reply_lines.append(
+                    f"• Đơn #{b.booking_id}: Xe {b.vehicle_name} (BS: {b.plate_number}) - "
+                    f"Trạng thái: {b.status} - Tổng tiền: {b.total_amount:,.0f} VNĐ"
+                )
+            reply = "\n".join(reply_lines)
+
+        add_chat_message(
+            session_id=payload.session_id,
+            sender="BOT",
+            message=reply,
+            detected_intent="lookup_user_booking",
+            payload_json=None,
+            db=db,
+        )
+        return ChatMessageResponse(
+            sender="bot",
+            message=reply,
+            detected_intent="lookup_user_booking",
+            payload={"bookings": [b.model_dump(mode="json") for b in user_bookings]},
+            is_escalated=False,
+            ai_model="booking-assistant",
+            citations=[],
+            rate_limit=RateLimitMeta(**rate_limit_info),
+        )
+
+    # 5.6. NHẬN DIỆN Ý ĐỊNH TÌM KIẾM XE SẴN CÓ
+    vehicle_search_keywords = ["tìm xe", "thuê xe", "có xe nào", "xe 4 chỗ", "xe 7 chỗ", "xe máy", "ô tô", "giá xe", "xe sẵn"]
+    if any(k in query_lower for k in vehicle_search_keywords) and not ("chính sách" in query_lower or "thủ tục" in query_lower):
+        # Xác định loại xe
+        v_type = None
+        if "xe máy" in query_lower or "motorbike" in query_lower:
+            v_type = "MOTORBIKE"
+        elif "ô tô" in query_lower or "oto" in query_lower or "car" in query_lower:
+            v_type = "CAR"
+
+        # Chỗ ngồi
+        seats = None
+        seats_match = re.search(r"(\d+)\s*(?:chỗ|cho)", query_lower)
+        if seats_match:
+            seats = int(seats_match.group(1))
+
+        vehicles = search_vehicles_for_chat(
+            keyword=None if (v_type or seats) else query_text,
+            vehicle_type=v_type,
+            seats=seats,
+            db=db,
+            limit=5,
+        )
+
+        if vehicles:
+            v_lines = ["Dạ em tìm thấy các xe đang sẵn sàng phục vụ Quý khách:"]
+            for v in vehicles:
+                v_lines.append(
+                    f"🚗 {v.brand} {v.model} ({v.vehicle_type}) - "
+                    f"Giá: {v.price_per_day:,.0f} đ/ngày - Biển số: {v.plate_number}"
+                )
+            v_lines.append("\nQuý khách muốn đặt xe nào hoặc cần tư vấn thêm chi tiết cứ nhắn em nhé!")
+            reply = "\n".join(v_lines)
+
+            add_chat_message(
+                session_id=payload.session_id,
+                sender="BOT",
+                message=reply,
+                detected_intent="search_vehicles",
+                payload_json={"vehicles": [v.model_dump() for v in vehicles]},
+                db=db,
+            )
+            return ChatMessageResponse(
+                sender="bot",
+                message=reply,
+                detected_intent="search_vehicles",
+                payload={"vehicles": [v.model_dump() for v in vehicles]},
+                is_escalated=False,
+                ai_model="vehicle-assistant",
+                citations=[],
+                rate_limit=RateLimitMeta(**rate_limit_info),
+            )
+
     # 6. TRA CỨU KHO TRI THỨC (KNOWLEDGE BASE RAG)
     knowledge_results = KnowledgeBaseService.search_knowledge(
         query=query_text,
@@ -305,8 +442,111 @@ def process_ai_chat_message(
 
 
 # ---------------------------------------------------------------------------
-# Quản lý Kho tri thức (Knowledge Base Management)
+# Trợ lý Chatbot gọi API tìm xe & tra cứu đơn có kiểm soát
 # ---------------------------------------------------------------------------
+
+def search_vehicles_for_chat(
+    keyword: Optional[str] = None,
+    vehicle_type: Optional[str] = None,
+    max_price: Optional[float] = None,
+    seats: Optional[int] = None,
+    db: Session = None,
+    limit: int = 5,
+) -> List[VehicleSearchResultItem]:
+    """Tìm kiếm xe đang sẵn sàng (AVAILABLE) để chatbot tư vấn cho khách."""
+    query = db.query(Vehicle).filter(
+        Vehicle.is_active == True,
+        Vehicle.current_status == "AVAILABLE",
+    )
+
+    if vehicle_type:
+        query = query.filter(Vehicle.vehicle_type == vehicle_type.upper())
+
+    if max_price is not None and max_price > 0:
+        query = query.filter(Vehicle.price_per_day <= max_price)
+
+    if seats is not None and seats > 0:
+        query = query.filter(Vehicle.seats == seats)
+
+    if keyword:
+        kw = f"%{keyword.strip()}%"
+        query = query.filter(
+            (Vehicle.brand.ilike(kw)) | (Vehicle.model.ilike(kw)) | (Vehicle.description.ilike(kw))
+        )
+
+    vehicles = query.order_by(Vehicle.price_per_day.asc()).limit(limit).all()
+
+    return [
+        VehicleSearchResultItem(
+            id=v.id,
+            brand=v.brand,
+            model=v.model,
+            vehicle_type=v.vehicle_type,
+            plate_number=v.plate_number,
+            price_per_day=float(v.price_per_day),
+            current_status=v.current_status,
+            seats=v.seats,
+            transmission_type=v.transmission_type,
+            fuel_type=v.fuel_type,
+        )
+        for v in vehicles
+    ]
+
+
+def lookup_user_bookings_for_chat(
+    current_user_id: int,
+    booking_id: Optional[int] = None,
+    status_filter: Optional[str] = None,
+    db: Session = None,
+    limit: int = 5,
+) -> List[UserBookingLookupItem]:
+    """Tra cứu đơn thuê xe có kiểm soát: CHỈ TRẢ ĐƠN CỦA CHÍNH NGƯỜI DÙNG ĐANG CHAT."""
+    if not current_user_id:
+        return []
+
+    # Cố định điều kiện customer_id == current_user_id để chống rò rỉ dữ liệu của khách khác
+    query = (
+        db.query(Booking, Vehicle)
+        .join(Vehicle, Booking.vehicle_id == Vehicle.id)
+        .filter(Booking.customer_id == current_user_id)
+    )
+
+    if booking_id:
+        query = query.filter(Booking.id == booking_id)
+
+    if status_filter:
+        query = query.filter(Booking.status == status_filter.upper())
+
+    results = query.order_by(Booking.created_at.desc() if hasattr(Booking, "created_at") else Booking.id.desc()).limit(limit).all()
+
+    items = []
+    for booking, vehicle in results:
+        items.append(
+            UserBookingLookupItem(
+                booking_id=booking.id,
+                vehicle_name=f"{vehicle.brand} {vehicle.model}",
+                plate_number=vehicle.plate_number,
+                start_time=booking.start_time,
+                end_time=booking.end_time,
+                status=booking.status,
+                total_amount=float(booking.total_amount),
+                deposit_amount=float(booking.deposit_amount or 0),
+            )
+        )
+    return items
+
+
+def update_knowledge_entry(faq_id: int, payload: KnowledgeEntryUpdate, db: Session) -> Optional[FAQ]:
+    """Cập nhật một mục tri thức."""
+    faq = db.query(FAQ).filter(FAQ.id == faq_id).first()
+    if not faq:
+        return None
+    data = payload.model_dump(exclude_unset=True)
+    for k, v in data.items():
+        setattr(faq, k, v)
+    db.commit()
+    db.refresh(faq)
+    return faq
 
 def add_knowledge_entry(payload: KnowledgeEntryCreate, db: Session) -> FAQ:
     """Thêm một mục tri thức mới vào kho."""

@@ -131,3 +131,46 @@ class KnowledgeEntryCreate(BaseModel):
     answer: str = Field(..., min_length=10, description="Câu trả lời / chính sách chi tiết")
     display_order: int = Field(0, ge=0)
     is_active: bool = True
+
+
+class KnowledgeEntryUpdate(BaseModel):
+    """Cập nhật mục tri thức."""
+
+    category: Optional[str] = Field(None, min_length=2, max_length=50)
+    category_name: Optional[str] = Field(None, min_length=2, max_length=100)
+    question: Optional[str] = Field(None, min_length=5, max_length=500)
+    answer: Optional[str] = Field(None, min_length=10)
+    display_order: Optional[int] = Field(None, ge=0)
+    is_active: Optional[bool] = None
+
+
+# ---------------------------------------------------------------------------
+# Schemas Trợ lý Chatbot gọi API tìm xe và tra cứu đơn
+# ---------------------------------------------------------------------------
+
+class VehicleSearchResultItem(BaseModel):
+    """Thông tin xe trả về cho chatbot gợi ý cho khách."""
+
+    id: int
+    brand: str
+    model: str
+    vehicle_type: str
+    plate_number: str
+    price_per_day: float
+    current_status: str
+    seats: Optional[int] = None
+    transmission_type: Optional[str] = None
+    fuel_type: Optional[str] = None
+
+
+class UserBookingLookupItem(BaseModel):
+    """Thông tin đơn thuê của chính người dùng đang chat."""
+
+    booking_id: int
+    vehicle_name: str
+    plate_number: str
+    start_time: datetime
+    end_time: datetime
+    status: str
+    total_amount: float
+    deposit_amount: float
