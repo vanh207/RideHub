@@ -188,7 +188,20 @@ def process_ai_chat_message(
     assigned_agent = conv.assigned_agent
 
     # 4. NHẬN DIỆN KỊCH BẢN YÊU CẦU GẶP NGƯỜI THẬT / KHIẾU NẠI NẶNG
-    escalation_triggers = ["gặp người", "gặp nhân viên", "nhân viên cskh", "lừa đảo", "khiếu nại", "tố cáo", "hoàn cọc ngay"]
+    escalation_triggers = [
+        "gặp người",
+        "gặp nhân viên",
+        "nhân viên hỗ trợ",
+        "kết nối với nhân viên",
+        "chuyển nhân viên",
+        "nhân viên cskh",
+        "tổng đài",
+        "nói chuyện với nhân viên",
+        "lừa đảo",
+        "khiếu nại",
+        "tố cáo",
+        "hoàn cọc ngay",
+    ]
     if any(k in query_lower for k in escalation_triggers) and not is_escalated:
         is_escalated = True
         assigned_agent = "Mai Linh (Trưởng ca CSKH RideHub)"
@@ -198,9 +211,9 @@ def process_ai_chat_message(
         db.commit()
 
         bot_text = (
-            "Dạ em rất hiểu Quý khách đang cần được xử lý nhanh nhất ạ! 🙏\n\n"
-            f"Em đang kết nối cuộc trò chuyện này trực tiếp đến Chuyên viên Quản lý Vận hành RideHub ({assigned_agent}) "
-            "để hỗ trợ xử lý ngay lập tức cho Quý khách. Chuyên viên sẽ phản hồi trong giây lát!"
+            f"Em đã kết nối bạn với **{assigned_agent}** rồi ạ! 👋\n"
+            "Nhân viên sẽ phản hồi ngay tại đây. "
+            "Nếu cần hỗ trợ gấp, bạn gọi tổng đài **1900 6868** (24/7) nhé!"
         )
 
         add_chat_message(
@@ -323,7 +336,10 @@ def process_ai_chat_message(
         )
 
     # 5.6. NHẬN DIỆN Ý ĐỊNH TÌM KIẾM XE SẴN CÓ
-    vehicle_search_keywords = ["tìm xe", "thuê xe", "có xe nào", "xe 4 chỗ", "xe 7 chỗ", "xe máy", "ô tô", "giá xe", "xe sẵn"]
+    vehicle_search_keywords = [
+        "tìm xe", "thuê xe", "có xe nào", "xe 4 chỗ", "xe 7 chỗ",
+        "xe máy", "ô tô", "giá xe", "xe sẵn", "gần tôi", "gần đây", "xe điện",
+    ]
     if any(k in query_lower for k in vehicle_search_keywords) and not ("chính sách" in query_lower or "thủ tục" in query_lower):
         # Xác định loại xe
         v_type = None
@@ -347,14 +363,19 @@ def process_ai_chat_message(
         )
 
         if vehicles:
-            v_lines = ["Dạ em tìm thấy các xe đang sẵn sàng phục vụ Quý khách:"]
-            for v in vehicles:
-                v_lines.append(
-                    f"🚗 {v.brand} {v.model} ({v.vehicle_type}) - "
-                    f"Giá: {v.price_per_day:,.0f} đ/ngày - Biển số: {v.plate_number}"
+            # Lấy loại xe để gợi ý đúng link lọc
+            type_label = "xe máy" if v_type == "MOTORBIKE" else ("ô tô" if v_type == "CAR" else "xe")
+            type_param = f"?type={v_type.lower()}" if v_type else ""
+
+            # Câu trả lời ngắn gọn, tự nhiên — tối đa 3 xe + link
+            intro = f"Có ngay {len(vehicles)} {type_label} đang trống bạn ơi! 🎉"
+            car_lines = []
+            for v in vehicles[:3]:
+                car_lines.append(
+                    f"• **{v.brand} {v.model}** — {v.price_per_day:,.0f}đ/ngày"
                 )
-            v_lines.append("\nQuý khách muốn đặt xe nào hoặc cần tư vấn thêm chi tiết cứ nhắn em nhé!")
-            reply = "\n".join(v_lines)
+            link_line = f"\n👉 Xem & đặt xe tại: /vehicles.html{type_param}"
+            reply = intro + "\n" + "\n".join(car_lines) + link_line
 
             add_chat_message(
                 session_id=payload.session_id,
@@ -374,8 +395,34 @@ def process_ai_chat_message(
                 citations=[],
                 rate_limit=RateLimitMeta(**rate_limit_info),
             )
+        else:
+            type_label = "xe máy" if v_type == "MOTORBIKE" else ("ô tô" if v_type == "CAR" else "xe")
+            type_param = f"?type={v_type.lower()}" if v_type else ""
+            reply = (
+                f"Hiện chưa có {type_label} phù hợp đang trống bạn ơi 😕 "
+                f"Bạn thử xem danh sách xe tại 👉 /vehicles.html{type_param} nhé!"
+            )
+            add_chat_message(
+                session_id=payload.session_id,
+                sender="BOT",
+                message=reply,
+                detected_intent="search_vehicles",
+                payload_json={"vehicles": []},
+                db=db,
+            )
+            return ChatMessageResponse(
+                sender="bot",
+                message=reply,
+                detected_intent="search_vehicles",
+                payload={"vehicles": []},
+                is_escalated=False,
+                ai_model="vehicle-assistant",
+                citations=[],
+                rate_limit=RateLimitMeta(**rate_limit_info),
+            )
 
     # 6. TRA CỨU KHO TRI THỨC (KNOWLEDGE BASE RAG)
+    # (Nếu tìm xe không ra kết quả → vẫn thử RAG để trả lời tự nhiên)
     knowledge_results = KnowledgeBaseService.search_knowledge(
         query=query_text,
         db=db,

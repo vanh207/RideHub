@@ -646,83 +646,12 @@
     },
 
     /* ----------------------------------------------------------------------
-       10. Chatbot AI, Mobile Drawer & View Transitions
+       10. Mobile Drawer & View Transitions
+       (Chatbot AI được xử lý bởi js/components/chat-widget.js)
        ---------------------------------------------------------------------- */
     initChatbotAndNav() {
-      const fab = document.getElementById('chatFab');
-      const win = document.getElementById('chatWindow');
-      const closeBtn = document.getElementById('chatCloseBtn');
-      const msgBox = document.getElementById('chatMessages');
-      const input = document.getElementById('chatInput');
-      const sendBtn = document.getElementById('chatSendBtn');
-
-      if (fab && win) {
-        fab.addEventListener('click', () => {
-          win.classList.toggle('is-open');
-          fab.classList.remove('has-unread');
-        });
-        if (closeBtn) closeBtn.addEventListener('click', () => win.classList.remove('is-open'));
-      }
-
-      const appendBotReply = (text, withStamp = false) => {
-        if (!msgBox) return;
-        const typing = document.createElement('div');
-        typing.className = 'chat-msg chat-msg--bot';
-        typing.innerHTML = '<span class="typing-dot"></span> <span class="typing-dot"></span> <span class="typing-dot"></span>';
-        msgBox.appendChild(typing);
-        msgBox.scrollTop = msgBox.scrollHeight;
-
-        setTimeout(() => {
-          typing.remove();
-          const msg = document.createElement('div');
-          msg.className = 'chat-msg chat-msg--bot';
-          msgBox.appendChild(msg);
-          let i = 0;
-          const typeLoop = () => {
-            i += 2;
-            msg.textContent = text.slice(0, i);
-            msgBox.scrollTop = msgBox.scrollHeight;
-            if (i < text.length) {
-              setTimeout(typeLoop, 18);
-            } else if (withStamp) {
-              const stamp = document.createElement('div');
-              stamp.className = 'stamp-badge';
-              stamp.style.cssText = 'margin-top:8px;padding:6px 10px;border:1.5px dashed var(--green-500);border-radius:8px;background:var(--green-50);font-weight:800;color:var(--green-700);font-size:12px;';
-              stamp.textContent = 'MÃ HỖ TRỢ: #RH-2026-889';
-              msg.appendChild(stamp);
-            }
-          };
-          typeLoop();
-        }, 650);
-      };
-
-      document.querySelectorAll('.chat-quick-pill').forEach((pill, idx) => {
-        pill.style.setProperty('--pill-i', idx);
-        pill.addEventListener('click', () => {
-          if (!msgBox) return;
-          const u = document.createElement('div');
-          u.className = 'chat-msg chat-msg--user';
-          u.textContent = pill.textContent;
-          msgBox.appendChild(u);
-          const isHandoff = pill.dataset.handoff === 'true';
-          appendBotReply(pill.dataset.reply || 'RideHub sẵn sàng hỗ trợ bạn chọn xe phù hợp nhất!', isHandoff);
-        });
-      });
-
-      if (sendBtn && input) {
-        const send = () => {
-          const val = input.value.trim();
-          if (!val) return;
-          const u = document.createElement('div');
-          u.className = 'chat-msg chat-msg--user';
-          u.textContent = val;
-          msgBox.appendChild(u);
-          input.value = '';
-          appendBotReply('Cảm ơn bạn! Xe máy điện & ô tô xanh gần bạn nhất hiện đã sẵn sàng giao trong 15 phút.');
-        };
-        sendBtn.addEventListener('click', send);
-        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
-      }
+      // Chat widget được khởi tạo bởi chat-widget.js (RideHubChatbot)
+      // Effects.js chỉ xử lý Mobile Drawer và View Transitions
 
       // Mobile Hamburger & Drawer
       const burger = document.getElementById('hamburgerBtn');
