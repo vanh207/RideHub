@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chuyến đi của tôi — RideHub</title>
+  <link rel="icon" type="image/png" href="assets/logo-rh.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <div class="blob-layer" aria-hidden="true" data-pause-offscreen>
+    <div class="morph-blob morph-blob--1"></div>
+    <div class="morph-blob morph-blob--2"></div>
+  </div>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <header id="mainNavbar" class="navbar is-scrolled">
+    <div class="container navbar-inner">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo-ridehub.png" alt="RideHub" style="height:36px;width:auto;" />
+      </a>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">Trang chủ</a>
+        <a href="vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+        <a href="trips.html" class="nav-link is-active">Chuyến đi</a>
+        <a href="chat.html" class="nav-link">Tin nhắn</a>
+        <a href="index.html#storySection" class="nav-link">Hướng dẫn thuê xe</a>
+        <a href="store-portal.html" class="nav-link">Cửa hàng</a>
+        <a href="admin-ops.html" class="nav-link">Quản trị Admin</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <aside id="mobileDrawer" class="mobile-drawer">
+    <a href="index.html">Trang chủ</a>
+    <a href="vehicles.html">Tìm &amp; Thuê xe</a>
+    <a href="trips.html">Chuyến đi</a>
+    <a href="chat.html">Tin nhắn</a>
+    <a href="index.html#storySection">Hướng dẫn thuê xe</a>
+    <a href="store-portal.html">Cổng Cửa hàng</a>
+    <a href="admin-ops.html">Quản trị Admin</a>
+  </aside>
+
+  <section class="subpage-hero">
+    <div class="aurora-bg" aria-hidden="true"></div>
+    <div class="container" style="position:relative;z-index:2;">
+      <span class="eyebrow">Theo dõi hành trình trực tiếp</span>
+      <h1 class="section-title" data-reveal="text-mask">Chuyến đi của tôi</h1>
+      <p class="section-subtitle">Đếm ngược từng giây đến giờ nhận xe, theo dõi trạng thái đang thực hiện chuyến đi và cảnh báo chuẩn bị trả xe khi còn dưới 1 tiếng.</p>
+    </div>
+  </section>
+
+  <main class="subpage-main">
+    <div class="container">
+      <!-- Quick Demo State Switcher -->
+      <div class="panel-card" style="margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <span style="font-size:13px;font-weight:700;color:var(--text-secondary);">Mô phỏng nhanh trạng thái chuyến #1:</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-soft" style="min-height:34px;padding:4px 12px;font-size:12px;" onclick="setDemoTrip(0, 'upcoming', 94520)">Sắp nhận (1 ngày+)</button>
+          <button type="button" class="btn btn-soft" style="min-height:34px;padding:4px 12px;font-size:12px;" onclick="setDemoTrip(0, 'ongoing', 18400)">Đang thực hiện (5+ tiếng)</button>
+          <button type="button" class="btn btn-primary" style="min-height:34px;padding:4px 12px;font-size:12px;" onclick="setDemoTrip(0, 'ongoing', 2700)">Còn 45 phút (Chuẩn bị trả xe)</button>
+        </div>
+      </div>
+
+      <div id="tripsGrid" class="fleet-grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr));"></div>
+    </div>
+  </main>
+
+  <!-- ======================================================================
+       FOOTER (CHUNG TOÀN HỆ THỐNG RIDEHUB)
+       ====================================================================== -->
+  <footer class="site-footer">
+    <div class="footer-road-edge">
+      <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Nền tảng thuê xe thông minh">
+        <svg viewBox="0 0 110 64" width="76" height="32"><path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#4ade80"/><g transform="translate(27,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g><g transform="translate(81,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g></svg>
+      </div>
+    </div>
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Cột 1: Về RideHub -->
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <img src="assets/logo-ridehub.png" alt="RideHub Logo" style="height:34px;width:auto;filter:brightness(0) invert(1);" />
+            <span style="font-family:var(--font-display);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">RideHub</span>
+          </div>
+          <p style="font-size:13px;line-height:1.65;color:#d1fae5;margin:0 0 14px;">
+            Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+          </p>
+          <div style="font-size:12.5px;color:#a7f3d0;display:flex;flex-direction:column;gap:5px;">
+            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868" style="color:var(--green-300);text-decoration:none;">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn" style="color:var(--green-300);text-decoration:none;">support@ridehub.vn</a></div>
+            <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+          </div>
+        </div>
+
+        <!-- Cột 2: Khám phá & Dịch vụ -->
+        <div>
+          <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="index.html">Trang chủ</a></li>
+            <li class="footer-link-item"><a href="vehicles.html">Tìm &amp; Thuê xe máy, Ô tô</a></li>
+            <li class="footer-link-item"><a href="trips.html">Hành trình &amp; Chuyến đi của tôi</a></li>
+            <li class="footer-link-item"><a href="booking.html">Đơn thuê &amp; Thanh toán cọc</a></li>
+            <li class="footer-link-item"><a href="index.html#storySection">Quy trình bàn giao 4 bước</a></li>
+          </ul>
+        </div>
+
+        <!-- Cột 3: Quản trị & Đối tác -->
+        <div>
+          <div class="footer-col-title">Dành cho Đối tác</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="store-portal.html">Cổng Quản lý Cửa hàng</a></li>
+            <li class="footer-link-item"><a href="admin-ops.html">Trung tâm Quản trị Admin</a></li>
+            <li class="footer-link-item"><a href="chat.html">Kênh Hỗ trợ &amp; Tin nhắn trực tuyến</a></li>
+            <li class="footer-link-item"><a href="auth.html">Đăng ký làm Chủ xe / Đối tác</a></li>
+            <li class="footer-link-item"><a href="index.html#featuresSection">Hệ thống đối soát tự động PayOS</a></li>
+          </ul>
+        </div>
+
+        <!-- Cột 4: Cam kết an tâm & Tiêu chuẩn -->
+        <div>
+          <div class="footer-col-title">Cam kết &amp; An toàn</div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#d1fae5;line-height:1.55;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt Face Match.</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Minh bạch bàn giao:</strong> Quay video toàn cảnh 360°, ảnh biên bản &amp; ảnh ODO thực tế.</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="color:var(--green-400);font-weight:800;">✓</span>
+              <span><strong>Hoàn tiền cọc tự động:</strong> Hoàn 100% trước 24h khi khách hủy theo chính sách.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-divider"></div>
+
+      <div class="footer-bottom-row">
+        <div>
+          © 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Bảo mật PayOS VietQR</span>
+          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Chuẩn an toàn eKYC Chip</span>
+          <a href="index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Điều khoản sử dụng</a>
+          <a href="index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal Chi tiết đơn & Tính toán hủy đơn -->
+  <div id="tripDetailModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="width:min(600px,95vw);display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 id="tdTitle" style="margin:0;font-size:1.25rem;">Chi tiết đơn thuê</h3>
+        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+      </div>
+
+      <div id="tdImgBox" class="vehicle-card-media" style="height:185px;min-height:185px;flex-shrink:0;width:100%;"></div>
+      <div id="tdSpecsChips" class="vehicle-meta-chips"></div>
+
+      <!-- Dịch vụ người dùng đã chọn -->
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);font-size:13px;display:flex;flex-direction:column;gap:6px;">
+        <strong style="display:block;margin-bottom:2px;">Dịch vụ &amp; thông tin đã chọn</strong>
+        <div>• Thời gian thuê: <strong id="tdSchedule"></strong></div>
+        <div>• Hình thức nhận: <strong id="tdDelivery"></strong></div>
+        <div>• Địa điểm: <strong id="tdAddress"></strong></div>
+        <div>• Tiện ích bổ sung: <strong id="tdAddons"></strong></div>
+        <div>• Tổng giá trị đơn: <strong id="tdTotal" style="color:var(--green-700);"></strong> (Đã cọc 30%: <strong id="tdDeposit"></strong>)</div>
+      </div>
+
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);font-size:13px;">
+        <strong style="display:block;margin-bottom:4px;">Mô tả &amp; Tiện nghi trên xe</strong>
+        <div id="tdDesc" style="color:var(--text-secondary);"></div>
+      </div>
+
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);font-size:13px;">
+        <strong style="display:block;margin-bottom:4px;">Chủ xe</strong>
+        <div id="tdOwner" style="color:var(--text-secondary);"></div>
+      </div>
+
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);font-size:13px;">
+        <strong style="display:block;margin-bottom:4px;">Giấy tờ thuê xe &amp; Tài sản thế chấp</strong>
+        <div style="color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;">
+          <div>• CCCD gắn chip (đối chiếu) &amp; GPLX hợp lệ còn hạn</div>
+          <div>• Thế chấp theo quy định hoặc miễn thế chấp khi eKYC Đạt</div>
+        </div>
+      </div>
+
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);font-size:13px;">
+        <strong style="display:block;margin-bottom:4px;">Điều khoản &amp; Phụ phí</strong>
+        <div style="color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;">
+          <div>• Sử dụng đúng mục đích, tuân thủ luật giao thông</div>
+          <div>• Vượt giới hạn 250km/ngày: 3.000đ/km</div>
+          <div>• Trả trễ: 50.000đ/giờ • Vệ sinh: 50.000đ</div>
+        </div>
+      </div>
+
+      <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);font-size:13px;">
+        <strong style="display:block;margin-bottom:4px;">Chính sách hủy chuyến</strong>
+        <div style="color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;">
+          <div>• Trước giờ nhận 24h: hoàn 100% cọc</div>
+          <div>• Trong vòng 24h trước nhận xe: hoàn 70% cọc</div>
+          <div>• Dưới 2h hoặc đã nhận xe: không hoàn cọc</div>
+        </div>
+      </div>
+
+      <!-- Khung tính toán hủy đơn -->
+      <div id="tdCancelCalcBox" hidden style="padding:16px;border-radius:14px;background:#fff1f2;display:flex;flex-direction:column;gap:8px;font-size:13px;">
+        <strong style="color:#be123c;">Hệ thống tính toán hủy đơn thuê xe</strong>
+        <div id="tdCancelRule" style="color:var(--text-secondary);"></div>
+        <div class="summary-row"><span>Tiền cọc đã đóng</span><strong id="tdCancelPaid"></strong></div>
+        <div class="summary-row"><span>Phí hủy áp dụng</span><strong id="tdCancelFee" style="color:#be123c;"></strong></div>
+        <div class="summary-row"><span>Số tiền hoàn lại dự kiến</span><strong id="tdCancelRefund" style="color:var(--green-700);"></strong></div>
+        <button id="tdConfirmCancelBtn" type="button" class="btn btn-primary" style="background:#e11d48;width:100%;margin-top:4px;">Xác nhận hủy đơn này</button>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button id="tdOpenCancelBtn" type="button" class="btn btn-outline" style="flex:1;color:#e11d48;border-color:#fda4af;">Hủy đơn</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Handover Verification Modal: 1 Video quay quanh xe + Ảnh xe + Ảnh biên bản + 1 Ảnh ODO -->
+  <div id="custHandoverModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="max-width:660px;max-height:92vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;">
+        <div>
+          <span class="status-badge status-badge--transit">Hồ sơ quay chụp bàn giao phương tiện</span>
+          <h3 id="chmTitle" style="margin:6px 0 2px;font-family:var(--font-display);">Xác nhận ảnh &amp; video giao xe</h3>
+          <div id="chmMeta" style="font-size:13px;color:var(--text-muted);">Mã đơn • Xe thuê</div>
+        </div>
+        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+      </div>
+
+      <!-- 1. Video quay quanh xe -->
+      <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft);border:1px solid var(--green-100);margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <strong style="font-size:13px;color:var(--text-primary);">1. Video quay quanh xe (360°)</strong>
+          <span style="font-size:11px;font-weight:700;color:var(--green-700);">Do chủ xe quay lúc giao</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Bấm phát để xem toàn cảnh ngoại thất xe, gương, lốp và tình trạng thân vỏ:</div>
+        <video id="chmVideoPlayer" controls playsinline style="width:100%;max-height:220px;border-radius:10px;background:#0f172a;object-fit:contain;display:block;"></video>
+      </div>
+
+      <!-- 2. Ảnh chụp xe lúc bàn giao -->
+      <div id="chmCarPhotosBlock" style="padding:14px;border-radius:14px;background:var(--bg-surface-soft);border:1px solid var(--green-100);margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <strong style="font-size:13px;color:var(--text-primary);">2. Ảnh chụp xe thực tế lúc bàn giao</strong>
+          <span id="chmCarPhotosCount" style="font-size:11px;font-weight:700;color:var(--green-700);"></span>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Ảnh chụp các góc, thân xe và phụ kiện:</div>
+        <div id="chmCarPhotosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;"></div>
+      </div>
+
+      <!-- 3. Ảnh chụp đồng hồ ODO xe -->
+      <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft);border:1px solid var(--green-100);margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <strong style="font-size:13px;color:var(--text-primary);">3. Ảnh chụp đồng hồ ODO xe</strong>
+          <span style="font-size:11px;font-weight:700;color:var(--green-700);">Số km &amp; mức pin/nhiên liệu</span>
+        </div>
+        <div style="height:150px;border-radius:10px;overflow:hidden;border:1px solid var(--green-200);background:#0f172a;display:grid;place-items:center;">
+          <img id="chmOdoImg" src="" alt="Ảnh chụp đồng hồ ODO" style="width:100%;height:100%;object-fit:cover;cursor:pointer;" />
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;text-align:center;">(Bấm vào ảnh để xem kích thước lớn)</div>
+      </div>
+
+      <!-- 4. Ảnh chụp biên bản bàn giao (Không giới hạn) -->
+      <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft);border:1px solid var(--green-100);margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <strong style="font-size:13px;color:var(--text-primary);">4. Ảnh chụp biên bản bàn giao (Không giới hạn)</strong>
+          <span id="chmDocPhotosCount" style="font-size:11px;font-weight:700;color:var(--green-700);"></span>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Các trang biên bản giấy do chủ cửa hàng tải lên:</div>
+        <div id="chmDocPhotosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;"></div>
+      </div>
+
+      <!-- 5. Tài sản thế chấp & Tiền cọc giao nhận xe -->
+      <div id="chmCollateralBlock" style="padding:14px;border-radius:14px;background:var(--bg-surface-soft);border:1px solid var(--green-100);margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <strong style="font-size:13px;color:var(--text-primary);">5. Hình thức bảo đảm &amp; Cọc nhận xe</strong>
+          <span id="chmCollateralBadge" class="status-badge status-badge--available">Đã xác nhận</span>
+        </div>
+        <div id="chmCollateralInfo" style="font-size:13px;color:var(--text-secondary);line-height:1.6;"></div>
+        <div id="chmCollateralPhotosWrap" style="margin-top:8px;display:none;">
+          <div style="font-size:11px;font-weight:700;color:var(--green-800);margin-bottom:4px;">Ảnh xe thế chấp tạm thời lưu trong hồ sơ bàn giao:</div>
+          <div id="chmCollateralPhotosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;"></div>
+        </div>
+      </div>
+
+      <!-- 6. Xác nhận trạng thái -->
+      <div id="chmConfirmedSuccessBox" style="padding:12px;border-radius:12px;background:#ecfdf5;border:1px solid var(--green-300);color:var(--green-800);font-size:13px;display:none;margin-bottom:12px;">
+        <strong>✓ Đã xác nhận:</strong> <span id="chmConfirmedSuccessTime"></span>
+      </div>
+
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">
+        * Bằng việc bấm nút dưới đây, bạn xác nhận đã xem video toàn cảnh quanh xe, ảnh xe, ảnh chụp ODO và ảnh biên bản bàn giao.
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button id="chmConfirmBtn" class="btn btn-primary btn-premium btn-shine" style="flex:1;" type="button">Xác nhận ảnh &amp; video quay chụp bàn giao xe</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Khách hàng yêu cầu đổi thời gian thuê / Gia hạn chuyến -->
+  <div id="custRescheduleModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="width:min(540px,95vw);display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 id="crmTitle" style="margin:0;font-size:1.25rem;">Yêu cầu đổi thời gian thuê xe</h3>
+        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+      </div>
+
+      <div id="crmVehicleMeta" style="padding:12px 14px;border-radius:12px;background:var(--bg-surface-soft);font-size:13px;line-height:1.5;"></div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="filter-group">
+          <label class="filter-label" for="crmPickupTime">Thời gian nhận xe mong muốn</label>
+          <input id="crmPickupTime" class="form-input" type="text" placeholder="VD: 13/11 08:00" />
+        </div>
+        <div class="filter-group">
+          <label class="filter-label" for="crmReturnTime">Thời gian trả xe mới (Gia hạn / Rút ngắn)</label>
+          <input id="crmReturnTime" class="form-input" type="text" placeholder="VD: 16/11 18:00" />
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label" for="crmReasonInput">Lý do xin đổi lịch / gia hạn (gửi cho chủ cửa hàng)</label>
+          <input id="crmReasonInput" class="form-input" type="text" placeholder="VD: Khách dời lịch công tác sang ngày khác, cần thuê thêm 1 ngày..." />
+        </div>
+
+        <!-- Tính toán phát sinh & Ghi chú quan trọng -->
+        <div style="padding:14px;border-radius:var(--radius-sm);background:var(--green-50);border:1.5px solid var(--green-300);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <strong style="font-size:13px;color:var(--green-900);">Tính toán phí thuê phát sinh:</strong>
+            <span id="crmSurchargeBadge" class="status-badge status-badge--available" style="font-size:12px;font-weight:800;">+160.000đ (Thêm 1 ngày)</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">
+            Nếu thêm thời gian thuê xe, hệ thống sẽ tự động tính toán phụ phí theo đơn giá niêm yết của phương tiện.
+          </div>
+          <div style="padding:10px 12px;border-radius:var(--radius-xs);background:#ffffff;border:1px dashed var(--green-400);font-size:12.5px;color:var(--green-800);line-height:1.5;">
+            <strong>Lưu ý:</strong> Khoản phí phát sinh chỉ cần thanh toán khi <strong>Chủ cửa hàng duyệt yêu cầu đổi thời gian</strong> của bạn. Nếu cửa hàng từ chối, bạn tiếp tục thực hiện theo lịch cũ mà không tốn phí.
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button data-close-modal class="btn btn-soft" type="button">Hủy bỏ</button>
+        <button id="crmSubmitBtn" class="btn btn-primary btn-premium btn-shine" type="button">Gửi yêu cầu đổi lịch thuê</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Khách hàng xem biên bản & Quyết toán thanh toán trả xe -->
+  <div id="custReturnSettlementModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="width:min(560px,95vw);max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px;position:relative;">
+      <canvas id="returnConfettiCanvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:20;"></canvas>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 id="csmTitle" style="margin:0;font-size:1.25rem;">Nghiệm thu &amp; Quyết toán trả xe</h3>
+        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+      </div>
+
+      <!-- MÀN HÌNH 1: CHI TIẾT NGHIỆM THU & HÌNH THỨC THANH TOÁN -->
+      <div id="csmSettlementStep" style="display:flex;flex-direction:column;gap:12px;">
+        <div id="csmTripInfo" style="padding:12px 14px;border-radius:12px;background:var(--bg-surface-soft);font-size:13px;line-height:1.5;"></div>
+
+        <!-- Bảng đối chiếu hiện trạng -->
+        <div style="padding:14px;border-radius:14px;background:#fff;border:1.5px solid var(--green-200);">
+          <strong style="font-size:13px;display:block;margin-bottom:8px;color:var(--text-primary);">Chi tiết đối chiếu trả xe từ Cửa hàng:</strong>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+            <div id="csmScratchRow" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:8px;background:var(--bg-surface-soft);">
+              <div>
+                <strong id="csmScratchLabel" style="color:#b91c1c;">Vết xước mới phát sinh</strong>
+                <div style="font-size:11px;color:var(--text-muted);">Trầy gương chiếu hậu / xước nhẹ cản trước</div>
+              </div>
+              <strong id="csmScratchPrice" style="color:#b91c1c;">+200.000đ</strong>
+            </div>
+
+            <div id="csmTollRow" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:8px;background:var(--bg-surface-soft);">
+              <div>
+                <strong style="color:var(--green-800);">Phí cao tốc (VETC / ePass) &amp; phụ phí</strong>
+                <div style="font-size:11px;color:var(--text-muted);">Trạm thu phí tự động trong chuyến đi</div>
+              </div>
+              <strong id="csmTollPrice" style="color:var(--green-800);">+70.000đ</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tổng tiền cần thanh toán -->
+        <div style="padding:14px 16px;border-radius:14px;background:var(--green-100);display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:12px;color:var(--green-800);font-weight:700;">TỔNG SỐ TIỀN CẦN THANH TOÁN:</div>
+            <div style="font-size:11px;color:var(--text-muted);">Hóa đơn quyết toán cuối chuyến đi</div>
+          </div>
+          <div id="csmTotalPayable" style="font-size:1.45rem;font-weight:800;color:var(--green-800);">270.000đ</div>
+        </div>
+
+        <!-- 2 Hình thức thanh toán -->
+        <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft);border:1px solid var(--green-200);">
+          <strong style="font-size:13px;display:block;margin-bottom:10px;">Chọn hình thức thanh toán:</strong>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+            <label id="lblPayBank" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 10px;border-radius:12px;border:2px solid var(--green-600);background:var(--green-50);cursor:pointer;text-align:center;">
+              <input type="radio" name="custPayMethod" value="bank" checked style="accent-color:var(--green-600);" />
+              <strong style="font-size:13px;color:var(--green-900);">Chuyển khoản (VietQR)</strong>
+              <span style="font-size:11px;color:var(--text-muted);">Quét mã QR tự động 24/7</span>
+            </label>
+
+            <label id="lblPayCash" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 10px;border-radius:12px;border:1.5px solid #cbd5e1;background:#fff;cursor:pointer;text-align:center;">
+              <input type="radio" name="custPayMethod" value="cash" style="accent-color:var(--green-600);" />
+              <strong style="font-size:13px;color:var(--text-primary);">Thanh toán tiền mặt</strong>
+              <span style="font-size:11px;color:var(--text-muted);">Trả trực tiếp khi nhận lại cọc</span>
+            </label>
+          </div>
+
+          <!-- Khối chi tiết VietQR -->
+          <div id="csmQrBox" style="display:flex;flex-direction:column;align-items:center;padding:14px;border-radius:12px;background:#fff;border:1px dashed var(--green-400);text-align:center;">
+            <div style="font-size:12px;font-weight:700;color:var(--green-700);margin-bottom:8px;">Quét mã VietQR để thanh toán:</div>
+            <div style="width:160px;height:160px;background:#f8fafc;border-radius:10px;border:1.5px solid var(--green-200);display:grid;place-items:center;padding:8px;">
+              <svg width="140" height="140" viewBox="0 0 100 100" fill="none">
+                <rect width="100" height="100" fill="#ffffff" rx="6"/>
+                <rect x="10" y="10" width="24" height="24" fill="#0f172a" rx="4"/>
+                <rect x="14" y="14" width="16" height="16" fill="#ffffff" rx="2"/>
+                <rect x="18" y="18" width="8" height="8" fill="#15803d"/>
+                <rect x="66" y="10" width="24" height="24" fill="#0f172a" rx="4"/>
+                <rect x="70" y="14" width="16" height="16" fill="#ffffff" rx="2"/>
+                <rect x="74" y="18" width="8" height="8" fill="#15803d"/>
+                <rect x="10" y="66" width="24" height="24" fill="#0f172a" rx="4"/>
+                <rect x="14" y="70" width="16" height="16" fill="#ffffff" rx="2"/>
+                <rect x="18" y="74" width="8" height="8" fill="#15803d"/>
+                <rect x="42" y="14" width="16" height="8" fill="#16a34a"/>
+                <rect x="42" y="30" width="8" height="16" fill="#0f172a"/>
+                <rect x="56" y="38" width="8" height="8" fill="#15803d"/>
+                <rect x="42" y="56" width="16" height="8" fill="#16a34a"/>
+                <rect x="66" y="56" width="16" height="16" fill="#0f172a"/>
+                <rect x="42" y="74" width="8" height="16" fill="#15803d"/>
+                <rect x="74" y="80" width="16" height="8" fill="#16a34a"/>
+              </svg>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:8px;">
+              Ngân hàng: <strong>MBBank (Quân Đội)</strong> • STK: <strong>0901234567</strong><br />
+              Chủ TK: <strong>GREENRIDE VIETNAM</strong> • Nội dung: <strong id="csmQrTransferContent">RH-QUYETTOAN</strong>
+            </div>
+          </div>
+
+          <!-- Khối xác nhận tiền mặt -->
+          <div id="csmCashBox" style="display:none;padding:12px;border-radius:12px;background:#fefce8;border:1px dashed #ca8a04;font-size:12.5px;color:#854d0e;line-height:1.5;">
+            ✓ Bạn chọn trả <strong>tiền mặt trực tiếp</strong> cho chủ cửa hàng lúc hoàn trả xe và nhận lại tiền cọc / tài sản thế chấp.
+          </div>
+        </div>
+
+        <button id="csmConfirmPayBtn" type="button" class="btn btn-primary btn-premium btn-shine" style="width:100%;min-height:44px;font-size:14px;font-weight:800;">
+          Xác nhận thanh toán quyết toán
+        </button>
+      </div>
+
+      <!-- MÀN HÌNH 2: THANH TOÁN THÀNH CÔNG & LỜI CẢM ƠN -->
+      <div id="csmSuccessStep" style="display:none;flex-direction:column;align-items:center;text-align:center;padding:24px 16px;gap:14px;">
+        <div style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;display:grid;place-items:center;box-shadow:0 12px 28px -6px rgba(22,163,74,0.5);">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+
+        <div>
+          <span class="status-badge status-badge--available" style="font-size:13px;padding:4px 14px;font-weight:800;margin-bottom:8px;display:inline-block;">✓ Thanh toán thành công!</span>
+          <h2 style="margin:4px 0 10px;font-size:1.35rem;color:var(--text-primary);font-family:var(--font-display);">Chuyến đi đã hoàn tất</h2>
+          <div style="max-width:440px;margin:0 auto;padding:16px 18px;border-radius:14px;background:var(--green-50);border:1.5px solid var(--green-300);font-size:14px;font-weight:600;color:var(--green-900);line-height:1.6;">
+            “Cảm ơn bạn đã sử dụng dịch vụ của RideHub. Chúc bạn một ngày tốt lành và hẹn gặp lại trong những chuyến đi tiếp theo!”
+          </div>
+        </div>
+
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">
+          Hóa đơn điện tử và biên bản quyết toán đã được gửi tới email của bạn.
+        </div>
+
+        <button data-close-modal type="button" class="btn btn-primary" style="min-width:160px;min-height:38px;">
+          Hoàn tất
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/vehicle-anim.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/auth-rbac.js"></script>
+  <script>
+    const savedTrips = (() => {
+      try {
+        const raw = localStorage.getItem('ridehub_trips_list');
+        return raw ? JSON.parse(raw) : [];
+      } catch (_) { return []; }
+    })();
+
+    const MOTO_SVG = '<svg viewBox="0 0 140 80" style="width:auto;height:130px;"><path d="M28 48 C34 28,58 26,74 32 L96 22 L106 25 L94 48 Z" fill="#22c55e"/><circle cx="34" cy="57" r="14" fill="#132a1c"/><circle cx="34" cy="57" r="7" fill="#dcfce7"/><circle cx="102" cy="57" r="14" fill="#132a1c"/><circle cx="102" cy="57" r="7" fill="#dcfce7"/></svg>';
+    const CAR_SVG = '<svg viewBox="0 0 160 80" style="width:auto;height:130px;"><path d="M18 52 C18 40,26 35,38 34 L54 18 C59 14,72 13,98 13 C112 13,121 20,129 33 L144 37 C150 39,152 44,152 52 L149 58 L18 58 Z" fill="#16a34a"/><path d="M58 20 L95 20 C106 20,114 25,120 33 L47 33 Z" fill="#ecfccb"/><circle cx="42" cy="59" r="12" fill="#132a1c"/><circle cx="42" cy="59" r="6" fill="#dcfce7"/><circle cx="122" cy="59" r="12" fill="#132a1c"/><circle cx="122" cy="59" r="6" fill="#dcfce7"/></svg>';
+
+    const tripsData = [
+      ...savedTrips,
+      {
+        id: 'MG-2026-0412',
+        vehicle: 'VinFast Feliz S (2025)',
+        specs: 'Số tự động • Điện • 2 chỗ',
+        schedule: '13/11 08:00 → 15/11 08:00',
+        deliveryMode: 'Tôi tự đến lấy xe',
+        address: '45 Lý Tự Trọng, Quận 1, TP.HCM',
+        addons: ['Bảo hiểm chuyến đi'],
+        totalNum: 390000,
+        depositNum: 117000,
+        phase: 'upcoming',
+        remainingSec: 1 * 86400 + 4 * 3600 + 25 * 60 + 18
+      },
+      {
+        id: 'MG-2026-0398',
+        vehicle: 'VinFast VF 5 Plus (2025)',
+        specs: 'Số tự động • Điện • 5 chỗ',
+        schedule: '12/11 08:00 → 13/11 08:00',
+        deliveryMode: 'Giao xe tận nơi',
+        address: '240 Võ Văn Ngân, Thủ Đức, TP.HCM',
+        addons: ['Giao nhận ngoài giờ'],
+        totalNum: 805000,
+        depositNum: 241500,
+        phase: 'ongoing',
+        remainingSec: 6 * 3600 + 14 * 60 + 40
+      },
+      {
+        id: 'MG-2026-0381',
+        vehicle: 'Honda Vision (2024)',
+        specs: 'Số tự động • Xăng • 2 chỗ',
+        schedule: '11/11 10:00 → 12/11 22:30',
+        deliveryMode: 'Tôi tự đến lấy xe',
+        address: '72 Cách Mạng Tháng 8, Quận 3, TP.HCM',
+        addons: [],
+        totalNum: 280000,
+        depositNum: 84000,
+        phase: 'ongoing',
+        remainingSec: 42 * 60 + 15
+      }
+    ];
+
+    function splitSeconds(totalSec) {
+      const s = Math.max(0, Math.floor(totalSec));
+      const days = Math.floor(s / 86400);
+      const hours = Math.floor((s % 86400) / 3600);
+      const mins = Math.floor((s % 3600) / 60);
+      const secs = s % 60;
+      return {
+        days: String(days).padStart(2, '0'),
+        hours: String(hours).padStart(2, '0'),
+        mins: String(mins).padStart(2, '0'),
+        secs: String(secs).padStart(2, '0')
+      };
+    }
+
+    window.setDemoTrip = function (idx, phase, sec) {
+      tripsData[idx].phase = phase;
+      tripsData[idx].remainingSec = sec;
+      renderTrips();
+    };
+
+    function getTripSvg(t) {
+      const s = (t.vehicle + ' ' + t.specs).toLowerCase();
+      return (s.includes('vf 5') || s.includes('5 chỗ') || s.includes('7 chỗ') || s.includes('fortuner')) ? CAR_SVG : MOTO_SVG;
+    }
+
+    let activeTripIdx = 0;
+    window.openTripDetail = function (idx) {
+      activeTripIdx = idx;
+      const t = tripsData[idx];
+      if (!t) return;
+      const isCar = getTripSvg(t) === CAR_SVG;
+      document.getElementById('tdTitle').textContent = `Chi tiết đơn #${t.id}`;
+      document.getElementById('tdImgBox').innerHTML = getTripSvg(t);
+      document.getElementById('tdSpecsChips').innerHTML =
+        `<span class="meta-chip">${t.vehicle}</span>` +
+        (t.specs || '').split('•').map((s) => `<span class="meta-chip">${s.trim()}</span>`).join('');
+      document.getElementById('tdSchedule').textContent = t.schedule || 'Theo lịch đã đặt';
+      document.getElementById('tdDelivery').textContent = t.deliveryMode || 'Tôi tự đến lấy xe';
+      document.getElementById('tdAddress').textContent = t.address;
+      document.getElementById('tdAddons').textContent = (t.addons && t.addons.length) ? t.addons.join(', ') : 'Không có';
+      const total = t.totalNum || 320000;
+      const dep = t.depositNum || Math.round(total * 0.3);
+      document.getElementById('tdTotal').textContent = total.toLocaleString('vi-VN') + 'đ';
+      document.getElementById('tdDeposit').textContent = dep.toLocaleString('vi-VN') + 'đ';
+      document.getElementById('tdDesc').textContent = isCar
+        ? 'Xe ô tô bảo dưỡng định kỳ, sạch sẽ • Tiện nghi: Bluetooth, Camera lùi, GPS, Cổng sạc USB.'
+        : 'Xe vận hành êm ái, đã kiểm tra phanh & lốp • Tiện nghi: Cốp rộng, 2 nón bảo hiểm, Áo mưa.';
+      document.getElementById('tdOwner').textContent = isCar
+        ? 'EcoDrive Thủ Đức • ★ 4.8 (150 chuyến)'
+        : 'GreenRide Quận 1 • ★ 4.9 (337 chuyến)';
+
+      document.getElementById('tdCancelCalcBox').hidden = true;
+      document.getElementById('tdOpenCancelBtn').hidden = t.phase === 'cancelled';
+      document.getElementById('tripDetailModal').classList.add('is-open');
+    };
+
+    document.getElementById('tdOpenCancelBtn')?.addEventListener('click', () => {
+      const t = tripsData[activeTripIdx];
+      if (!t) return;
+      const dep = t.depositNum || Math.round((t.totalNum || 320000) * 0.3);
+      let refundPct = 0;
+      let ruleTxt = '';
+
+      if (t.phase === 'upcoming' && t.remainingSec >= 86400) {
+        refundPct = 1;
+        ruleTxt = 'Hủy trước giờ nhận xe từ 24 giờ trở lên → Hoàn 100% tiền cọc.';
+      } else if (t.phase === 'upcoming' && t.remainingSec >= 7200) {
+        refundPct = 0.7;
+        ruleTxt = 'Hủy trong vòng 2 – 24 giờ trước giờ nhận xe → Hoàn 70% tiền cọc (phí hủy 30%).';
+      } else {
+        refundPct = 0;
+        ruleTxt = 'Còn dưới 2 giờ hoặc chuyến đi đang thực hiện → Không hoàn tiền cọc.';
+      }
+
+      const refundAmt = Math.round(dep * refundPct);
+      const feeAmt = dep - refundAmt;
+      document.getElementById('tdCancelRule').textContent = ruleTxt;
+      document.getElementById('tdCancelPaid').textContent = dep.toLocaleString('vi-VN') + 'đ';
+      document.getElementById('tdCancelFee').textContent = feeAmt.toLocaleString('vi-VN') + 'đ';
+      document.getElementById('tdCancelRefund').textContent = refundAmt.toLocaleString('vi-VN') + 'đ';
+      document.getElementById('tdCancelCalcBox').hidden = false;
+    });
+
+    document.getElementById('tdConfirmCancelBtn')?.addEventListener('click', () => {
+      const t = tripsData[activeTripIdx];
+      if (!t) return;
+      t.phase = 'cancelled';
+      t.remainingSec = 0;
+      const refundTxt = document.getElementById('tdCancelRefund').textContent;
+      document.getElementById('tripDetailModal').classList.remove('is-open');
+      renderTrips();
+      showRideHubToast(`Đã hủy đơn #${t.id}. Số tiền hoàn: ${refundTxt}`);
+      if (window.AuthRBAC?.pushNotification) {
+        window.AuthRBAC.pushNotification({
+          role: 'customer',
+          type: 'alert',
+          title: `Đã hủy đơn #${t.id}`,
+          body: `Đơn thuê ${t.vehicle} đã được hủy. Số tiền cọc hoàn lại: ${refundTxt}.`,
+          link: 'trips.html'
+        });
+        window.AuthRBAC.pushNotification({
+          roles: ['store_owner', 'operator'],
+          type: 'alert',
+          title: `Khách hủy đơn #${t.id}`,
+          body: `Đơn thuê ${t.vehicle} vừa bị hủy trên hệ thống (Hoàn cọc: ${refundTxt}).`,
+          link: 'store-portal.html'
+        });
+      }
+    });
+
+    // --- Khách hàng xem & xác nhận biên bản giao nhận ---
+    let activeCustTripIdx = 0;
+
+    const MOCK_DOC_IMG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="300" height="200" fill="%23f8fafc" stroke="%23cbd5e1" stroke-width="2"/><text x="150" y="35" font-family="Arial" font-size="13" font-weight="bold" fill="%230f172a" text-anchor="middle">BIÊN BẢN BÀN GIAO PHƯƠNG TIỆN</text><line x1="30" y1="50" x2="270" y2="50" stroke="%2322c55e" stroke-width="2"/><text x="30" y="80" font-family="Arial" font-size="11" fill="%23475569">• Tình trạng: Xe sạch sẽ, không trầy xước lớn</text><text x="30" y="105" font-family="Arial" font-size="11" fill="%23475569">• Phụ kiện: 2 nón bảo hiểm, bộ sạc, áo mưa</text><text x="30" y="130" font-family="Arial" font-size="11" fill="%23475569">• Giấy tờ: Đầy đủ đăng ký xe &amp; bảo hiểm</text><rect x="180" y="150" width="90" height="30" rx="6" fill="%23dcfce7"/><text x="225" y="170" font-family="Arial" font-size="11" font-weight="bold" fill="%23166534" text-anchor="middle">ĐÃ KÝ BÀN GIAO</text></svg>';
+    const MOCK_ODO_IMG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="300" height="200" fill="%230f172a"/><circle cx="150" cy="110" r="75" fill="none" stroke="%23334155" stroke-width="8"/><circle cx="150" cy="110" r="75" fill="none" stroke="%2322c55e" stroke-width="8" stroke-dasharray="280 180"/><text x="150" y="95" font-family="Arial" font-size="11" fill="%2394a3b8" text-anchor="middle">ODOMETER</text><text x="150" y="125" font-family="Arial" font-size="22" font-weight="bold" fill="%2322c55e" text-anchor="middle">12,450 km</text><text x="150" y="150" font-family="Arial" font-size="12" fill="%2338bdf8" text-anchor="middle">⚡ Pin: 85%</text></svg>';
+
+    window.openCustHandoverModal = function (idx) {
+      activeCustTripIdx = idx;
+      const t = tripsData[idx];
+      if (!t) return;
+
+      document.getElementById('chmTitle').textContent = `Hồ sơ bàn giao #${t.id} • ${t.vehicle}`;
+      document.getElementById('chmMeta').textContent = `Lịch: ${t.schedule || 'Đang thực hiện'} • Giao tại: ${t.address || 'Tại cửa hàng'}`;
+
+      // Video
+      const videoEl = document.getElementById('chmVideoPlayer');
+      videoEl.src = t.handoverVideoUrl || 'https://assets.mixkit.co/videos/preview/mixkit-white-modern-car-in-a-parking-lot-41270-large.mp4';
+
+      // Car Photos
+      const carGrid = document.getElementById('chmCarPhotosGrid');
+      const carCount = document.getElementById('chmCarPhotosCount');
+      const carList = Array.isArray(t.handoverCarPhotos) && t.handoverCarPhotos.length ? t.handoverCarPhotos : [];
+      if (carCount) carCount.textContent = `${carList.length} ảnh`;
+      if (carList.length) {
+        carGrid.innerHTML = carList.map((src, i) => `
+          <div style="border-radius:8px;overflow:hidden;border:1px solid var(--green-200);aspect-ratio:1;cursor:pointer;" onclick="window.open('${src}', '_blank')">
+            <img src="${src}" alt="Ảnh xe ${i + 1}" style="width:100%;height:100%;object-fit:cover;" />
+          </div>
+        `).join('');
+      } else {
+        carGrid.innerHTML = '<div style="font-size:12px;color:var(--text-muted);grid-column:1/-1;">Chưa có ảnh xe riêng (đã kiểm tra trực tiếp qua video 360°).</div>';
+      }
+
+      // Odo Photo
+      const odoImg = document.getElementById('chmOdoImg');
+      odoImg.src = t.handoverOdoPhotoUrl || MOCK_ODO_IMG;
+      odoImg.onclick = () => window.open(odoImg.src, '_blank');
+
+      // Doc Photos (không giới hạn ảnh biên bản)
+      const docGrid = document.getElementById('chmDocPhotosGrid');
+      const docCount = document.getElementById('chmDocPhotosCount');
+      const docList = Array.isArray(t.handoverDocPhotos) && t.handoverDocPhotos.length ? t.handoverDocPhotos : (t.handoverDocPhotoUrl ? [t.handoverDocPhotoUrl] : [MOCK_DOC_IMG]);
+      if (docCount) docCount.textContent = `${docList.length} ảnh`;
+      docGrid.innerHTML = docList.map((src, i) => `
+        <div style="border-radius:8px;overflow:hidden;border:1px solid var(--green-200);aspect-ratio:1;cursor:pointer;" onclick="window.open('${src}', '_blank')">
+          <img src="${src}" alt="Ảnh biên bản ${i + 1}" style="width:100%;height:100%;object-fit:cover;" />
+        </div>
+      `).join('');
+
+      // Collateral info rendering (Cọc tiền hoặc Thế chấp xe kèm ảnh)
+      const colInfo = document.getElementById('chmCollateralInfo');
+      const colPhotosWrap = document.getElementById('chmCollateralPhotosWrap');
+      const colPhotosGrid = document.getElementById('chmCollateralPhotosGrid');
+      const colBadge = document.getElementById('chmCollateralBadge');
+
+      if (t.handoverCollateralType === 'vehicle') {
+        colBadge.textContent = 'Thế chấp xe tạm thời';
+        colBadge.className = 'status-badge status-badge--transit';
+        colInfo.innerHTML = `
+          <div>• <strong>Hình thức:</strong> Thế chấp xe máy / ô tô tạm thời tại cửa hàng</div>
+          <div>• <strong>Thông tin phương tiện:</strong> ${t.handoverCollateralVehInfo || 'Xe máy thế chấp'}</div>
+          <div>• <strong>Biển số kiểm soát:</strong> <span style="font-family:monospace;font-weight:700;background:#f1f5f9;padding:2px 6px;border-radius:4px;">${t.handoverCollateralPlate || '59-X1 888.66'}</span></div>
+          <div>• <em>Chủ xe có trách nhiệm bảo quản nguyên vẹn tài sản thế chấp và bàn giao lại ngay khi kết thúc chuyến thuê.</em></div>
+        `;
+        const colPhotos = Array.isArray(t.handoverCollateralPhotos) && t.handoverCollateralPhotos.length ? t.handoverCollateralPhotos : [];
+        if (colPhotos.length) {
+          colPhotosWrap.style.display = 'block';
+          colPhotosGrid.innerHTML = colPhotos.map((src, i) => `
+            <div style="border-radius:8px;overflow:hidden;border:1px solid var(--green-200);aspect-ratio:1;cursor:pointer;" onclick="window.open('${src}', '_blank')">
+              <img src="${src}" alt="Ảnh xe thế chấp ${i + 1}" style="width:100%;height:100%;object-fit:cover;" />
+            </div>
+          `).join('');
+        } else {
+          colPhotosWrap.style.display = 'none';
+        }
+      } else {
+        colBadge.textContent = 'Cọc tiền mặt / CK';
+        colBadge.className = 'status-badge status-badge--available';
+        const cashAmount = t.handoverCollateralCash ? Number(t.handoverCollateralCash).toLocaleString('vi-VN') + 'đ' : '1.000.000đ';
+        const cashMethod = t.handoverCollateralPaymentMethod || 'Tiền mặt';
+        colInfo.innerHTML = `
+          <div>• <strong>Hình thức:</strong> Cọc tiền khi nhận xe</div>
+          <div>• <strong>Số tiền bảo đảm:</strong> <strong style="color:var(--green-700);font-size:14px;">${cashAmount}</strong> (${cashMethod})</div>
+          <div>• <em>Số tiền này được nhân viên cửa hàng xác nhận giữ lúc giao xe và sẽ hoàn trả đầy đủ sau khi kiểm tra xe hoàn tất.</em></div>
+        `;
+        colPhotosWrap.style.display = 'none';
+      }
+
+      // Confirm button & status
+      const successBox = document.getElementById('chmConfirmedSuccessBox');
+      const successTime = document.getElementById('chmConfirmedSuccessTime');
+      const confirmBtn = document.getElementById('chmConfirmBtn');
+
+      if (t.handoverCustomerConfirmed) {
+        successBox.style.display = 'block';
+        successTime.textContent = `Bạn đã xem và xác nhận ảnh & video quay chụp bàn giao lúc ${t.handoverConfirmedAt || 'trước đó'}.`;
+        confirmBtn.textContent = 'Đã xác nhận bàn giao xe';
+        confirmBtn.className = 'btn btn-soft';
+      } else {
+        successBox.style.display = 'none';
+        confirmBtn.textContent = 'Xác nhận ảnh & video quay chụp bàn giao xe';
+        confirmBtn.className = 'btn btn-primary btn-premium btn-shine';
+      }
+
+      document.getElementById('custHandoverModal').classList.add('is-open');
+    };
+
+    document.getElementById('chmConfirmBtn')?.addEventListener('click', () => {
+      const t = tripsData[activeCustTripIdx];
+      if (!t) return;
+
+      t.handoverCustomerConfirmed = true;
+      t.handoverConfirmedAt = new Date().toLocaleString('vi-VN');
+
+      // Đồng bộ sang danh sách đơn cửa hàng (ridehub_store_orders_v1)
+      try {
+        const raw = localStorage.getItem('ridehub_store_orders_v1');
+        const orders = raw ? JSON.parse(raw) : [];
+        const oIdx = orders.findIndex((o) => o.id === t.id);
+        if (oIdx !== -1) {
+          orders[oIdx].handoverCustomerConfirmed = true;
+          orders[oIdx].handoverConfirmedAt = t.handoverConfirmedAt;
+          localStorage.setItem('ridehub_store_orders_v1', JSON.stringify(orders));
+        }
+      } catch (_) {}
+
+      localStorage.setItem('ridehub_trips_list', JSON.stringify(tripsData));
+      renderTrips();
+      document.getElementById('custHandoverModal').classList.remove('is-open');
+      showRideHubToast(`Đã xác nhận ảnh & video quay chụp bàn giao xe #${t.id}!`);
+
+      window.AuthRBAC?.pushNotification?.({
+        roles: ['store_owner', 'store_staff'],
+        type: 'booking',
+        title: `Khách đã xác nhận bàn giao #${t.id}`,
+        body: `Khách hàng đã kiểm tra video quay quanh xe, ảnh biên bản và ảnh ODO (${t.handoverOdo || '12.450'} km), sau đó xác nhận bàn giao.`,
+        link: 'store-portal.html'
+      });
+    });
+
+    function renderTrips() {
+      const grid = document.getElementById('tripsGrid');
+      grid.innerHTML = tripsData.map((t, idx) => {
+        const isPrepareReturn = t.phase === 'ongoing' && t.remainingSec <= 3600;
+        let badgeHtml = '';
+        let timerCaption = '';
+
+        if (t.phase === 'cancelled') {
+          badgeHtml = `<span class="status-badge status-badge--maintenance">Đã hủy</span>`;
+          timerCaption = 'Đơn thuê này đã được hủy';
+        } else if (t.phase === 'upcoming') {
+          badgeHtml = `<span class="status-badge status-badge--booked"><span class="status-dot status-dot-pulse"></span>Sắp nhận xe</span>`;
+          timerCaption = 'Thời gian còn lại đến lúc nhận xe';
+        } else if (isPrepareReturn) {
+          badgeHtml = `<span class="status-badge status-badge--maintenance"><span class="status-dot status-dot-pulse"></span>Chuẩn bị trả xe</span>`;
+          timerCaption = 'Còn dưới 1 tiếng — Vui lòng chuẩn bị trả xe';
+        } else {
+          badgeHtml = `<span class="status-badge status-badge--transit"><span class="status-orbit-wrap"><span class="status-orbit-dot"></span></span>Đang thực hiện chuyến đi</span>`;
+          timerCaption = 'Thời gian còn lại của chuyến đi';
+        }
+
+        const cd = splitSeconds(t.remainingSec);
+        return `
+          <article class="panel-card" style="display:flex;flex-direction:column;gap:10px;">
+            <div class="badge-row">
+              <strong style="font-size:12px;color:var(--text-muted);">#${t.id}</strong>
+              ${badgeHtml}
+            </div>
+            <div class="vehicle-card-media" style="height:145px;">
+              ${getTripSvg(t)}
+            </div>
+            <h3 style="margin:0;font-size:1.12rem;">${t.vehicle}</h3>
+            <div style="font-size:12.5px;color:var(--text-secondary);">${t.specs}</div>
+            <div style="font-size:12.5px;color:var(--text-muted);">Điểm giao nhận: ${t.address}</div>
+
+            <div style="padding:12px;border-radius:var(--radius-sm);background:${isPrepareReturn ? '#fff7ed' : 'var(--bg-surface-soft)'};margin-top:4px;">
+              <div style="font-size:12px;font-weight:700;color:${isPrepareReturn ? '#c2410c' : 'var(--green-800)'};margin-bottom:6px;">${timerCaption}</div>
+              <div class="trip-countdown-grid">
+                <div class="trip-cd-box"><div class="trip-cd-num">${cd.days}</div><div class="trip-cd-lbl">Ngày</div></div>
+                <div class="trip-cd-box"><div class="trip-cd-num">${cd.hours}</div><div class="trip-cd-lbl">Giờ</div></div>
+                <div class="trip-cd-box"><div class="trip-cd-num">${cd.mins}</div><div class="trip-cd-lbl">Phút</div></div>
+                <div class="trip-cd-box"><div class="trip-cd-num">${cd.secs}</div><div class="trip-cd-lbl">Giây</div></div>
+              </div>
+            </div>
+
+            <!-- Banner hiển thị tiến trình đổi lịch (nếu có) -->
+            ${t.rescheduleRequest && t.rescheduleRequest.status === 'pending_store' ? `
+              <div style="padding:8px 10px;border-radius:var(--radius-xs);background:#fefce8;border:1px solid #facc15;font-size:12px;color:#854d0e;display:flex;align-items:center;gap:6px;">
+                <span class="status-dot status-dot-pulse"></span>
+                <div>
+                  <strong>Đang chờ cửa hàng duyệt đổi lịch:</strong> ${t.rescheduleRequest.newSchedule}<br/>
+                  <span style="font-size:11px;color:#a16207;">Phụ phí (+160.000đ) chỉ cần thanh toán khi chủ xe duyệt.</span>
+                </div>
+              </div>
+            ` : t.rescheduleRequest && t.rescheduleRequest.status === 'approved' ? `
+              <div style="padding:8px 10px;border-radius:var(--radius-xs);background:#ecfdf5;border:1px solid var(--green-300);font-size:12px;color:var(--green-900);">
+                ✓ <strong>Cửa hàng đã duyệt đổi lịch mới:</strong> ${t.rescheduleRequest.newSchedule}
+              </div>
+            ` : t.rescheduleRequest && t.rescheduleRequest.status === 'rejected' ? `
+              <div style="padding:8px 10px;border-radius:var(--radius-xs);background:#fff1f2;border:1px solid #fecdd3;font-size:12px;color:#be123c;">
+                ✕ <strong>Cửa hàng không duyệt đổi lịch:</strong> ${t.rescheduleRequest.rejectReason || 'Không đáp ứng được khung giờ này'} <em>(Tiếp tục theo lịch cũ)</em>
+              </div>
+            ` : ''}
+
+            <div style="display:flex;gap:6px;margin-top:auto;flex-wrap:wrap;">
+              <button type="button" class="btn btn-soft" style="flex:1;font-size:12px;min-height:34px;padding:4px 8px;" onclick="openTripDetail(${idx})">Chi tiết đơn</button>
+              <button type="button" class="btn ${t.handoverCustomerConfirmed ? 'btn-soft' : t.handoverDelivered ? 'btn-primary btn-premium btn-shine' : 'btn-soft'}" style="flex:1;font-size:12px;min-height:34px;padding:4px 8px;" onclick="openCustHandoverModal(${idx})">
+                ${t.handoverCustomerConfirmed ? '<span style="color:var(--green-700);font-weight:800;">✓</span> Đã nhận xe' : t.handoverDelivered ? 'Xem video &amp; Nhận xe' : 'Hồ sơ bàn giao'}
+              </button>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button type="button" class="btn btn-soft" style="flex:1;font-size:12px;min-height:34px;padding:4px 8px;" onclick="openCustReschedule(${idx})">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-2px;margin-right:2px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Yêu cầu đổi lịch / Gia hạn
+              </button>
+              <button type="button" class="btn btn-outline" style="flex:1;font-size:12px;min-height:34px;padding:4px 8px;border-color:var(--green-600);color:var(--green-800);font-weight:700;" onclick="openCustReturnSettlement(${idx})">
+                Quyết toán trả xe
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    // --- Chức năng: Khách yêu cầu đổi thời gian thuê / Gia hạn chuyến ---
+    let activeRescheduleTripIdx = 0;
+    window.openCustReschedule = function (idx) {
+      activeRescheduleTripIdx = idx;
+      const t = tripsData[idx];
+      if (!t) return;
+
+      document.getElementById('crmTitle').textContent = `Yêu cầu đổi lịch thuê: #${t.id}`;
+      document.getElementById('crmVehicleMeta').innerHTML = `
+        <div><strong>Xe:</strong> ${t.vehicle}</div>
+        <div><strong>Lịch hiện tại:</strong> ${t.schedule}</div>
+        <div><strong>Giá thuê gốc:</strong> ${Number(t.totalNum || 320000).toLocaleString('vi-VN')}đ</div>
+      `;
+
+      const pInp = document.getElementById('crmPickupTime');
+      const rInp = document.getElementById('crmReturnTime');
+      const reasonInp = document.getElementById('crmReasonInput');
+      const parts = (t.schedule || '').split('→').map((s) => s.trim());
+      pInp.value = parts[0] || '13/11 08:00';
+      rInp.value = parts[1] || '16/11 18:00';
+      if (reasonInp) {
+        reasonInp.value = t.rescheduleRequest?.reason || '';
+      }
+
+      const updateCalc = () => {
+        const badge = document.getElementById('crmSurchargeBadge');
+        badge.textContent = '+160.000đ (Thêm 1 ngày)';
+      };
+      pInp.oninput = updateCalc;
+      rInp.oninput = updateCalc;
+
+      document.getElementById('custRescheduleModal').classList.add('is-open');
+    };
+
+    document.getElementById('crmSubmitBtn')?.addEventListener('click', () => {
+      const t = tripsData[activeRescheduleTripIdx];
+      if (!t) return;
+      const p = document.getElementById('crmPickupTime').value.trim();
+      const r = document.getElementById('crmReturnTime').value.trim();
+      const reason = document.getElementById('crmReasonInput')?.value.trim() || 'Khách yêu cầu dời lịch / gia hạn thời gian thuê';
+
+      t.rescheduleRequest = {
+        status: 'pending_store',
+        requestedAt: new Date().toLocaleString('vi-VN'),
+        oldSchedule: t.schedule,
+        newSchedule: `${p} → ${r}`,
+        durationDiff: '+1 ngày',
+        surcharge: 160000,
+        reason: reason
+      };
+
+      // Đồng bộ sang danh sách đơn cửa hàng (ridehub_store_orders_v1)
+      try {
+        const raw = localStorage.getItem('ridehub_store_orders_v1');
+        const orders = raw ? JSON.parse(raw) : [];
+        const oIdx = orders.findIndex((o) => o.id === t.id || (o.vehicle && t.vehicle && (o.vehicle.includes(t.vehicle) || t.vehicle.includes(o.vehicle))));
+        if (oIdx !== -1) {
+          orders[oIdx].rescheduleRequest = { ...t.rescheduleRequest };
+          localStorage.setItem('ridehub_store_orders_v1', JSON.stringify(orders));
+        }
+      } catch (_) {}
+
+      localStorage.setItem('ridehub_trips_list', JSON.stringify(tripsData));
+      renderTrips();
+      document.getElementById('custRescheduleModal').classList.remove('is-open');
+      showRideHubToast(`Đã gửi yêu cầu đổi lịch thuê xe #${t.id} cho cửa hàng!`);
+
+      window.AuthRBAC?.pushNotification?.({
+        role: 'store_owner',
+        type: 'booking',
+        title: `Khách yêu cầu đổi thời gian thuê #${t.id}`,
+        body: `Khách hàng yêu cầu đổi lịch sang: ${p} → ${r} (Phát sinh dự kiến +160.000đ, chỉ thanh toán khi duyệt). Lý do: ${reason}`,
+        link: 'store-portal.html'
+      });
+    });
+
+    // --- Chức năng: Khách hàng xem và xác nhận thanh toán quyết toán trả xe ---
+    let activeSettlementTripIdx = 0;
+    window.openCustReturnSettlement = function (idx) {
+      activeSettlementTripIdx = idx;
+      const t = tripsData[idx];
+      if (!t) return;
+
+      document.getElementById('csmTitle').textContent = `Quyết toán trả xe: #${t.id} • ${t.vehicle}`;
+      document.getElementById('csmTripInfo').innerHTML = `
+        <div><strong>Phương tiện:</strong> ${t.vehicle}</div>
+        <div><strong>Lịch trình:</strong> ${t.schedule} • <strong>Điểm nhận:</strong> ${t.address}</div>
+        <div style="color:var(--text-secondary);font-size:12px;margin-top:2px;">Chủ xe: GreenRide Quận 1 (45 Lý Tự Trọng, Q.1)</div>
+      `;
+
+      // Đồng bộ từ storeOrders nếu có dữ liệu kiểm tra
+      let scratchAmt = 200000;
+      let tollAmt = 70000;
+      try {
+        const rawOrders = localStorage.getItem('ridehub_store_orders_v1');
+        if (rawOrders) {
+          const orders = JSON.parse(rawOrders);
+          const matched = orders.find((o) => o.id === t.id);
+          if (matched && matched.returnSettlement) {
+            scratchAmt = matched.returnSettlement.hasScratch ? (matched.returnSettlement.scratchFee || 200000) : 0;
+            tollAmt = matched.returnSettlement.hasToll ? (matched.returnSettlement.tollFee || 70000) : 0;
+          }
+        }
+      } catch (_) {}
+
+      document.getElementById('csmScratchPrice').textContent = scratchAmt > 0 ? `+${Number(scratchAmt).toLocaleString('vi-VN')}đ` : '0đ';
+      document.getElementById('csmTollPrice').textContent = tollAmt > 0 ? `+${Number(tollAmt).toLocaleString('vi-VN')}đ` : '0đ';
+      const totalPayable = scratchAmt + tollAmt;
+      document.getElementById('csmTotalPayable').textContent = Number(totalPayable).toLocaleString('vi-VN') + 'đ';
+      document.getElementById('csmQrTransferContent').textContent = `${t.id} TRA XE`;
+
+      // Reset step view
+      document.getElementById('csmSettlementStep').style.display = 'flex';
+      document.getElementById('csmSuccessStep').style.display = 'none';
+
+      document.getElementById('custReturnSettlementModal').classList.add('is-open');
+    };
+
+    // Toggle Payment Method (VietQR vs Cash)
+    document.querySelectorAll('input[name="custPayMethod"]').forEach((radio) => {
+      radio.addEventListener('change', () => {
+        const isBank = radio.value === 'bank';
+        document.getElementById('csmQrBox').style.display = isBank ? 'flex' : 'none';
+        document.getElementById('csmCashBox').style.display = isBank ? 'none' : 'block';
+
+        const lblBank = document.getElementById('lblPayBank');
+        const lblCash = document.getElementById('lblPayCash');
+        if (isBank) {
+          lblBank.style.borderColor = 'var(--green-600)';
+          lblBank.style.background = 'var(--green-50)';
+          lblCash.style.borderColor = '#cbd5e1';
+          lblCash.style.background = '#ffffff';
+        } else {
+          lblCash.style.borderColor = 'var(--green-600)';
+          lblCash.style.background = 'var(--green-50)';
+          lblBank.style.borderColor = '#cbd5e1';
+          lblBank.style.background = '#ffffff';
+        }
+      });
+    });
+
+    // Confirm Payment Success Click
+    document.getElementById('csmConfirmPayBtn')?.addEventListener('click', () => {
+      const t = tripsData[activeSettlementTripIdx];
+      const method = document.querySelector('input[name="custPayMethod"]:checked')?.value || 'bank';
+      const methodLabel = method === 'bank' ? 'Chuyển khoản VietQR' : 'Tiền mặt';
+
+      // Switch to Success screen
+      document.getElementById('csmSettlementStep').style.display = 'none';
+      const successStep = document.getElementById('csmSuccessStep');
+      successStep.style.display = 'flex';
+
+      // Launch Confetti
+      const canvas = document.getElementById('returnConfettiCanvas');
+      if (window.VehicleAnim && canvas) {
+        window.VehicleAnim.launchConfetti(canvas);
+      }
+
+      if (t) {
+        t.settled = true;
+        t.phase = 'completed';
+        localStorage.setItem('ridehub_trips_list', JSON.stringify(tripsData));
+        renderTrips();
+      }
+
+      showRideHubToast(`Thanh toán ${methodLabel} thành công! Cảm ơn bạn đã đồng hành cùng RideHub.`);
+
+      window.AuthRBAC?.pushNotification?.({
+        role: 'store_owner',
+        type: 'payment',
+        title: `Khách đã thanh toán quyết toán #${t ? t.id : ''}`,
+        body: `Khách hàng đã thanh toán thành công phí phát sinh qua hình thức: ${methodLabel}.`,
+        link: 'store-portal.html'
+      });
+    });
+
+    renderTrips();
+    setInterval(() => {
+      tripsData.forEach((t) => {
+        if (t.remainingSec > 0) t.remainingSec--;
+      });
+      renderTrips();
+    }, 1000);
+  </script>
+
+  <!-- ======================================================================
+       CHATBOT AI WIDGET (CHUYẾN ĐI & SỰ CỐ)
+       ====================================================================== -->
+  <button id="chatFab" class="chat-fab has-unread" aria-label="Mở trợ lý AI Chuyến đi" type="button">
+    <span class="chat-fab-ring"></span>
+    <svg class="wheel-spin wheel-spin--slow" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/>
+    </svg>
+  </button>
+
+  <div id="chatWindow" class="chat-window" role="dialog" aria-label="Trợ lý AI RideHub">
+    <div style="padding:14px 16px;background:linear-gradient(135deg, var(--green-600), var(--green-700));color:#ffffff;display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:#86efac;display:inline-block;box-shadow:0 0 8px #86efac;"></span>
+        <strong>Trợ lý AI Chuyến đi &amp; Hỗ trợ</strong>
+      </div>
+      <button id="chatCloseBtn" style="border:0;background:transparent;color:#ffffff;font-size:16px;font-weight:800;cursor:pointer;" type="button">✕</button>
+    </div>
+    <div id="chatMessages" class="chat-messages">
+      <div class="chat-msg chat-msg--bot">Xin chào! Bạn cần hỗ trợ gì về chuyến đi (giờ nhận xe, xác nhận video bàn giao, gia hạn hoặc chính sách hoàn cọc)?</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="chat-quick-pill" data-reply="Bạn chỉ cần mở 'Hồ sơ bàn giao' để xem video 360° và ảnh ODO do cửa hàng tải lên rồi nhấn 'Xác nhận'." type="button">Cách xác nhận giao xe?</button>
+        <button class="chat-quick-pill" data-reply="Trước 24h: hoàn 100% cọc • Từ 2-24h: hoàn 70% cọc (phí 30%) • Dưới 2h: không hoàn cọc." type="button">Chính sách hoàn cọc</button>
+        <button class="chat-quick-pill" data-reply="Để trả xe muộn hoặc gia hạn, bạn hãy bấm nút 'Yêu cầu đổi lịch / Gia hạn' ngay trên thẻ chuyến đi." type="button">Muốn gia hạn thêm giờ</button>
+        <button class="chat-quick-pill" data-handoff="true" data-reply="Đã chuyển yêu cầu hỗ trợ khẩn cấp tới Nhân viên hỗ trợ. Mã phiên: #RH-2026-889." type="button">Báo sự cố / Gặp nhân viên</button>
+      </div>
+    </div>
+    <div style="padding:10px;display:flex;gap:8px;border-top:1px solid var(--green-100);">
+      <input id="chatInput" type="text" placeholder="Hỏi về chuyến đi, trả xe, khiếu nại..." style="flex:1;padding:8px 12px;border-radius:99px;border:1.5px solid var(--green-200);outline:none;font-size:13px;" />
+      <button id="chatSendBtn" class="btn btn-primary" style="min-height:36px;padding:6px 14px;" type="button">Gửi</button>
+    </div>
+  </div>
+</body>
+</html>
