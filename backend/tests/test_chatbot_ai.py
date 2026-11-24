@@ -176,7 +176,7 @@ def test_03_ai_service_integration_fallback():
 
 def test_04_chat_message_success_and_save_history(db):
     """TC-CHAT-04: Gửi tin nhắn -> Lưu DB tin nhắn của User & Bot, trả về trích dẫn tri thức."""
-    session_id = "test-session-04-a1b2c3d4-e5f6-7890-abcd-1234567890ab"
+    session_id = "c3a2f871-6c2e-4b41-9fb8-53e390c58e6e"
     req = ChatMessageRequest(
         session_id=session_id,
         message="Thủ tục xác thực ekyc cần những gì?",
@@ -245,7 +245,7 @@ def test_06_rate_limiter_recovery_after_reset():
 
 def test_07_agent_escalation_on_complaint(db):
     """TC-CHAT-07: Khách hàng gõ 'khiếu nại lừa đảo' -> chuyển tiếp nhân viên CSKH."""
-    session_id = "test-session-07-a1b2c3d4-e5f6-7890-abcd-1234567890ab"
+    session_id = "d4b3c2a1-7d3f-4e52-a0c9-64f401d69f7f"
     req = ChatMessageRequest(
         session_id=session_id,
         message="Tôi muốn khiếu nại nhân viên vì chưa thấy hoàn cọc!",
@@ -268,7 +268,7 @@ def test_07_agent_escalation_on_complaint(db):
 
 def test_08_conversation_history_retrieval(db):
     """TC-CHAT-08: Lấy lịch sử hội thoại hiển thị đầy đủ tin nhắn."""
-    session_id = "test-session-08-a1b2c3d4-e5f6-7890-abcd-1234567890ab"
+    session_id = "e5c4d3b2-8e4a-4f63-b1da-75a512e70a8a"
     get_or_create_conversation(session_id, "Khách B", "0901234567", db)
 
     req1 = ChatMessageRequest(session_id=session_id, message="Chào bạn")
@@ -289,7 +289,7 @@ def test_08_conversation_history_retrieval(db):
 
 def test_09_reset_conversation(db):
     """TC-CHAT-09: Reset phiên trò chuyện xóa sạch tin nhắn và trả về AI_ACTIVE."""
-    session_id = "test-session-09-a1b2c3d4-e5f6-7890-abcd-1234567890ab"
+    session_id = "f6d5e4c3-9f5b-4a74-82eb-86b623f81b9b"
     req = ChatMessageRequest(session_id=session_id, message="Tin nhắn thử nghiệm")
     process_ai_chat_message(req, client_identifier=session_id, db=db)
 
@@ -370,13 +370,20 @@ def test_11_require_admin_guard():
 
 
 def test_12_session_id_uuid_validation_blocks_predictable_id():
-    """TC-CHAT-12: Chặn session_id quá ngắn/dễ đoán (VD: 'abc', 'user-1'), chỉ cho phép UUID4 (>= 32 ký tự)."""
+    """TC-CHAT-12: Chặn session_id không đúng định dạng UUID4 chuẩn RFC 4122."""
     from pydantic import ValidationError
 
     # Session ID quá ngắn (dễ đoán) -> Bị ValidationError
     with pytest.raises(ValidationError):
         ChatMessageRequest(
             session_id="short-id",
+            message="Xin chào",
+        )
+
+    # Session ID toàn chữ lặp lại 32 ký tự (aaaaaaaa...) không đúng format UUID4 -> Bị chặn
+    with pytest.raises(ValidationError):
+        ChatMessageRequest(
+            session_id="a" * 32,
             message="Xin chào",
         )
 
@@ -392,3 +399,52 @@ def test_12_session_id_uuid_validation_blocks_predictable_id():
         message="Xin chào",
     )
     assert valid_req.session_id == "c3a2f871-6c2e-4b41-9fb8-53e390c58e6e"
+
+
+# ---------------------------------------------------------------------------
+# TC-CHAT-13: Kiểm tra Router Endpoints với validation UUID4 và xử lý lỗi
+# ---------------------------------------------------------------------------
+
+def test_13_api_router_endpoints_validation_and_flow(db):
+    """TC-CHAT-13: Kiểm tra trực tiếp handler router api /api/chat với session_id hợp lệ và không hợp lệ."""
+    from app.routers.chat import handle_chat_message, api_get_conversation_history, api_reset_conversation
+    from starlette.requests import Request
+    from pydantic import ValidationError
+
+    # 1. Thử tạo ChatMessageRequest với session_id sai (ngắn / không đúng UUID4) -> Bị ValidationError ngay lập tức (Pydantic trả về 422 trên FastAPI)
+    with pytest.raises(ValidationError):
+        ChatMessageRequest(
+            session_id="short-id",
+            message="Giá thuê xe thế nào?",
+        )
+
+    with pytest.raises(ValidationError):
+        ChatMessageRequest(
+            session_id="a" * 32,  # Chuỗi 32 ký tự không gạch nối
+            message="Giá thuê xe thế nào?",
+        )
+
+    # 2. Gửi request hợp lệ với UUID4 chuẩn RFC 4122
+    valid_uuid = "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+    req = ChatMessageRequest(
+        session_id=valid_uuid,
+        message="Thủ tục xác thực ekyc cần những gì?",
+    )
+
+    # Giả lập Request object
+    scope = {"type": "http", "client": ("127.0.0.1", 12345), "headers": []}
+    mock_request = Request(scope)
+
+    res = handle_chat_message(payload=req, request=mock_request, db=db)
+    assert res.sender in ["bot", "agent"]
+    assert len(res.citations) > 0
+    assert res.rate_limit is not None
+
+    # 3. Lấy lịch sử qua api_get_conversation_history
+    history = api_get_conversation_history(session_id=valid_uuid, limit=10, db=db)
+    assert history.session_id == valid_uuid
+    assert len(history.messages) == 2
+
+    # 4. Reset phiên qua api_reset_conversation
+    reset_res = api_reset_conversation(session_id=valid_uuid, db=db)
+    assert "thành công" in reset_res["message"]

@@ -10,15 +10,18 @@ from pydantic import BaseModel, ConfigDict, Field
 # Schemas Tin nhắn & Hội thoại
 # ---------------------------------------------------------------------------
 
+# Biểu thức chính quy kiểm tra định dạng UUID4 chuẩn RFC 4122 (VD: c3a2f871-6c2e-4b41-9fb8-53e390c58e6e)
+UUID4_PATTERN = r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+
+
 class ChatMessageRequest(BaseModel):
     """Payload gửi tin nhắn người dùng."""
 
     session_id: str = Field(
         ...,
-        min_length=32,
-        max_length=100,
-        pattern=r"^[A-Za-z0-9-]+$",
-        description="Mã phiên hội thoại (UUID4 do client sinh ngẫu nhiên)",
+        pattern=UUID4_PATTERN,
+        description="Mã phiên hội thoại (UUID4 chuẩn RFC 4122 do client sinh qua crypto.randomUUID())",
+        examples=["c3a2f871-6c2e-4b41-9fb8-53e390c58e6e"],
     )
     message: str = Field(..., min_length=1, max_length=2000, description="Nội dung câu hỏi của khách hàng")
     customer_name: Optional[str] = Field(None, max_length=100)
