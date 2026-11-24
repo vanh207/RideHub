@@ -176,7 +176,7 @@ def test_03_ai_service_integration_fallback():
 
 def test_04_chat_message_success_and_save_history(db):
     """TC-CHAT-04: Gửi tin nhắn -> Lưu DB tin nhắn của User & Bot, trả về trích dẫn tri thức."""
-    session_id = "test-session-04"
+    session_id = "test-session-04-a1b2c3d4-e5f6-7890-abcd-1234567890ab"
     req = ChatMessageRequest(
         session_id=session_id,
         message="Thủ tục xác thực ekyc cần những gì?",
@@ -245,7 +245,7 @@ def test_06_rate_limiter_recovery_after_reset():
 
 def test_07_agent_escalation_on_complaint(db):
     """TC-CHAT-07: Khách hàng gõ 'khiếu nại lừa đảo' -> chuyển tiếp nhân viên CSKH."""
-    session_id = "test-session-07"
+    session_id = "test-session-07-a1b2c3d4-e5f6-7890-abcd-1234567890ab"
     req = ChatMessageRequest(
         session_id=session_id,
         message="Tôi muốn khiếu nại nhân viên vì chưa thấy hoàn cọc!",
@@ -268,7 +268,7 @@ def test_07_agent_escalation_on_complaint(db):
 
 def test_08_conversation_history_retrieval(db):
     """TC-CHAT-08: Lấy lịch sử hội thoại hiển thị đầy đủ tin nhắn."""
-    session_id = "test-session-08"
+    session_id = "test-session-08-a1b2c3d4-e5f6-7890-abcd-1234567890ab"
     get_or_create_conversation(session_id, "Khách B", "0901234567", db)
 
     req1 = ChatMessageRequest(session_id=session_id, message="Chào bạn")
@@ -289,7 +289,7 @@ def test_08_conversation_history_retrieval(db):
 
 def test_09_reset_conversation(db):
     """TC-CHAT-09: Reset phiên trò chuyện xóa sạch tin nhắn và trả về AI_ACTIVE."""
-    session_id = "test-session-09"
+    session_id = "test-session-09-a1b2c3d4-e5f6-7890-abcd-1234567890ab"
     req = ChatMessageRequest(session_id=session_id, message="Tin nhắn thử nghiệm")
     process_ai_chat_message(req, client_identifier=session_id, db=db)
 
@@ -367,3 +367,28 @@ def test_11_require_admin_guard():
     validated_admin = require_admin(actor=admin_user)
     assert validated_admin.id == 3
     assert validated_admin.role == "admin"
+
+
+def test_12_session_id_uuid_validation_blocks_predictable_id():
+    """TC-CHAT-12: Chặn session_id quá ngắn/dễ đoán (VD: 'abc', 'user-1'), chỉ cho phép UUID4 (>= 32 ký tự)."""
+    from pydantic import ValidationError
+
+    # Session ID quá ngắn (dễ đoán) -> Bị ValidationError
+    with pytest.raises(ValidationError):
+        ChatMessageRequest(
+            session_id="short-id",
+            message="Xin chào",
+        )
+
+    with pytest.raises(ValidationError):
+        ChatMessageRequest(
+            session_id="user-1",
+            message="Xin chào",
+        )
+
+    # Session ID chuẩn UUID4 hợp lệ
+    valid_req = ChatMessageRequest(
+        session_id="c3a2f871-6c2e-4b41-9fb8-53e390c58e6e",
+        message="Xin chào",
+    )
+    assert valid_req.session_id == "c3a2f871-6c2e-4b41-9fb8-53e390c58e6e"

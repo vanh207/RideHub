@@ -1,7 +1,7 @@
 """Router xử lý Hội thoại Chatbot AI, Kho tri thức & Giới hạn lượt gọi (Chatbot API)."""
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
@@ -75,7 +75,7 @@ def handle_chat_message(
     summary="Lấy toàn bộ lịch sử trò chuyện của phiên hội thoại",
 )
 def api_get_conversation_history(
-    session_id: str,
+    session_id: str = Path(..., min_length=32, max_length=100, pattern=r"^[A-Za-z0-9-]+$", description="Mã phiên hội thoại UUID4"),
     limit: int = Query(50, ge=1, le=200, description="Số lượng tin nhắn tối đa"),
     db: Session = Depends(get_db),
 ):
@@ -94,7 +94,7 @@ def api_get_conversation_history(
     summary="Reset phiên hội thoại để bắt đầu lại cuộc trò chuyện mới",
 )
 def api_reset_conversation(
-    session_id: str,
+    session_id: str = Path(..., min_length=32, max_length=100, pattern=r"^[A-Za-z0-9-]+$", description="Mã phiên hội thoại UUID4"),
     db: Session = Depends(get_db),
 ):
     """Xóa các tin nhắn cũ và đưa trạng thái phiên chat về AI_ACTIVE ban đầu."""

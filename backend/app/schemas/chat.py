@@ -13,7 +13,13 @@ from pydantic import BaseModel, ConfigDict, Field
 class ChatMessageRequest(BaseModel):
     """Payload gửi tin nhắn người dùng."""
 
-    session_id: str = Field(..., min_length=1, max_length=100, description="Mã phiên hội thoại")
+    session_id: str = Field(
+        ...,
+        min_length=32,
+        max_length=100,
+        pattern=r"^[A-Za-z0-9-]+$",
+        description="Mã phiên hội thoại (UUID4 do client sinh ngẫu nhiên)",
+    )
     message: str = Field(..., min_length=1, max_length=2000, description="Nội dung câu hỏi của khách hàng")
     customer_name: Optional[str] = Field(None, max_length=100)
     customer_phone: Optional[str] = Field(None, max_length=20)
