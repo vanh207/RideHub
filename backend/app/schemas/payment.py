@@ -13,6 +13,7 @@ class PaymentTransactionCreate(PaymentTransactionBase):
     transaction_code: str = Field(..., max_length=100)
 
 class PaymentTransactionResponse(PaymentTransactionBase):
+    amount: float = Field(..., ge=0, description="Số tiền giao dịch có thể bằng 0 nếu không còn khoản phải thu")
     id: int
     transaction_code: str
     provider_txn_id: Optional[str] = None

@@ -23,6 +23,7 @@ from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.booking_status import IN_PROGRESS, PENDING_SETTLEMENT, normalize_status
 from app.models.booking import Booking
 from app.models.handover import (
     HandoverMedia,
@@ -646,7 +647,7 @@ def confirm_handover_photos(
     Khi CẢ HAI BÊN đã xác nhận ảnh:
     - protocol.both_confirmed = True, protocol.status = COMPLETED.
     - CHECK_OUT: Booking CONFIRMED -> IN_PROGRESS, Vehicle AVAILABLE -> RENTED.
-    - CHECK_IN: Booking IN_PROGRESS -> COMPLETED, Vehicle RENTED -> AVAILABLE (hoặc MAINTENANCE nếu có hỏng).
+    - CHECK_IN: Booking IN_PROGRESS -> PENDING_SETTLEMENT, Vehicle RENTED -> AVAILABLE (hoặc MAINTENANCE nếu có hỏng).
     - Tự động ghi nhật ký trạng thái BookingStatusHistory và VehicleStatusHistory.
     """
     protocol = _get_protocol_or_404(protocol_id, db)
@@ -677,7 +678,15 @@ def confirm_handover_photos(
     status_msg = "Đã ghi nhận xác nhận ảnh từ bạn. Đang chờ đối tác xác nhận để hoàn tất bàn giao."
 
     # KIỂM TRA ĐIỀU KIỆN CẢ HAI BÊN ĐÃ XÁC NHẬN
-    if protocol.customer_confirmed and protocol.staff_confirmed:
+    if protocol.customer_confirmed and protocol.staff_confirmed and not protocol.both_confirmed:
+        if (
+            protocol.protocol_type == ProtocolType.CHECK_IN.value
+            and normalize_status(booking.status) != IN_PROGRESS
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Chỉ có thể xác nhận trả xe khi đơn đang ở trạng thái IN_PROGRESS.",
+            )
         protocol.both_confirmed = True
         protocol.both_confirmed_at = datetime.now()
         protocol.status = HandoverStatus.COMPLETED.value
@@ -712,14 +721,14 @@ def confirm_handover_photos(
             status_msg = "Cả hai bên đã xác nhận ảnh giao xe! Đơn hàng tự động chuyển sang IN_PROGRESS và xe chuyển sang RENTED."
 
         elif protocol.protocol_type == ProtocolType.CHECK_IN.value:
-            # 2. NHẬN LẠI XE THÀNH CÔNG: Chuyển đơn sang COMPLETED, chuyển xe về AVAILABLE (hoặc MAINTENANCE)
+            # 2. NHẬN LẠI XE: chuyển sang chờ thu phần còn lại và phí phát sinh.
             old_b_status = booking.status
-            booking.status = "COMPLETED"
+            booking.status = PENDING_SETTLEMENT
             record_booking_status_change(
                 db=db,
                 booking=booking,
                 from_status=old_b_status,
-                to_status="COMPLETED",
+                to_status=PENDING_SETTLEMENT,
                 changed_by="HANDOVER_CHECKIN",
                 changed_by_user_id=actor.id,
                 reason="Cả khách thuê và cửa hàng đã xác nhận toàn bộ ảnh nhận lại xe.",
@@ -740,7 +749,17 @@ def confirm_handover_photos(
                 )
                 db.add(v_history)
 
-            status_msg = f"Cả hai bên đã xác nhận ảnh trả xe! Đơn hàng tự động chuyển sang COMPLETED và xe chuyển sang {vehicle.current_status if vehicle else 'AVAILABLE'}."
+            status_msg = (
+                "Cả hai bên đã xác nhận ảnh trả xe! Đơn hàng chuyển sang "
+                f"PENDING_SETTLEMENT; xe chuyển sang "
+                f"{vehicle.current_status if vehicle else 'AVAILABLE'}."
+            )
+    elif protocol.customer_confirmed and protocol.staff_confirmed:
+        status_msg = (
+            "Biên bản đã được hai bên xác nhận; đơn đang chờ tất toán."
+            if normalize_status(booking.status) == PENDING_SETTLEMENT
+            else "Biên bản đã được hai bên xác nhận."
+        )
 
     db.commit()
     db.refresh(protocol)

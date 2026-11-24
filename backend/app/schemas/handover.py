@@ -130,16 +130,30 @@ class HandoverCheckinCreate(BaseModel):
     checklist_data: Optional[List[ChecklistItem]] = None
 
     # Phụ phí quyết toán (VNĐ) — tất cả đều phải >= 0
-    fee_overtime: Decimal = Field(Decimal("0"), ge=0)
-    fee_excess_km: Decimal = Field(Decimal("0"), ge=0)
-    fee_fuel: Decimal = Field(Decimal("0"), ge=0)
-    fee_cleaning: Decimal = Field(Decimal("0"), ge=0)
-    fee_damage: Decimal = Field(Decimal("0"), ge=0)
+    fee_overtime: Decimal = Field(Decimal("0"), ge=0, max_digits=12, decimal_places=2)
+    fee_excess_km: Decimal = Field(Decimal("0"), ge=0, max_digits=12, decimal_places=2)
+    fee_fuel: Decimal = Field(Decimal("0"), ge=0, max_digits=12, decimal_places=2)
+    fee_cleaning: Decimal = Field(Decimal("0"), ge=0, max_digits=12, decimal_places=2)
+    fee_damage: Decimal = Field(Decimal("0"), ge=0, max_digits=12, decimal_places=2)
 
     # Quyết toán cọc
-    deposit_original: Optional[Decimal] = Field(None, ge=0)
-    hold_fine_deposit: Decimal = Field(Decimal("0"), ge=0, description="Giữ lại từ cọc (khấu trừ vi phạm/phụ phí)")
-    refund_immediate: Decimal = Field(Decimal("0"), ge=0, description="Hoàn lại ngay cho khách")
+    deposit_original: Optional[Decimal] = Field(
+        None, ge=0, max_digits=12, decimal_places=2
+    )
+    hold_fine_deposit: Decimal = Field(
+        Decimal("0"),
+        ge=0,
+        max_digits=12,
+        decimal_places=2,
+        description="Giữ lại từ cọc (khấu trừ vi phạm/phụ phí)",
+    )
+    refund_immediate: Decimal = Field(
+        Decimal("0"),
+        ge=0,
+        max_digits=12,
+        decimal_places=2,
+        description="Hoàn lại ngay cho khách",
+    )
 
     # Chữ ký tại thời điểm trả xe
     customer_signature: Optional[str] = None

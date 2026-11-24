@@ -12,7 +12,7 @@ TC-HP-08: Phân quyền theo cửa hàng (Store Operator RBAC) — Nhân viên c
 TC-HP-09: Upload ảnh xe an toàn — đuôi file chuẩn suy ra từ Content-Type (MIME), không tin đuôi client.
 TC-HP-10: Upload file sai định dạng (415); Xoá ảnh thành công (lấy file_url trước khi xoá); xoá lại -> 404.
 TC-HP-11: Xác nhận ảnh Giao xe (CHECK_OUT): Khi cả khách và cửa hàng xác nhận -> Tự động chuyển Booking sang IN_PROGRESS, xe sang RENTED.
-TC-HP-12: Xác nhận ảnh Trả xe (CHECK_IN): Khi cả hai xác nhận -> Tự động chuyển Booking sang COMPLETED, xe về AVAILABLE (hoặc MAINTENANCE nếu có hỏng).
+TC-HP-12: Xác nhận ảnh Trả xe (CHECK_IN): Khi cả hai xác nhận -> Booking chờ tất toán, xe về AVAILABLE (hoặc MAINTENANCE nếu có hỏng).
 TC-HP-13: Người ngoài cố xác nhận ảnh -> 403 Forbidden.
 """
 from __future__ import annotations
@@ -623,11 +623,11 @@ def test_11_confirm_photos_checkout_auto_transition_to_in_progress(db):
 
 
 # ---------------------------------------------------------------------------
-# TC-HP-12: Xác nhận ảnh CHECK_IN: tự động chuyển Booking sang COMPLETED, xe về AVAILABLE
+# TC-HP-12: Xác nhận ảnh CHECK_IN: chuyển Booking sang PENDING_SETTLEMENT, xe về AVAILABLE
 # ---------------------------------------------------------------------------
 
 def test_12_confirm_photos_checkin_auto_transition_to_completed(db):
-    """TC-HP-12: Cả hai bên xác nhận ảnh trả xe -> Tự động chuyển Booking sang COMPLETED và xe về AVAILABLE."""
+    """TC-HP-12: Cả hai bên xác nhận ảnh trả xe -> Chờ tất toán và xe về AVAILABLE."""
     staff_a = db.query(User).filter(User.id == STAFF_A_ID).first()
     customer = db.query(User).filter(User.id == CUSTOMER_ID).first()
 
@@ -669,13 +669,13 @@ def test_12_confirm_photos_checkin_auto_transition_to_completed(db):
     )
 
     assert res["both_confirmed"] is True
-    assert res["booking_status"] == "COMPLETED"
+    assert res["booking_status"] == "PENDING_SETTLEMENT"
     assert res["vehicle_status"] == "AVAILABLE"
 
     # Kiểm tra DB
     b_updated = db.query(Booking).filter(Booking.id == 1).first()
     v_updated = db.query(Vehicle).filter(Vehicle.id == booking.vehicle_id).first()
-    assert b_updated.status == "COMPLETED"
+    assert b_updated.status == "PENDING_SETTLEMENT"
     assert v_updated.current_status == "AVAILABLE"
 
 

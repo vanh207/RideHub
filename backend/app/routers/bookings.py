@@ -21,6 +21,13 @@ from app.crud.booking_cancellation import (
     BookingStateError,
     cancel_booking,
 )
+from app.crud.booking_settlement import (
+    BookingSettlementNotFoundError,
+    BookingSettlementPermissionError,
+    BookingSettlementStateError,
+    BookingSettlementValidationError,
+    settle_booking,
+)
 from app.crud.store_order_review import (
     BookingValidationError as StoreOrderValidationError,
     get_store_orders_list,
@@ -35,6 +42,8 @@ from app.schemas.booking import (
     BookingCancelResponse,
     BookingHoldCreate,
     BookingHoldResponse,
+    BookingSettlementRequest,
+    BookingSettlementResponse,
     StoreOrderConfirmRequest,
     StoreOrderConfirmResponse,
     StoreOrderListResponse,
@@ -159,6 +168,51 @@ def cancel_booking_endpoint(
     except BookingCancellationError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+
+@router.post(
+    "/{booking_id}/settle",
+    response_model=BookingSettlementResponse,
+    summary="Thu phần còn lại và phí phát sinh, hoàn tất đơn thuê",
+    description=(
+        "Chỉ admin/operator hoặc chủ/nhân viên cửa hàng phụ trách được gọi. "
+        "Gọi sau khi đã thu tiền mặt/chuyển khoản thực tế; phí lấy từ biên bản "
+        "CHECK_IN đã được hai bên xác nhận."
+    ),
+)
+def settle_booking_endpoint(
+    booking_id: int,
+    payload: BookingSettlementRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return settle_booking(
+            db,
+            booking_id,
+            actor=current_user,
+            payment_method=payload.payment_method,
+        )
+    except BookingSettlementNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Không tìm thấy đơn đặt xe.",
+        ) from exc
+    except BookingSettlementPermissionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bạn không có quyền tất toán đơn của cửa hàng này.",
+        ) from exc
+    except BookingSettlementStateError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+    except BookingSettlementValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
         ) from exc
 
