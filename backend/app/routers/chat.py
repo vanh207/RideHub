@@ -1,164 +1,191 @@
-"""Router xử lý Hội thoại & Tin nhắn Chatbot AI (Module Chatbot API)"""
-from fastapi import APIRouter, Depends, HTTPException, status
+"""Router xử lý Hội thoại Chatbot AI, Kho tri thức & Giới hạn lượt gọi (Chatbot API)."""
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
-from typing import List
 
+from app.core.rate_limiter import chatbot_rate_limiter
+from app.crud.chat import (
+    add_knowledge_entry,
+    delete_knowledge_entry,
+    get_conversation_history,
+    process_ai_chat_message,
+    reset_conversation,
+)
 from app.db.session import get_db
-from app.models.chat import ChatConversation, ChatMessage
-from app.schemas.chat import ChatMessageRequest, ChatMessageResponse
+from app.models.faq import FAQ
+from app.schemas.chat import (
+    ChatMessageRequest,
+    ChatMessageResponse,
+    ConversationHistoryResponse,
+    KnowledgeEntryCreate,
+    KnowledgeItemResponse,
+    RateLimitMeta,
+)
+from app.services.knowledge_base import KnowledgeBaseService
 
-router = APIRouter(prefix="/chat", tags=["AI Chatbot Conversations"])
+router = APIRouter(prefix="/chat", tags=["AI Chatbot — Hội thoại, Kho tri thức & Rate Limit"])
 
 
-@router.post("/message", response_model=ChatMessageResponse)
+def _get_client_identifier(request: Request, session_id: str) -> str:
+    """Xác định danh tính client từ session_id hoặc IP để áp dụng Rate Limiting."""
+    # Ưu tiên session_id nếu có, kèm theo client IP
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    return f"{session_id}@{client_ip}"
+
+
+# ---------------------------------------------------------------------------
+# 1. Gửi tin nhắn & Nhận phản hồi AI (có Rate Limiting & RAG)
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/message",
+    response_model=ChatMessageResponse,
+    summary="Gửi tin nhắn tới Chatbot AI (Tự động tra cứu Kho tri thức & Giới hạn lượt gọi)",
+)
 def handle_chat_message(
     payload: ChatMessageRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ):
-    """Tiếp nhận tin nhắn người dùng, phân tích intent và sinh phản hồi tự động."""
-    # 1. Tìm hoặc tạo phiên hội thoại
-    conv = db.query(ChatConversation).filter(ChatConversation.session_id == payload.session_id).first()
-    if not conv:
-        conv = ChatConversation(
-            session_id=payload.session_id,
-            customer_name=payload.customer_name,
-            customer_phone=payload.customer_phone,
-            status="AI_ACTIVE"
+    """Tiếp nhận câu hỏi của người dùng, kiểm tra hạn mức gọi, tìm kiếm tri thức và sinh phản hồi thông minh."""
+    client_key = _get_client_identifier(request, payload.session_id)
+    return process_ai_chat_message(payload, client_key, db)
+
+
+# ---------------------------------------------------------------------------
+# 2. Lịch sử hội thoại (Conversation History)
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/conversations/{session_id}/messages",
+    response_model=ConversationHistoryResponse,
+    summary="Lấy toàn bộ lịch sử trò chuyện của phiên hội thoại",
+)
+def api_get_conversation_history(
+    session_id: str,
+    limit: int = Query(50, ge=1, le=200, description="Số lượng tin nhắn tối đa"),
+    db: Session = Depends(get_db),
+):
+    """Lấy danh sách các tin nhắn đã gửi giữa User và Bot/Agent trong phiên này."""
+    history = get_conversation_history(session_id, db, limit)
+    if not history:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy phiên trò chuyện '{session_id}'.",
         )
-        db.add(conv)
-        db.commit()
-        db.refresh(conv)
+    return history
 
-    # 2. Lưu tin nhắn của User vào DB
-    user_msg = ChatMessage(
-        session_id=payload.session_id,
-        sender="USER",
-        message=payload.message
-    )
-    db.add(user_msg)
 
-    # 3. Phân tích Intent & sinh phản hồi tiếng Việt tự nhiên
-    query = payload.message.lower()
-    intent = "general"
-    response_text = ""
-    extra_payload = None
-    is_escalated = (conv.status == "ESCALATED_TO_AGENT")
-    assigned_agent = conv.assigned_agent
-
-    # Nếu đang trong trạng thái đã chuyển tiếp nhân viên
-    if is_escalated:
-        intent = "agent_reply"
-        response_text = (
-            f"[{assigned_agent or 'CSKH RideHub'}]: Dạ em đã nhận được tin nhắn: "
-            f"\"{payload.message}\". Em đang kiểm tra trực tiếp trên hệ thống và hỗ trợ Quý khách ngay đây ạ!"
+@router.post(
+    "/conversations/{session_id}/reset",
+    summary="Reset phiên hội thoại để bắt đầu lại cuộc trò chuyện mới",
+)
+def api_reset_conversation(
+    session_id: str,
+    db: Session = Depends(get_db),
+):
+    """Xóa các tin nhắn cũ và đưa trạng thái phiên chat về AI_ACTIVE ban đầu."""
+    success = reset_conversation(session_id, db)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy phiên trò chuyện '{session_id}' để reset.",
         )
-    # Kịch bản 1: Tìm xe / Báo giá
-    elif any(k in query for k in ["tìm xe", "7 chỗ", "xe máy", "giá", "thuê", "ô tô"]):
-        intent = "search_vehicle"
-        response_text = "Dạ RideHub có các mẫu xe 7 chỗ tự lái rất phù hợp cho lịch trình của Quý khách tại Đà Nẵng ạ:"
-        extra_payload = {
-            "vehicles": [
-                {
-                    "name": "Mitsubishi Xpander 2023 (Tự động)",
-                    "type": "7 chỗ · Gầm cao · Xăng 6.5L/100km",
-                    "price": 950000,
-                    "price_text": "950.000 đ/ngày",
-                    "badge": "Đã gồm bảo hiểm"
-                },
-                {
-                    "name": "Toyota Innova Cross 2024",
-                    "type": "7 chỗ VIP · Khoang cực rộng · Camera 360",
-                    "price": 1200000,
-                    "price_text": "1.200.000 đ/ngày",
-                    "badge": "Xe mới 100%"
-                }
-            ],
-            "quick_replies": ["Xem thủ tục giấy tờ eKYC", "Có giao xe tận nơi không?"]
-        }
-    # Kịch bản 2: eKYC / Giấy tờ
-    elif any(k in query for k in ["ekyc", "bằng lái", "giấy tờ", "cccd", "b1", "b2"]):
-        intent = "ekyc_guidance"
-        response_text = (
-            "Dạ thủ tục xác thực eKYC trên RideHub chỉ mất 3 đến 5 phút để AI phê duyệt! ⚡\n\n"
-            "Quý khách chỉ cần chuẩn bị:\n"
-            "1. CCCD gắn chip hoặc Hộ chiếu còn hạn.\n"
-            "2. GPLX tương ứng: Bằng B1/B2 (cho ô tô) hoặc A1/A2 (cho xe máy).\n\n"
-            "💡 Mẹo nhỏ: Chụp nơi đủ sáng, không lóa đèn và không để mất góc để được duyệt tự động ngay lần đầu ạ!"
-        )
-        extra_payload = {
-            "quick_replies": ["Bằng lái quốc tế có được không?", "Tìm xe 7 chỗ ngay"]
-        }
-    # Kịch bản 3: Tra cứu đơn hàng / Biên bản
-    elif any(k in query for k in ["đơn", "bk-88421", "biên bản", "giao xe"]):
-        intent = "check_booking"
-        response_text = "Dạ em đã kiểm tra thông tin đơn đặt xe #BK-88421 của Quý khách trên hệ thống:"
-        extra_payload = {
-            "booking": {
-                "id": "BK-88421",
-                "vehicle": "Mazda CX-5 2024 (BKS: 43A-688.92)",
-                "location": "Ga T1 - Sân bay Đà Nẵng (14:00 hôm nay)",
-                "agent": "Nguyễn Tuấn Minh (0905.123.456)"
-            },
-            "quick_replies": ["Mở Biên bản giao xe điện tử", "Khi nào hoàn tiền cọc?"]
-        }
-    # Kịch bản 4: Cứu hộ khẩn cấp
-    elif any(k in query for k in ["cứu hộ", "xịt lốp", "thủng lốp", "sự cố", "hỏng", "đèo"]):
-        intent = "report_incident"
-        response_text = (
-            "🚨 RIDEHUB ĐANG KÍCH HOẠT HỖ TRỢ KHẨN CẤP!\n\n"
-            "Quý khách hãy giữ bình tĩnh và thực hiện ngay các bước an toàn:\n"
-            "1. Bật ngay đèn cảnh báo khẩn cấp (hazard).\n"
-            "2. Tấp xe sát lề phải, kéo phanh tay chắc chắn.\n"
-            "3. Mọi người vui lòng bước ra ngoài xe đứng ở vị trí an toàn phía sau taluy đường.\n\n"
-            "Quý khách hãy bấm Gửi vị trí GPS bên dưới hoặc gọi ngay Hotline cứu hộ 24/7 để đội cơ động xuất phát ngay:"
-        )
-        extra_payload = {
-            "is_emergency": True,
-            "hotline": "1900-7433",
-            "quick_replies": ["📍 Gửi vị trí GPS ngay", "📞 Gọi Cứu hộ 1900-7433"]
-        }
-    # Kịch bản 5: Khiếu nại cọc / Leo thang nhân viên
-    elif any(k in query for k in ["cọc", "hoàn tiền", "lừa đảo", "khiếu nại", "nhân viên", "gặp người"]):
-        intent = "agent_escalation"
-        is_escalated = True
-        assigned_agent = "Mai Linh (Trưởng ca CSKH)"
-        conv.status = "ESCALATED_TO_AGENT"
-        conv.assigned_agent = assigned_agent
-        conv.escalation_reason = "Khách hàng cần hỗ trợ tra soát hoàn cọc / khiếu nại"
-        db.commit()
+    return {"message": "Phiên trò chuyện đã được làm mới thành công.", "session_id": session_id}
 
-        response_text = (
-            "Dạ em rất hiểu sự băn khoăn và sốt ruột của Quý khách về khoản tiền cọc. Em chân thành xin lỗi Quý khách! 🙏\n\n"
-            "Em đang kết nối trực tiếp phiên chat này đến Chuyên viên Quản lý Vận hành RideHub (Mai Linh) "
-            "để kiểm tra trực tiếp tài khoản và xử lý cho Quý khách ngay đây ạ."
+
+# ---------------------------------------------------------------------------
+# 3. Trạng thái Giới hạn lượt gọi (Rate Limit Status)
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/rate-limit-status",
+    response_model=RateLimitMeta,
+    summary="Kiểm tra hạn mức lượt gọi AI còn lại của phiên/IP",
+)
+def api_get_rate_limit_status(
+    request: Request,
+    session_id: str = Query("anonymous-session", description="Mã phiên hội thoại cần kiểm tra"),
+):
+    """Xem số lượt gọi Chatbot AI còn lại trong phút và trong ngày hiện tại."""
+    client_key = _get_client_identifier(request, session_id)
+    _, info = chatbot_rate_limiter.check(client_key)
+    return RateLimitMeta(**info)
+
+
+# ---------------------------------------------------------------------------
+# 4. Quản lý Kho tri thức (Knowledge Base Management)
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/knowledge-base",
+    response_model=List[KnowledgeItemResponse],
+    summary="Tìm kiếm và tra cứu trong kho tri thức của Chatbot",
+)
+def api_search_knowledge_base(
+    q: Optional[str] = Query(None, description="Từ khóa hoặc câu hỏi cần tra cứu"),
+    category: Optional[str] = Query(None, description="Nhóm tri thức: ekyc, deposit, cancel, emergency"),
+    limit: int = Query(5, ge=1, le=20),
+    db: Session = Depends(get_db),
+):
+    """Tìm kiếm các mẩu tri thức liên quan nhất dựa theo thuật toán tính điểm ngữ nghĩa/từ khóa."""
+    if q:
+        items = KnowledgeBaseService.search_knowledge(
+            query=q,
+            db=db,
+            limit=limit,
+            category=category,
         )
-    else:
-        intent = "general_fallback"
-        response_text = (
-            f"Dạ em đã ghi nhận câu hỏi của Quý khách: \"{payload.message}\". "
-            "Quý khách có thể chọn nhanh các chủ đề trợ giúp bên dưới hoặc bấm nút gặp nhân viên hỗ trợ ạ:"
+        return [
+            KnowledgeItemResponse(
+                id=item.id,
+                category=item.category,
+                category_name=item.category_name,
+                question=item.question,
+                answer=item.answer,
+                relevance_score=item.relevance_score,
+                created_at=getattr(item, "created_at", None) or None,  # FAQ model fields
+            )
+            for item in items
+        ]
+
+    # Nếu không truyền query -> trả về danh sách FAQ đang hoạt động
+    query = db.query(FAQ).filter(FAQ.is_active == True)
+    if category and category != "all":
+        query = query.filter(FAQ.category == category)
+    faqs = query.order_by(FAQ.display_order.asc()).limit(limit).all()
+    return [KnowledgeItemResponse.model_validate(f) for f in faqs]
+
+
+@router.post(
+    "/knowledge-base",
+    response_model=KnowledgeItemResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Thêm một câu hỏi / chính sách mới vào Kho tri thức",
+)
+def api_add_knowledge_entry(
+    payload: KnowledgeEntryCreate,
+    db: Session = Depends(get_db),
+):
+    """Thêm tài liệu/chính sách mới vào kho tri thức để Chatbot AI học và trả lời."""
+    faq = add_knowledge_entry(payload, db)
+    return KnowledgeItemResponse.model_validate(faq)
+
+
+@router.delete(
+    "/knowledge-base/{faq_id}",
+    summary="Xóa một mục khỏi Kho tri thức",
+)
+def api_delete_knowledge_entry(
+    faq_id: int,
+    db: Session = Depends(get_db),
+):
+    """Xóa mục tri thức theo ID."""
+    success = delete_knowledge_entry(faq_id, db)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy mục tri thức #{faq_id}.",
         )
-        extra_payload = {
-            "quick_replies": ["Tìm xe tự lái", "Hướng dẫn eKYC", "Xem FAQ", "Gặp nhân viên hỗ trợ"]
-        }
-
-    # 4. Lưu phản hồi của BOT vào DB
-    bot_msg = ChatMessage(
-        session_id=payload.session_id,
-        sender="BOT" if not is_escalated else "AGENT",
-        message=response_text,
-        detected_intent=intent,
-        payload_json=extra_payload
-    )
-    db.add(bot_msg)
-    db.commit()
-
-    return ChatMessageResponse(
-        sender="bot" if not is_escalated else "agent",
-        message=response_text,
-        detected_intent=intent,
-        payload=extra_payload,
-        is_escalated=is_escalated,
-        assigned_agent=assigned_agent
-    )
-
+    return {"message": f"Đã xóa thành công mục tri thức #{faq_id}."}

@@ -96,6 +96,15 @@ class Settings(BaseSettings):
     BOOKING_EXPIRY_JOB_INTERVAL_SECONDS: int = 60
     BOOKING_EXPIRY_JOB_BATCH_SIZE: int = 100
 
+    # ---- Cấu hình Chatbot AI & Kho tri thức (Knowledge Base) ----
+    AI_PROVIDER: str = "mock"  # "gemini" | "openai" | "mock"
+    GEMINI_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    AI_MODEL_NAME: str = "gemini-1.5-flash"
+    CHATBOT_RATE_LIMIT_PER_MINUTE: int = 20  # Tối đa 20 tin nhắn/phút mỗi session/IP
+    CHATBOT_RATE_LIMIT_PER_DAY: int = 100    # Tối đa 100 tin nhắn/ngày mỗi session/IP
+    CHATBOT_MAX_CONTEXT_MESSAGES: int = 10   # Số tin nhắn lịch sử gần nhất nạp vào prompt AI
+
     @field_validator("PAYMENT_GATEWAY_SECRET", "JWT_SECRET_KEY", mode="before")
     @classmethod
     def replace_placeholder_secrets(cls, value: str) -> str:
