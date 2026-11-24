@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Literal, Optional
 
 
 class BookingHoldCreate(BaseModel):
@@ -92,6 +92,42 @@ class BookingCancelResponse(BaseModel):
     reservation_released: bool = False
     schedule_released: bool = False
     already_cancelled: bool = False
+
+
+class BookingSettlementRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    payment_method: Literal["CASH", "BANK_TRANSFER", "OTHER"] = Field(
+        "CASH",
+        description="Phương thức thu khoản tất toán cuối",
+    )
+
+
+class BookingSettlementFeeBreakdown(BaseModel):
+    fee_overtime: Decimal
+    fee_excess_km: Decimal
+    fee_fuel: Decimal
+    fee_cleaning: Decimal
+    fee_damage: Decimal
+
+
+class BookingSettlementResponse(BaseModel):
+    booking_id: int
+    status: str
+    currency: str
+    total_amount: Decimal
+    previously_paid: Decimal
+    refunded_amount: Decimal
+    net_paid: Decimal
+    remaining_amount: Decimal
+    fee_breakdown: BookingSettlementFeeBreakdown
+    extra_fees: Decimal
+    amount_due: Decimal
+    transaction_id: int
+    transaction_code: str
+    transaction_status: str
+    payment_method: str
+    settled_at: datetime
 
 
 # ==============================================================================

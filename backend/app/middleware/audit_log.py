@@ -124,6 +124,13 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
             "default_action": "BOOKING_STATUS_CHANGE",
             "resource_type": "booking",
         },
+        {
+            "pattern": re.compile(r"^/api/bookings/(?P<resource_id>[^/]+)/settle$"),
+            "methods": {"POST"},
+            "category": "STATUS_CHANGE",
+            "default_action": "BOOKING_SETTLEMENT",
+            "resource_type": "booking",
+        },
         # Cửa hàng duyệt đơn / từ chối đơn đặt xe (TF1A595)
         {
             "pattern": re.compile(r"^/api/bookings/(?P<resource_id>[^/]+)/(?P<action_verb>confirm|reject)$"),

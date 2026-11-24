@@ -229,7 +229,7 @@ def api_confirm_photos(
     - Cửa hàng (Store Staff/Owner) gọi -> ghi nhận staff_confirmed = True.
     - Khi CẢ HAI BÊN đều đã xác nhận -> Tự động chuyển trạng thái đơn (Booking) và xe (Vehicle):
       * CHECK_OUT: Booking -> IN_PROGRESS, Vehicle -> RENTED.
-      * CHECK_IN: Booking -> COMPLETED, Vehicle -> AVAILABLE (hoặc MAINTENANCE nếu có hỏng hóc).
+      * CHECK_IN: Booking -> PENDING_SETTLEMENT, Vehicle -> AVAILABLE (hoặc MAINTENANCE nếu có hỏng hóc).
       * Tự động ghi nhật ký trạng thái BookingStatusHistory và VehicleStatusHistory.
     """
     return confirm_handover_photos(protocol_id, payload, actor, db)
