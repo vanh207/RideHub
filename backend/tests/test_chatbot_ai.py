@@ -306,7 +306,7 @@ def test_09_reset_conversation(db):
 
 
 # ---------------------------------------------------------------------------
-# TC-CHAT-10: Quản lý Kho tri thức (Thêm mới & Xóa)
+# TC-CHAT-10: Quản lý Kho tri thức (Thêm mới & Xóa) & Phân quyền Admin
 # ---------------------------------------------------------------------------
 
 def test_10_crud_knowledge_base_add_and_delete(db):
@@ -333,3 +333,37 @@ def test_10_crud_knowledge_base_add_and_delete(db):
     del_ok = delete_knowledge_entry(created_faq.id, db)
     assert del_ok is True
     assert db.query(FAQ).filter(FAQ.id == created_faq.id).first() is None
+
+
+# ---------------------------------------------------------------------------
+# TC-CHAT-11: Kiểm tra phân quyền require_admin bảo vệ Kho tri thức
+# ---------------------------------------------------------------------------
+
+def test_11_require_admin_guard():
+    """TC-CHAT-11: require_admin chặn user không phải admin bằng HTTP 403, cho phép admin."""
+    from unittest.mock import MagicMock
+    from fastapi import HTTPException
+    from app.routers.chat import require_admin
+
+    # Khách hoặc user thường (role: customer)
+    normal_user = MagicMock()
+    normal_user.role = "customer"
+    with pytest.raises(HTTPException) as exc_info:
+        require_admin(actor=normal_user)
+    assert exc_info.value.status_code == 403
+    assert "Chỉ admin mới được quản lý" in exc_info.value.detail
+
+    # Nhân viên cửa hàng (role: store_staff)
+    staff_user = MagicMock()
+    staff_user.role = "store_staff"
+    with pytest.raises(HTTPException) as exc_info:
+        require_admin(actor=staff_user)
+    assert exc_info.value.status_code == 403
+
+    # Quản trị viên (role: admin)
+    admin_user = MagicMock()
+    admin_user.id = 3
+    admin_user.role = "admin"
+    validated_admin = require_admin(actor=admin_user)
+    assert validated_admin.id == 3
+    assert validated_admin.role == "admin"

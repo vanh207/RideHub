@@ -4,6 +4,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
+from app.core.dependencies import get_current_user
 from app.core.rate_limiter import chatbot_rate_limiter
 from app.crud.chat import (
     add_knowledge_entry,
@@ -14,6 +15,7 @@ from app.crud.chat import (
 )
 from app.db.session import get_db
 from app.models.faq import FAQ
+from app.models.user import User
 from app.schemas.chat import (
     ChatMessageRequest,
     ChatMessageResponse,
@@ -25,6 +27,16 @@ from app.schemas.chat import (
 from app.services.knowledge_base import KnowledgeBaseService
 
 router = APIRouter(prefix="/chat", tags=["AI Chatbot — Hội thoại, Kho tri thức & Rate Limit"])
+
+
+def require_admin(actor: User = Depends(get_current_user)) -> User:
+    """Chỉ user có role 'admin' mới được quản lý kho tri thức."""
+    if (actor.role or "").lower() != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Chỉ admin mới được quản lý kho tri thức.",
+        )
+    return actor
 
 
 def _get_client_identifier(request: Request, session_id: str) -> str:
@@ -162,11 +174,12 @@ def api_search_knowledge_base(
     "/knowledge-base",
     response_model=KnowledgeItemResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Thêm một câu hỏi / chính sách mới vào Kho tri thức",
+    summary="Thêm một câu hỏi / chính sách mới vào Kho tri thức (Chỉ Admin)",
 )
 def api_add_knowledge_entry(
     payload: KnowledgeEntryCreate,
     db: Session = Depends(get_db),
+    _admin: User = Depends(require_admin),
 ):
     """Thêm tài liệu/chính sách mới vào kho tri thức để Chatbot AI học và trả lời."""
     faq = add_knowledge_entry(payload, db)
@@ -175,11 +188,12 @@ def api_add_knowledge_entry(
 
 @router.delete(
     "/knowledge-base/{faq_id}",
-    summary="Xóa một mục khỏi Kho tri thức",
+    summary="Xóa một mục khỏi Kho tri thức (Chỉ Admin)",
 )
 def api_delete_knowledge_entry(
     faq_id: int,
     db: Session = Depends(get_db),
+    _admin: User = Depends(require_admin),
 ):
     """Xóa mục tri thức theo ID."""
     success = delete_knowledge_entry(faq_id, db)
