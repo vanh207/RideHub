@@ -490,21 +490,27 @@ body {
 .ho-damage-del:hover { background: #fff1f2; }
 .ho-damage-modal {
   display: none; position: fixed; inset: 0; z-index: 999;
+  padding: 12px; overflow-y: auto; overscroll-behavior: contain;
   background: rgba(0,0,0,.45); align-items: center; justify-content: center;
 }
 .ho-damage-modal.open { display: flex; }
 .ho-damage-modal-box {
   background: #fff; border-radius: 14px; padding: 24px;
-  width: min(400px, 94vw); box-shadow: 0 20px 50px rgba(0,0,0,.18);
+  width: min(400px, 100%);
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  box-shadow: 0 20px 50px rgba(0,0,0,.18);
 }
 .ho-damage-modal-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; }
 .ho-damage-form { display: flex; flex-direction: column; gap: 12px; }
 .ho-damage-form label { font-size: 12px; font-weight: 700; color: var(--text-secondary, #3f5e4b); display: block; margin-bottom: 4px; }
 .ho-damage-form select, .ho-damage-form input, .ho-damage-form textarea {
   width: 100%; border: 1.5px solid #d1e9d8; border-radius: 8px;
-  padding: 8px 10px; font-size: 14px; box-sizing: border-box;
+  min-height: 44px; padding: 8px 10px; font-size: 14px; box-sizing: border-box;
 }
 .ho-damage-form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+.ho-damage-form-actions .ho-btn { min-height: 44px; }
 
 /* ── Settlement ── */
 .ho-settlement { background: #f7fdf9; border-radius: 10px; overflow: hidden; }
@@ -553,11 +559,12 @@ body {
 .ho-actions {
   display: flex; gap: 10px; flex-wrap: wrap;
   justify-content: flex-end;
+  width: 100%; box-sizing: border-box;
   padding: 20px 24px;
   background: #fff;
   border-top: 1.5px solid var(--green-100, #dcfce7);
   position: sticky; bottom: 0; z-index: 80;
-  margin: 0 -20px; /* bleed to edges */
+  margin: 0;
 }
 .ho-btn {
   padding: 11px 24px; border-radius: 9999px;
@@ -652,10 +659,15 @@ body {
 @media (max-width: 768px) {
   .ho-main { padding: 16px 14px 100px; }
   .ho-card { padding: 16px; }
-  .ho-actions { padding: 14px 16px; margin: 0 -14px; gap: 8px; }
+  .ho-actions { padding: 14px 16px; gap: 8px; }
   .ho-btn { padding: 10px 18px; font-size: 13px; }
   .ho-tabs { width: 100%; }
-  .ho-tab-btn { flex: 1; justify-content: center; }
+  .ho-tab-btn { flex: 1; min-height: 44px; justify-content: center; }
+  .ho-fuel-btn, .ho-photo-add-btn, .ho-status-btn, .ho-btn-sm, .ho-sig-redo,
+  .ho-damage-del, .ho-lightbox-close { min-height: 44px; }
+  .ho-damage-del, .ho-lightbox-close { min-width: 44px; }
+  .ho-photo-slot .del-btn { opacity: 1; min-width: 44px; min-height: 44px; }
+  .damage-pin::before { content: ""; position: absolute; inset: -10px; }
   .ho-checklist-row { grid-template-columns: 1fr; }
   .ho-checklist-note input { width: 100%; }
   .ho-odo-wrap { grid-template-columns: 1fr; }
@@ -677,11 +689,24 @@ body {
     font-size: 11.5px;
     padding: 5px 10px;
   }
+  .portal-nav-pill, .portal-btn-back { min-height: 44px; }
 }
 
 @media (max-width: 480px) {
   .portal-nav-inner { padding: 0 12px; }
   .ho-page-title { font-size: 18px; }
+  .ho-actions { gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
+  .ho-actions .ho-btn {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
+    min-height: 44px;
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+  #hoSubmitBtn { flex-basis: 100%; }
+  .ho-settlement-row { align-items: flex-start; gap: 10px; }
+  .ho-settlement-val { min-width: 0; text-align: right; overflow-wrap: anywhere; }
 }
 
 

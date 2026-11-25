@@ -47,7 +47,7 @@ h2 { margin-bottom: 5px; font: 700 20px/1.3 Outfit, sans-serif; }
 .intro { margin-bottom: 0; }
 
 .button {
-  min-height: 42px;
+  min-height: 44px;
   border: 0;
   border-radius: 9px;
   padding: 0 16px;
@@ -81,7 +81,7 @@ h2 { margin-bottom: 5px; font: 700 20px/1.3 Outfit, sans-serif; }
 .queue-heading p { margin: 0; font-size: 12px; }
 .filters { justify-content: flex-end; flex-wrap: wrap; }
 .filters input, .filters select, textarea {
-  min-height: 42px;
+  min-height: 44px;
   border: 1px solid #d5dfd8;
   border-radius: 9px;
   padding: 0 12px;
@@ -91,8 +91,13 @@ h2 { margin-bottom: 5px; font: 700 20px/1.3 Outfit, sans-serif; }
 .filters input { width: min(340px, 42vw); }
 .filters select { min-width: 180px; }
 .inline-status { padding: 0 22px; color: var(--muted); font-size: 13px; }
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; text-align: left; }
+.table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+table { width: 100%; min-width: 860px; border-collapse: collapse; text-align: left; }
 thead { color: #65756a; background: var(--surface-soft); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
 th, td { padding: 13px 15px; border-top: 1px solid var(--line); vertical-align: top; }
 th:first-child, td:first-child { padding-left: 22px; }
@@ -121,7 +126,17 @@ td { font-size: 13px; }
 .toast { position: fixed; right: 24px; bottom: 24px; z-index: 4; max-width: min(440px, calc(100% - 32px)); padding: 14px 18px; border-radius: 10px; color: #fff; background: #17613a; box-shadow: 0 8px 30px rgba(0,0,0,.18); }
 .toast--error { background: #9f2432; }
 
-.refund-dialog { width: min(480px, calc(100% - 28px)); border: 1px solid var(--line); border-radius: 16px; padding: 24px; box-shadow: 0 18px 60px rgba(19, 40, 27, .25); }
+.refund-dialog {
+  width: min(480px, calc(100% - 24px));
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 18px 60px rgba(19, 40, 27, .25);
+}
 .refund-dialog::backdrop { background: rgba(18, 31, 23, .52); }
 .refund-dialog .eyebrow { margin-top: 0; }
 .refund-dialog h2 { font-size: 24px; }
@@ -145,4 +160,5 @@ td { font-size: 13px; }
   .filters { align-items: stretch; flex-direction: column; }
   .filters select { width: 100%; }
   .dialog-actions { align-items: stretch; flex-direction: column-reverse; }
+  .refund-dialog { padding: 20px; }
 }
