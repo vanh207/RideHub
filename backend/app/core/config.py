@@ -53,10 +53,12 @@ class Settings(BaseSettings):
     SMTP_FROM_NAME: str = "RideHub Notification"
     SMTP_TLS: bool = True
 
-    # ---- JWT Cấu hình ----
+    # ---- JWT & Giới hạn tần suất đăng nhập ----
     JWT_SECRET_KEY: str = Field(default_factory=lambda: secrets.token_urlsafe(48))
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    LOGIN_RATE_LIMIT_MAX_ATTEMPTS: int = 5
+    LOGIN_RATE_LIMIT_WINDOW_SECONDS: int = 60
 
     # ---- Firebase Admin SDK & Web API Key (Được đọc hoàn toàn từ .env) ----
     FIREBASE_CREDENTIALS_PATH: str = "serviceAccountKey.json"
