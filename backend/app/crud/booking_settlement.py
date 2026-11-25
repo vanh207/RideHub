@@ -42,6 +42,10 @@ class BookingSettlementValidationError(BookingSettlementError):
     pass
 
 
+class BookingSettlementPaymentError(BookingSettlementError):
+    pass
+
+
 def _money(value) -> Decimal:
     return Decimal(str(value or 0)).quantize(MONEY_QUANT, rounding=ROUND_HALF_UP)
 
@@ -75,6 +79,7 @@ def settle_booking(
     booking_id: int,
     *,
     actor: User,
+    amount_received: Decimal,
     payment_method: str,
 ) -> dict:
     """Collect the outstanding booking balance and recorded check-in fees."""
@@ -167,6 +172,11 @@ def settle_booking(
         if amount_due > Decimal("9999999999.99"):
             raise BookingSettlementValidationError(
                 "Tổng số tiền tất toán vượt giới hạn cho phép."
+            )
+        amount_received = _money(amount_received)
+        if amount_received != amount_due:
+            raise BookingSettlementPaymentError(
+                f"Số tiền thực nhận ({amount_received}) phải khớp số tiền cần thu ({amount_due})."
             )
 
         now = datetime.now()
