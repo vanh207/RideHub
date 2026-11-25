@@ -17,7 +17,7 @@ from app.middleware.audit_log import AuditLogMiddleware
 from app.models.booking import Booking, BookingStatusHistory
 from app.models.handover import HandoverProtocol
 from app.models.payment import PaymentTransaction, Refund
-from app.models.store import Store
+from app.models.store import Store, StoreStaff
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.models.vehicle_reservation import VehicleReservation
@@ -44,6 +44,7 @@ def settlement_client():
                 User(id=1, full_name="Customer", status="active"),
                 User(id=2, full_name="Store owner", status="active"),
                 User(id=3, full_name="Outsider", status="active"),
+                User(id=4, full_name="Store staff", status="active"),
                 Store(
                     id=10,
                     owner_user_id=2,
@@ -51,6 +52,12 @@ def settlement_client():
                     address="Test",
                     city="HCM",
                     status="APPROVED",
+                ),
+                StoreStaff(
+                    store_id=10,
+                    user_id=4,
+                    staff_role="STAFF",
+                    status="ACTIVE",
                 ),
                 Vehicle(
                     id=20,
@@ -155,7 +162,7 @@ def test_settlement_calculates_balance_fees_and_completes_booking(settlement_cli
 
     response = client.post(
         "/api/bookings/30/settle",
-        json={"payment_method": "BANK_TRANSFER"},
+        json={"amount_received": 160000, "payment_method": "BANK_TRANSFER"},
     )
 
     assert response.status_code == 200, response.text
@@ -198,8 +205,16 @@ def test_settlement_calculates_balance_fees_and_completes_booking(settlement_cli
             booking_id=30
         ).one().status == "COMPLETED"
 
-    repeated = client.post("/api/bookings/30/settle", json={})
+    repeated = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": 160000},
+    )
     assert repeated.status_code == 409
+    with session_factory() as db:
+        assert db.query(PaymentTransaction).filter_by(booking_id=30).count() == 2
+        assert db.query(BookingStatusHistory).filter_by(
+            booking_id=30, to_status="COMPLETED"
+        ).count() == 1
 
 
 def test_settlement_without_remaining_balance_creates_zero_amount_record(
@@ -222,7 +237,10 @@ def test_settlement_without_remaining_balance_creates_zero_amount_record(
         )
         db.commit()
 
-    response = client.post("/api/bookings/30/settle", json={})
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": 0},
+    )
 
     assert response.status_code == 200, response.text
     assert Decimal(response.json()["amount_due"]) == Decimal("0")
@@ -237,6 +255,27 @@ def test_settlement_without_remaining_balance_creates_zero_amount_record(
     assert any(row["amount"] == 0 for row in history.json())
 
 
+def test_settlement_accounts_for_immediate_checkin_refund(settlement_client):
+    client, _, session_factory = settlement_client
+    with session_factory() as db:
+        db.query(Refund).delete()
+        db.query(HandoverProtocol).filter_by(booking_id=30).update(
+            {HandoverProtocol.refund_immediate: Decimal("25000")}
+        )
+        db.commit()
+
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": 160000},
+    )
+
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert Decimal(result["refunded_amount"]) == Decimal("25000")
+    assert Decimal(result["net_paid"]) == Decimal("175000")
+    assert Decimal(result["amount_due"]) == Decimal("160000")
+
+
 def test_settlement_without_prior_deposit_charges_full_balance_and_fees(
     settlement_client,
 ):
@@ -246,7 +285,10 @@ def test_settlement_without_prior_deposit_charges_full_balance_and_fees(
         db.query(Refund).delete()
         db.commit()
 
-    response = client.post("/api/bookings/30/settle", json={})
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": 335000},
+    )
 
     assert response.status_code == 200, response.text
     result = response.json()
@@ -267,15 +309,53 @@ def test_settlement_rejects_invalid_or_completed_booking_state(
         db.query(Booking).filter_by(id=30).update({Booking.status: booking_status})
         db.commit()
 
-    response = client.post("/api/bookings/30/settle", json={})
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": 160000},
+    )
 
     assert response.status_code == expected_status
+    with session_factory() as db:
+        booking = db.query(Booking).filter_by(id=30).one()
+        assert booking.status == booking_status
+        assert db.query(PaymentTransaction).filter_by(booking_id=30).count() == 1
+
+
+@pytest.mark.parametrize(
+    ("protocol_status", "both_confirmed"),
+    [("DRAFT", True), ("COMPLETED", False)],
+)
+def test_settlement_requires_completed_checkin_confirmed_by_both_parties(
+    settlement_client, protocol_status, both_confirmed
+):
+    client, _, session_factory = settlement_client
+    with session_factory() as db:
+        db.query(HandoverProtocol).filter_by(booking_id=30).update(
+            {
+                HandoverProtocol.status: protocol_status,
+                HandoverProtocol.both_confirmed: both_confirmed,
+            }
+        )
+        db.commit()
+
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": 160000},
+    )
+
+    assert response.status_code == 409
+    with session_factory() as db:
+        assert db.query(Booking).filter_by(id=30).one().status == "PENDING_SETTLEMENT"
+        assert db.query(PaymentTransaction).filter_by(booking_id=30).count() == 1
 
 
 def test_settlement_returns_404_for_missing_booking(settlement_client):
     client, _, _ = settlement_client
 
-    response = client.post("/api/bookings/999/settle", json={})
+    response = client.post(
+        "/api/bookings/999/settle",
+        json={"amount_received": 160000},
+    )
 
     assert response.status_code == 404
 
@@ -287,7 +367,45 @@ def test_settlement_requires_store_permission(settlement_client):
         role="customer",
     )
 
-    response = client.post("/api/bookings/30/settle", json={})
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": 160000},
+    )
+
+    assert response.status_code == 403
+
+
+def test_settlement_allows_active_store_staff(settlement_client):
+    client, app, _ = settlement_client
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+        id=4,
+        role="store_staff",
+    )
+
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": 160000},
+    )
+
+    assert response.status_code == 200, response.text
+
+
+def test_settlement_rejects_inactive_store_staff(settlement_client):
+    client, app, session_factory = settlement_client
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+        id=4,
+        role="store_staff",
+    )
+    with session_factory() as db:
+        db.query(StoreStaff).filter_by(store_id=10, user_id=4).update(
+            {StoreStaff.status: "INACTIVE"}
+        )
+        db.commit()
+
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": 160000},
+    )
 
     assert response.status_code == 403
 
@@ -296,7 +414,10 @@ def test_settlement_requires_authentication(settlement_client):
     client, app, _ = settlement_client
     app.dependency_overrides.pop(get_current_user)
 
-    response = client.post("/api/bookings/30/settle", json={})
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": 160000},
+    )
 
     assert response.status_code == 401
 
@@ -308,7 +429,7 @@ def test_settlement_rejects_invalid_request_and_negative_stored_fee(
 
     invalid_method = client.post(
         "/api/bookings/30/settle",
-        json={"payment_method": "CRYPTO"},
+        json={"amount_received": 160000, "payment_method": "CRYPTO"},
     )
     assert invalid_method.status_code == 422
 
@@ -318,11 +439,69 @@ def test_settlement_rejects_invalid_request_and_negative_stored_fee(
         )
         db.commit()
 
-    invalid_fee = client.post("/api/bookings/30/settle", json={})
+    invalid_fee = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": 160000},
+    )
     assert invalid_fee.status_code == 422
 
 
-@pytest.mark.parametrize("invalid_amount", [Decimal("-1"), Decimal("1.001")])
+def test_settlement_rejects_missing_received_amount_without_mutation(
+    settlement_client,
+):
+    client, _, session_factory = settlement_client
+
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"payment_method": "CASH"},
+    )
+
+    assert response.status_code == 422
+    with session_factory() as db:
+        assert db.query(Booking).filter_by(id=30).one().status == "PENDING_SETTLEMENT"
+        assert db.query(PaymentTransaction).filter_by(booking_id=30).count() == 1
+        assert db.query(BookingStatusHistory).filter_by(
+            booking_id=30, to_status="COMPLETED"
+        ).count() == 0
+
+
+@pytest.mark.parametrize("amount_received", [159999, 160001])
+def test_settlement_rejects_underpayment_and_overpayment_without_mutation(
+    settlement_client, amount_received
+):
+    client, _, session_factory = settlement_client
+
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": amount_received},
+    )
+
+    assert response.status_code == 409
+    assert "phải khớp số tiền cần thu" in response.json()["detail"]
+    with session_factory() as db:
+        assert db.query(Booking).filter_by(id=30).one().status == "PENDING_SETTLEMENT"
+        assert db.query(PaymentTransaction).filter_by(booking_id=30).count() == 1
+        assert db.query(BookingStatusHistory).filter_by(
+            booking_id=30, to_status="COMPLETED"
+        ).count() == 0
+
+
+@pytest.mark.parametrize("amount_received", [-1, 1.001, "not-a-number"])
+def test_settlement_rejects_invalid_received_amount(settlement_client, amount_received):
+    client, _, _ = settlement_client
+
+    response = client.post(
+        "/api/bookings/30/settle",
+        json={"amount_received": amount_received},
+    )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "invalid_amount",
+    [Decimal("-1"), Decimal("1.001"), "-1", "not-a-number"],
+)
 def test_checkin_fee_schema_rejects_negative_or_fractional_currency(
     invalid_amount,
 ):

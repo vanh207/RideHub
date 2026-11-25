@@ -23,6 +23,7 @@ from app.crud.booking_cancellation import (
 )
 from app.crud.booking_settlement import (
     BookingSettlementNotFoundError,
+    BookingSettlementPaymentError,
     BookingSettlementPermissionError,
     BookingSettlementStateError,
     BookingSettlementValidationError,
@@ -178,8 +179,9 @@ def cancel_booking_endpoint(
     summary="Thu phần còn lại và phí phát sinh, hoàn tất đơn thuê",
     description=(
         "Chỉ admin/operator hoặc chủ/nhân viên cửa hàng phụ trách được gọi. "
-        "Gọi sau khi đã thu tiền mặt/chuyển khoản thực tế; phí lấy từ biên bản "
-        "CHECK_IN đã được hai bên xác nhận."
+        "Gọi sau khi đã thu tiền mặt/chuyển khoản thực tế và gửi amount_received "
+        "khớp chính xác với số tiền cần thu; phí lấy từ biên bản CHECK_IN đã "
+        "được hai bên xác nhận."
     ),
 )
 def settle_booking_endpoint(
@@ -193,6 +195,7 @@ def settle_booking_endpoint(
             db,
             booking_id,
             actor=current_user,
+            amount_received=payload.amount_received,
             payment_method=payload.payment_method,
         )
     except BookingSettlementNotFoundError as exc:
@@ -204,6 +207,11 @@ def settle_booking_endpoint(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Bạn không có quyền tất toán đơn của cửa hàng này.",
+        ) from exc
+    except BookingSettlementPaymentError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
         ) from exc
     except BookingSettlementStateError as exc:
         raise HTTPException(

@@ -97,6 +97,13 @@ class BookingCancelResponse(BaseModel):
 class BookingSettlementRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    amount_received: Decimal = Field(
+        ...,
+        ge=0,
+        max_digits=12,
+        decimal_places=2,
+        description="Số tiền thực nhận khi tất toán (phải khớp số tiền cần thu)",
+    )
     payment_method: Literal["CASH", "BANK_TRANSFER", "OTHER"] = Field(
         "CASH",
         description="Phương thức thu khoản tất toán cuối",
