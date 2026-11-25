@@ -16,7 +16,7 @@ Các tính năng cốt lõi:
 8. GET  /api/payments/booking/{booking_id}: Tra cứu lịch sử thanh toán theo đơn đặt xe.
 9. POST /api/payments/simulate: Giả lập cổng thanh toán bắn Webhook trực tiếp từ Swagger UI.
 """
-from datetime import datetime
+from datetime import date, datetime
 from math import ceil
 from typing import Any, Dict, List, Literal, Optional
 
@@ -58,10 +58,15 @@ from app.schemas.payment import (
     PaymentWebhookPayload,
     RefundResponse,
 )
+from app.schemas.reconciliation import (
+    GatewayReconciliationRequest,
+    PaymentReconciliationResponse,
+)
 from app.services.payment_booking_reconciliation import (
     apply_successful_payment_to_booking,
     create_pending_refund_for_transaction,
 )
+from app.services.payment_reconciliation import reconcile_gateway_statement
 from app.services.payment_gateway import payment_gateway_service
 from app.services.payos_service import payos_service
 from app.services.booking_eligibility import check_customer_can_rent
@@ -1035,6 +1040,51 @@ def process_payment_webhook(
 # ==============================================================================
 # 4. API HOÀN TIỀN (REFUND FLOW)
 # ==============================================================================
+@router.post(
+    "/operations/reconciliation",
+    response_model=PaymentReconciliationResponse,
+    summary="Đối soát sao kê cổng thanh toán với giao dịch nội bộ",
+    description=(
+        "Đối chiếu read-only sao kê do vận hành cung cấp với giao dịch cùng provider "
+        "trong RideHub. Không tự cập nhật trạng thái thanh toán, booking hay refund."
+    ),
+)
+def reconcile_payment_transactions(
+    request: GatewayReconciliationRequest,
+    from_date: date = Query(..., description="Ngày bắt đầu, bao gồm ngày này"),
+    to_date: date = Query(..., description="Ngày kết thúc, bao gồm ngày này"),
+    reconciliation_status: Optional[
+        Literal["MATCHED", "MISMATCHED", "MISSING_GATEWAY", "MISSING_LOCAL"]
+    ] = Query(None, alias="status"),
+    q: Optional[str] = Query(
+        None,
+        min_length=1,
+        max_length=150,
+        description="Lọc theo transaction_code hoặc provider_txn_id",
+    ),
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_payment_operator),
+):
+    if from_date > to_date:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="from_date phải nhỏ hơn hoặc bằng to_date.",
+        )
+    if (to_date - from_date).days > 366:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Khoảng thời gian đối soát không được vượt quá 367 ngày.",
+        )
+    return reconcile_gateway_statement(
+        db,
+        request,
+        from_date=from_date,
+        to_date=to_date,
+        status_filter=reconciliation_status,
+        search=q,
+    )
+
+
 @router.get(
     "/operations/anomalies",
     response_model=List[PaymentAnomalyResponse],

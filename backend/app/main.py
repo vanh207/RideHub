@@ -36,6 +36,7 @@ from app.routers import (
     login,
     notifications,
     payment,
+    reports,
     store_staff,
     stores,
     vehicles,
@@ -104,6 +105,7 @@ app.include_router(health.router, prefix="/api")
 app.include_router(items.router, prefix="/api")
 app.include_router(bookings.router, prefix="/api")
 app.include_router(payment.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
 
 app.include_router(chat.router, prefix="/api")
 app.include_router(faq.router, prefix="/api")
