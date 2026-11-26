@@ -25,9 +25,9 @@ button, a, select { -webkit-tap-highlight-color: transparent; }
 [hidden] { display: none !important; }
 
 .page-shell {
-  width: min(1440px, calc(100% - 40px));
+  width: min(1240px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 38px 0 64px;
+  padding: 96px 0 64px;
 }
 
 .page-header, .queue-heading, .filters, .dialog-actions {
