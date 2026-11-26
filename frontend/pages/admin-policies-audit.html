@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cấu hình Chính sách &amp; Nhật ký Audit — RideHub Admin</title>
+  <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+  <style>
+    body {
+      background: var(--bg-page, #f6fbf8);
+      color: var(--text-primary, #132a1c);
+      min-height: 100vh;
+    }
+    .admin-shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 96px 20px 64px;
+    }
+    .admin-topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 18px 24px;
+      background: #ffffff;
+      border: 1px solid rgba(22, 163, 74, 0.14);
+      border-radius: 20px;
+      box-shadow: 0 12px 30px -15px rgba(19, 42, 28, 0.12);
+    }
+    .admin-eyebrow {
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--green-700, #15803d);
+      margin: 0 0 4px;
+    }
+    .admin-title {
+      margin: 0;
+      font-family: var(--font-display, 'Outfit', sans-serif);
+      font-size: 1.65rem;
+      font-weight: 800;
+    }
+    .admin-nav-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .admin-tabs {
+      display: inline-flex;
+      gap: 8px;
+      padding: 6px;
+      background: #eaf4ee;
+      border-radius: 999px;
+      margin-bottom: 22px;
+    }
+    .admin-tab-btn {
+      border: 0;
+      background: transparent;
+      color: var(--text-muted, #4d6b57);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .admin-tab-btn.is-active {
+      background: #ffffff;
+      color: var(--green-700, #15803d);
+      box-shadow: 0 4px 12px rgba(19, 42, 28, 0.08);
+    }
+    .admin-panel {
+      display: none;
+    }
+    .admin-panel.is-active {
+      display: block;
+    }
+    .policy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+    .surface-card {
+      background: #ffffff;
+      border: 1px solid rgba(22, 163, 74, 0.14);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 10px 24px -14px rgba(19, 42, 28, 0.1);
+    }
+    .policy-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed rgba(22, 163, 74, 0.18);
+    }
+    .policy-card-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-primary, #132a1c);
+    }
+    .policy-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #dcfce7;
+      color: #15803d;
+    }
+    .policy-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .policy-unit {
+      min-width: 48px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted, #5c7a67);
+    }
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .stat-box {
+      background: #ffffff;
+      border: 1px solid rgba(22, 163, 74, 0.14);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    .stat-box strong {
+      display: block;
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--green-700, #15803d);
+      line-height: 1.2;
+    }
+    .stat-box span {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted, #5c7a67);
+    }
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .quick-date-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .status-pill--success { background: #dcfce7; color: #15803d; }
+    .status-pill--failed { background: #fee2e2; color: #b91c1c; }
+    .action-tag {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .pagination-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(22, 163, 74, 0.12);
+    }
+    .auth-warning-banner {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 18px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .auth-warning-banner.is-visible {
+      display: flex;
+    }
+    pre.json-preview {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 12.5px;
+      overflow-x: auto;
+      max-height: 260px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Header chung hệ thống RideHub -->
+  <header id="mainNavbar" class="navbar is-scrolled">
+    <div class="container navbar-inner">
+      <a href="../index.html" class="brand-logo">
+        <img src="../assets/logo-rh.png" alt="RideHub" style="height:34px;width:auto;object-fit:contain;" />
+        <span>RideHub</span>
+      </a>
+      <nav class="nav-links" aria-label="Điều hướng chính">
+        <a href="../index.html" class="nav-link">Trang chủ</a>
+        <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+        <a href="../trips.html" class="nav-link">Chuyến đi</a>
+        <a href="store-orders.html" class="nav-link">Cửa hàng</a>
+        <a href="operations-anomalies.html" class="nav-link">Vận hành</a>
+        <a href="admin-policies-audit.html" class="nav-link is-active">Chính sách &amp; Audit</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <aside id="mobileDrawer" class="mobile-drawer">
+    <a href="../index.html">Trang chủ</a>
+    <a href="../vehicles.html">Tìm &amp; Thuê xe</a>
+    <a href="../trips.html">Chuyến đi</a>
+    <a href="store-orders.html">Cửa hàng</a>
+    <a href="operations-anomalies.html">Vận hành</a>
+    <a href="admin-policies-audit.html">Chính sách &amp; Audit</a>
+  </aside>
+
+  <main class="admin-shell">
+    <header class="admin-topbar">
+      <div>
+        <p class="admin-eyebrow">QUẢN TRỊ HỆ THỐNG RIDEHUB</p>
+        <h1 class="admin-title">Cấu hình Chính sách &amp; Nhật ký Audit</h1>
+      </div>
+      <nav class="admin-nav-pills" aria-label="Điều hướng quản trị">
+        <a href="#policies" class="btn btn-ghost btn-sm" data-admin-tab="policies">Cấu hình Chính sách</a>
+        <a href="#audit" class="btn btn-outline btn-sm" data-admin-tab="audit">Nhật ký Audit</a>
+        <button type="button" id="btnRefreshAll" class="btn btn-soft btn-sm">Làm mới dữ liệu</button>
+      </nav>
+    </header>
+
+    <div id="adminAuthBanner" class="auth-warning-banner" role="alert">
+      <div>
+        <strong>Yêu cầu quyền Quản trị viên (Admin):</strong>
+        <span id="adminAuthBannerMsg">Vui lòng đăng nhập bằng tài khoản Admin (ví dụ: <code>admin@ridehub.vn</code> / <code>password123</code>) để cấu hình chính sách và xem nhật ký Audit.</span>
+      </div>
+      <a href="auth.html" class="btn btn-primary btn-sm">Đăng nhập Admin</a>
+    </div>
+
+    <div class="admin-tabs" role="tablist">
+      <button type="button" class="admin-tab-btn is-active" data-admin-tab="policies" role="tab" aria-selected="true">
+        Cấu hình Chính sách
+      </button>
+      <button type="button" class="admin-tab-btn" data-admin-tab="audit" role="tab" aria-selected="false">
+        Bảng Nhật ký Audit
+      </button>
+    </div>
+
+    <!-- TAB 1: CẤU HÌNH CHÍNH SÁCH -->
+    <section id="panel-policies" class="admin-panel is-active" role="tabpanel">
+      <form id="policyConfigForm">
+        <div id="policyContainer" class="policy-grid"></div>
+        <div class="surface-card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div style="font-size:13.5px; color:var(--text-muted);">
+            Mọi thay đổi cấu hình chính sách đều được hệ thống tự động ghi vào <strong>Bảng Nhật ký Audit</strong>.
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button type="button" id="btnReloadPolicies" class="btn btn-secondary">Khôi phục giá trị đã lưu</button>
+            <button type="submit" id="btnSavePolicies" class="btn btn-primary">Lưu cấu hình chính sách</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- TAB 2: BẢNG NHẬT KÝ AUDIT -->
+    <section id="panel-audit" class="admin-panel" role="tabpanel">
+      <div class="stats-row" id="auditStatsRow">
+        <div class="stat-box"><strong id="statTotalLogs">0</strong><span>Tổng nhật ký</span></div>
+        <div class="stat-box"><strong id="statSuccessLogs">0</strong><span>Thành công</span></div>
+        <div class="stat-box"><strong id="statFailedLogs">0</strong><span>Thất bại</span></div>
+        <div class="stat-box"><strong id="statReviewLogs">0</strong><span>Duyệt hồ sơ</span></div>
+        <div class="stat-box"><strong id="statStatusLogs">0</strong><span>Đổi trạng thái</span></div>
+        <div class="stat-box"><strong id="statRefundLogs">0</strong><span>Hoàn tiền</span></div>
+      </div>
+
+      <div class="surface-card">
+        <form id="auditFilterForm">
+          <div class="filter-grid">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="auditSearchInput">Người thao tác / Từ khóa</label>
+              <input id="auditSearchInput" type="search" class="form-control" placeholder="Email, endpoint, mô tả..." />
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="auditUserIdInput">ID Người thao tác</label>
+              <input id="auditUserIdInput" type="number" min="1" class="form-control" placeholder="VD: 9" />
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="auditActionSelect">Loại thao tác</label>
+              <select id="auditActionSelect" class="form-control">
+                <option value="">Tất cả thao tác</option>
+                <option value="REVIEW_APPROVE">Duyệt hồ sơ (REVIEW_APPROVE)</option>
+                <option value="REVIEW_REJECT">Từ chối hồ sơ (REVIEW_REJECT)</option>
+                <option value="VEHICLE_STATUS_CHANGE">Đổi trạng thái xe (VEHICLE_STATUS_CHANGE)</option>
+                <option value="BOOKING_STATUS_CHANGE">Đổi trạng thái đơn (BOOKING_STATUS_CHANGE)</option>
+                <option value="PAYMENT_REFUND">Hoàn tiền (PAYMENT_REFUND)</option>
+                <option value="POLICY_UPDATE">Cập nhật chính sách (POLICY_UPDATE)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="auditStatusSelect">Kết quả</label>
+              <select id="auditStatusSelect" class="form-control">
+                <option value="">Tất cả</option>
+                <option value="SUCCESS">Thành công (SUCCESS)</option>
+                <option value="FAILED">Thất bại (FAILED)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="auditFromDate">Từ thời điểm</label>
+              <input id="auditFromDate" type="datetime-local" class="form-control" />
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="auditToDate">Đến thời điểm</label>
+              <input id="auditToDate" type="datetime-local" class="form-control" />
+            </div>
+          </div>
+
+          <div class="quick-date-pills">
+            <span style="font-size:12.5px; font-weight:700; color:var(--text-muted);">Lọc nhanh thời gian:</span>
+            <button type="button" class="btn btn-ghost btn-xs" data-date-preset="all">Tất cả</button>
+            <button type="button" class="btn btn-ghost btn-xs" data-date-preset="today">Hôm nay</button>
+            <button type="button" class="btn btn-ghost btn-xs" data-date-preset="7d">7 ngày qua</button>
+            <button type="button" class="btn btn-ghost btn-xs" data-date-preset="30d">30 ngày qua</button>
+            <div style="margin-left:auto; display:flex; gap:8px;">
+              <button type="button" id="btnResetAuditFilter" class="btn btn-secondary btn-sm">Xóa bộ lọc</button>
+              <button type="submit" id="btnApplyAuditFilter" class="btn btn-primary btn-sm">Lọc nhật ký</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="table-responsive">
+          <table class="table table-hover table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Thời điểm (Lúc nào)</th>
+                <th>Người thao tác (Ai)</th>
+                <th>Hành động (Làm gì)</th>
+                <th>Đối tượng</th>
+                <th>Kết quả</th>
+                <th>Chi tiết</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination-bar">
+          <div id="auditPaginationInfo" style="font-size:13px; font-weight:600; color:var(--text-muted);">
+            Hiển thị 0 kết quả
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button type="button" id="btnPrevAuditPage" class="btn btn-outline btn-sm" disabled>← Trước</button>
+            <span id="auditPageNumber" style="font-size:13px; font-weight:700;">Trang 1 / 1</span>
+            <button type="button" id="btnNextAuditPage" class="btn btn-outline btn-sm" disabled>Sau →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL CHI TIẾT BẢN GHI AUDIT -->
+  <div class="modal-backdrop" id="auditDetailModal" role="dialog" aria-modal="true" aria-labelledby="auditModalTitle">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title" id="auditModalTitle">Chi tiết Nhật ký Audit</h3>
+        <button type="button" class="modal-close-btn" data-close-modal aria-label="Đóng">&times;</button>
+      </div>
+      <div class="modal-body" id="auditModalBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close-modal>Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer chung hệ thống RideHub -->
+  <footer class="site-footer">
+    <div class="footer-road-edge">
+      <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Nền tảng thuê xe thông minh">
+        <svg viewBox="0 0 110 64" width="76" height="32"><path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#4ade80"/><g transform="translate(27,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g><g transform="translate(81,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g></svg>
+      </div>
+    </div>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <img src="../assets/logo-rh.png" alt="RideHub Logo" style="height:34px;width:auto;" />
+            <span style="font-family:var(--font-display);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">RideHub</span>
+          </div>
+          <p style="font-size:13px;line-height:1.65;color:#d1fae5;margin:0 0 14px;">
+            Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+          </p>
+          <div style="font-size:12.5px;color:#a7f3d0;display:flex;flex-direction:column;gap:5px;">
+            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868" style="color:var(--green-300);text-decoration:none;">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn" style="color:var(--green-300);text-decoration:none;">support@ridehub.vn</a></div>
+            <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="../index.html">Trang chủ</a></li>
+            <li class="footer-link-item"><a href="../vehicles.html">Tìm &amp; Thuê xe máy, Ô tô</a></li>
+            <li class="footer-link-item"><a href="../trips.html">Hành trình &amp; Chuyến đi của tôi</a></li>
+            <li class="footer-link-item"><a href="../booking.html">Đơn thuê &amp; Thanh toán cọc</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Quản trị &amp; Đối tác</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="store-orders.html">Quản lý đơn hàng Cửa hàng</a></li>
+            <li class="footer-link-item"><a href="operations-anomalies.html">Hàng chờ giao dịch bất thường</a></li>
+            <li class="footer-link-item"><a href="admin-policies-audit.html">Cấu hình Chính sách &amp; Audit Log</a></li>
+            <li class="footer-link-item"><a href="auth.html">Đăng nhập / Đăng ký</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Cam kết &amp; An toàn</div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#d1fae5;line-height:1.55;">
+            <div>✓ <strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt.</div>
+            <div>✓ <strong>Minh bạch bàn giao:</strong> Video 360°, ảnh biên bản &amp; ODO thực tế.</div>
+            <div>✓ <strong>Kiểm toán hệ thống:</strong> Lưu vết toàn bộ thao tác duyệt, trạng thái, hoàn tiền.</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-bottom-row">
+        <div>© 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+          <a href="../privacy-policy.html" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/effects.js"></script>
+  <script src="../js/auth-rbac.js"></script>
+  <script src="../js/pages/admin-policies-audit.js"></script>
+</body>
+</html>
