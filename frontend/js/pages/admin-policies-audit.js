@@ -7,8 +7,10 @@
   'use strict';
 
   const CATEGORY_META = {
+    HOLD: { title: 'Chính sách Giữ chỗ & Thời hạn', badge: 'Giữ chỗ' },
     DEPOSIT: { title: 'Chính sách Đặt cọc (BR-03)', badge: 'Đặt cọc' },
-    CANCELLATION: { title: 'Chính sách Hủy đơn & Hoàn tiền', badge: 'Hủy & Hoàn tiền' },
+    CANCELLATION: { title: 'Chính sách Hủy đơn & Hoàn tiền', badge: 'Hoàn tiền' },
+    FEES: { title: 'Chính sách Phí & Phụ thu', badge: 'Phí & Phụ thu' },
     BOOKING: { title: 'Chính sách Thuê xe & Thời hạn', badge: 'Đặt xe' },
     SECURITY: { title: 'Bảo mật & Giới hạn đăng nhập', badge: 'Bảo mật' },
   };
