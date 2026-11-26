@@ -11,6 +11,9 @@
 (function (global) {
   'use strict';
 
+  // Bật phân quyền menu theo vai trò
+  const DISABLE_FRONTEND_RBAC = false;
+
   // 1. CẤU HÌNH VAI TRÒ & DANH MỤC MENU (SRS v2.2)
   const ROLE_CONFIG = {
     guest: {
@@ -42,26 +45,26 @@
       key: 'store_owner',
       label: 'Chủ cửa hàng',
       badgeClass: 'role-tag-store_owner',
-      home: 'store-portal.html',
+      home: 'pages/store-orders.html',
       menu: [
-        { id: 'portal', label: 'Tổng quan bãi xe', href: 'store-portal.html' },
-        { id: 'vehicles', label: 'Quản lý xe', href: 'store-portal.html#tabVehicles' },
-        { id: 'orders', label: 'Duyệt đơn thuê', href: 'store-portal.html#tabOrders' },
-        { id: 'revenue', label: 'Doanh thu & Báo cáo', href: 'store-portal.html#tabRevenue' },
-        { id: 'fleet', label: 'Kho xe RideHub', href: 'vehicles.html' }
+        { id: 'home', label: 'Trang chủ', href: 'index.html' },
+        { id: 'orders', label: 'Đơn thuê', href: 'pages/store-orders.html' },
+        { id: 'vehicles', label: 'Quản lý xe', href: 'pages/vehicle_management.html' },
+        { id: 'schedule', label: 'Lịch xe', href: 'pages/vehicle_schedule.html' },
+        { id: 'handover', label: 'Bàn giao xe', href: 'pages/handover.html' },
+        { id: 'delivery', label: 'Giao nhận', href: 'pages/delivery.html' }
       ]
     },
     admin: {
       key: 'admin',
       label: 'Quản trị hệ thống',
       badgeClass: 'role-tag-admin',
-      home: 'admin-ops.html',
+      home: 'pages/admin-policies-audit.html',
       menu: [
-        { id: 'admin', label: 'Vận hành & Admin', href: 'admin-ops.html' },
-        { id: 'portal', label: 'Cổng Cửa hàng', href: 'store-portal.html' },
-        { id: 'vehicles', label: 'Tìm & Thuê xe', href: 'vehicles.html' },
-        { id: 'trips', label: 'Chuyến đi', href: 'trips.html' },
-        { id: 'profile', label: 'Hồ sơ', href: 'profile.html' }
+        { id: 'home', label: 'Trang chủ', href: 'index.html' },
+        { id: 'anomalies', label: 'Hàng chờ bất thường', href: 'pages/operations-anomalies.html' },
+        { id: 'policies', label: 'Chính sách & Audit', href: 'pages/admin-policies-audit.html' },
+        { id: 'tests', label: 'Kiểm thử', href: 'pages/test-cases.html' }
       ]
     }
   };
@@ -197,7 +200,9 @@
         document.body.prepend(nav);
       }
 
-      const roleInfo = ROLE_CONFIG[this.currentRole] || ROLE_CONFIG.guest;
+      const roleInfo = DISABLE_FRONTEND_RBAC
+        ? ROLE_CONFIG.admin
+        : (ROLE_CONFIG[this.currentRole] || ROLE_CONFIG.guest);
       const user = this.currentUser;
       const currentPage = this._getCurrentPage();
 
@@ -320,7 +325,9 @@
         document.body.appendChild(backdrop);
       }
 
-      const roleInfo = ROLE_CONFIG[this.currentRole] || ROLE_CONFIG.guest;
+      const roleInfo = DISABLE_FRONTEND_RBAC
+        ? ROLE_CONFIG.admin
+        : (ROLE_CONFIG[this.currentRole] || ROLE_CONFIG.guest);
       const user = this.currentUser;
 
       const linksHtml = roleInfo.menu.map(item => {

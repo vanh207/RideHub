@@ -1356,6 +1356,29 @@
       const renderUser = () => {
         const u = AuthRBAC.getCurrentUser();
         if (!u) return;
+        const isAdmin = u.role === "admin" || u.role === "operator";
+        const isStoreOwner = u.role === "store_owner" || u.role === "store_staff";
+        const setTabVisible = (tabName, visible) => {
+          const btn = document.querySelector(`[data-prof-tab="${tabName}"]`);
+          if (btn) {
+            btn.hidden = !visible;
+            btn.style.display = visible ? "" : "none";
+          }
+          const panel = document.querySelector(`[data-prof-panel="${tabName}"]`);
+          if (panel && !visible) {
+            panel.hidden = true;
+          }
+        };
+        setTabVisible("profile", true);
+        setTabVisible("password", true);
+        setTabVisible("cccd", !isAdmin);
+        setTabVisible("gplx", !isAdmin && !isStoreOwner);
+        setTabVisible("store", !isAdmin && !isStoreOwner);
+        setTabVisible("favorites", !isAdmin && !isStoreOwner);
+        const activeBtn = document.querySelector(".prof-nav-btn.is-active");
+        if (activeBtn && activeBtn.hidden) {
+          document.querySelector('[data-prof-tab="profile"]')?.click();
+        }
         document.getElementById("profileDisplayName").textContent = u.name;
         document.getElementById("profileDisplayEmail").textContent =
           `${u.email || ""} • ${u.phone}`;

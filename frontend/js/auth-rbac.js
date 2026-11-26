@@ -6,6 +6,9 @@
 (function (global) {
   'use strict';
 
+  // Bật kiểm tra phân quyền giao diện HTML/JS theo vai trò (customer / store_owner / admin)
+  const DISABLE_FRONTEND_RBAC = false;
+
   const STORAGE_USER = 'ridehub_current_user';
   const STORAGE_ACCOUNTS = 'ridehub_accounts_db';
   const STORAGE_NOTIFS = 'ridehub_notifications_v1';
@@ -29,23 +32,69 @@
   };
 
   const ROLES = {
+    guest: {
+      label: 'Khách vãng lai',
+      badgeClass: 'status-badge--available',
+      home: 'index.html',
+      menu: [
+        { label: 'Trang chủ', href: 'index.html' },
+        { label: 'Tìm & Thuê xe', href: 'vehicles.html' },
+        { label: 'Hướng dẫn thuê xe', href: 'index.html#storySection' }
+      ],
+      allowedPages: [
+        'index.html', 'vehicles.html', 'vehicle-detail.html', 'booking.html',
+        'payment-qr.html', 'payment-result.html', 'auth.html', 'privacy-policy.html'
+      ]
+    },
     customer: {
       label: 'Khách thuê',
       badgeClass: 'status-badge--available',
       home: 'vehicles.html',
-      allowedPages: ['index.html', 'vehicles.html', 'booking.html', 'trips.html', 'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html']
+      menu: [
+        { label: 'Trang chủ', href: 'index.html' },
+        { label: 'Tìm & Thuê xe', href: 'vehicles.html' },
+        { label: 'Chuyến đi', href: 'trips.html' },
+        { label: 'Đơn đặt xe', href: 'booking.html' },
+        { label: 'Hướng dẫn thuê xe', href: 'index.html#storySection' }
+      ],
+      allowedPages: [
+        'index.html', 'vehicles.html', 'vehicle-detail.html', 'booking.html',
+        'payment-qr.html', 'payment-result.html', 'trips.html',
+        'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html'
+      ]
     },
     store_owner: {
       label: 'Chủ cửa hàng',
       badgeClass: 'status-badge--transit',
-      home: 'store-portal.html',
-      allowedPages: ['index.html', 'store-portal.html', 'vehicle_management.html', 'delivery.html', 'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html']
+      home: 'pages/store-orders.html',
+      menu: [
+        { label: 'Trang chủ', href: 'index.html' },
+        { label: 'Đơn thuê', href: 'pages/store-orders.html' },
+        { label: 'Quản lý xe', href: 'pages/vehicle_management.html' },
+        { label: 'Lịch xe', href: 'pages/vehicle_schedule.html' },
+        { label: 'Bàn giao xe', href: 'pages/handover.html' },
+        { label: 'Giao nhận', href: 'pages/delivery.html' }
+      ],
+      allowedPages: [
+        'index.html', 'store-portal.html', 'store-orders.html', 'store_operations.html',
+        'vehicle_management.html', 'vehicle_schedule.html', 'handover.html', 'delivery.html',
+        'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html'
+      ]
     },
     admin: {
       label: 'Quản trị hệ thống',
       badgeClass: 'status-badge--maintenance',
-      home: 'admin-ops.html',
-      allowedPages: ['index.html', 'admin-ops.html', 'vehicle_management.html', 'delivery.html', 'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html']
+      home: 'pages/admin-policies-audit.html',
+      menu: [
+        { label: 'Trang chủ', href: 'index.html' },
+        { label: 'Hàng chờ bất thường', href: 'pages/operations-anomalies.html' },
+        { label: 'Chính sách & Audit', href: 'pages/admin-policies-audit.html' }
+      ],
+      allowedPages: [
+        'index.html', 'admin-ops.html', 'operations-anomalies.html',
+        'admin-policies-audit.html', 'test-cases.html',
+        'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html'
+      ]
     }
   };
 
@@ -182,6 +231,48 @@
       if (global.showRideHubToast) global.showRideHubToast('Đã đăng xuất tài khoản.');
     },
 
+    confirmAction({
+      title = 'Xác nhận thao tác',
+      message = 'Bạn có chắc chắn muốn thực hiện thao tác này?',
+      confirmText = 'Xác nhận',
+      cancelText = 'Hủy',
+      danger = false,
+    } = {}) {
+      return new Promise((resolve) => {
+        document.getElementById('rhConfirmDialogModal')?.remove();
+        const backdrop = document.createElement('div');
+        backdrop.id = 'rhConfirmDialogModal';
+        backdrop.style.cssText =
+          'position:fixed;inset:0;z-index:9998;background:rgba(15,23,42,0.52);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;';
+        backdrop.innerHTML = `
+          <div role="dialog" aria-modal="true" style="width:min(420px,100%);background:#ffffff;border-radius:18px;padding:22px 24px;box-shadow:0 20px 50px rgba(15,23,42,0.22);border:1px solid #e2e8f0;">
+            <h3 style="margin:0 0 8px;font-family:var(--font-display,Outfit,sans-serif);font-size:1.15rem;color:#0f172a;">${title}</h3>
+            <p style="margin:0 0 18px;font-size:14px;line-height:1.55;color:#475569;">${message}</p>
+            <div style="display:flex;justify-content:flex-end;gap:10px;">
+              <button type="button" id="rhConfirmCancelBtn" class="btn btn-soft" style="min-height:38px;padding:6px 16px;font-size:13px;">${cancelText}</button>
+              <button type="button" id="rhConfirmOkBtn" class="btn ${danger ? '' : 'btn-primary'}" style="min-height:38px;padding:6px 16px;font-size:13px;${danger ? 'background:#dc2626;color:#ffffff;border:none;' : ''}">${confirmText}</button>
+            </div>
+          </div>
+        `;
+        const cleanup = (result) => {
+          document.removeEventListener('keydown', onKey);
+          backdrop.remove();
+          resolve(result);
+        };
+        const onKey = (e) => {
+          if (e.key === 'Escape') cleanup(false);
+        };
+        document.addEventListener('keydown', onKey);
+        backdrop.addEventListener('click', (e) => {
+          if (e.target === backdrop) cleanup(false);
+        });
+        backdrop.querySelector('#rhConfirmCancelBtn').addEventListener('click', () => cleanup(false));
+        backdrop.querySelector('#rhConfirmOkBtn').addEventListener('click', () => cleanup(true));
+        document.body.appendChild(backdrop);
+        backdrop.querySelector('#rhConfirmOkBtn').focus();
+      });
+    },
+
     getToken() {
       try {
         const fromCookie = (document.cookie.match(/(^| )ridehub_token=([^;]+)/) || [])[2]
@@ -216,9 +307,54 @@
       return map;
     },
 
+    _getApiBase() {
+      if (global.CONFIG && global.CONFIG.API_BASE_URL) {
+        return String(global.CONFIG.API_BASE_URL).replace(/\/+$/, '');
+      }
+      return 'http://127.0.0.1:8000/api';
+    },
+
+    _apiHeaders(hasBody = false) {
+      const token = this.getToken();
+      return {
+        Accept: 'application/json',
+        ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+    },
+
     getNotifications(role) {
+      if (this._apiNotifCache && Array.isArray(this._apiNotifCache[role])) {
+        return this._apiNotifCache[role];
+      }
       const map = this._loadNotifMap();
       return Array.isArray(map[role]) ? map[role] : [];
+    },
+
+    async fetchNotificationsFromApi(role) {
+      if (!role || role === 'guest') return;
+      if (!this._apiNotifCache) this._apiNotifCache = {};
+      if (this._notifFetchingRole === role) return;
+      this._notifFetchingRole = role;
+      try {
+        const res = await fetch(`${this._getApiBase()}/notifications`, {
+          headers: this._apiHeaders(false),
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && Array.isArray(data.items)) {
+          this._apiNotifCache[role] = data.items;
+          const cur = this.getCurrentUser();
+          if (cur && cur.role === role) {
+            this._renderNotifListOnly(role, this._notifFilter || 'all');
+          }
+        }
+      } catch (_) {
+        // Fallback to localStorage cache when backend is unreachable
+      } finally {
+        this._notifFetchingRole = null;
+      }
     },
 
     pushNotification({ role, roles, title, body, link = '', type = 'booking' }) {
@@ -244,23 +380,44 @@
     },
 
     markNotificationRead(role, id) {
+      if (this._apiNotifCache && Array.isArray(this._apiNotifCache[role])) {
+        const cached = this._apiNotifCache[role].find((n) => String(n.id) === String(id));
+        if (cached) cached.read = true;
+      }
       const map = this._loadNotifMap();
       const list = map[role];
-      if (!Array.isArray(list)) return;
-      const item = list.find((n) => n.id === id);
-      if (item && !item.read) {
-        item.read = true;
-        localStorage.setItem(STORAGE_NOTIFS, JSON.stringify(map));
+      if (Array.isArray(list)) {
+        const item = list.find((n) => String(n.id) === String(id));
+        if (item && !item.read) {
+          item.read = true;
+          localStorage.setItem(STORAGE_NOTIFS, JSON.stringify(map));
+        }
+      }
+      if (/^\d+$/.test(String(id))) {
+        fetch(`${this._getApiBase()}/notifications/${id}/read`, {
+          method: 'PATCH',
+          headers: this._apiHeaders(false),
+          credentials: 'include',
+        }).catch(() => {});
       }
     },
 
     markAllNotificationsRead(role) {
+      if (this._apiNotifCache && Array.isArray(this._apiNotifCache[role])) {
+        this._apiNotifCache[role].forEach((n) => { n.read = true; });
+      }
       const map = this._loadNotifMap();
       const list = map[role];
-      if (!Array.isArray(list)) return;
-      list.forEach((n) => { n.read = true; });
-      localStorage.setItem(STORAGE_NOTIFS, JSON.stringify(map));
-      this._renderNotifPanel(role);
+      if (Array.isArray(list)) {
+        list.forEach((n) => { n.read = true; });
+        localStorage.setItem(STORAGE_NOTIFS, JSON.stringify(map));
+      }
+      fetch(`${this._getApiBase()}/notifications/read-all`, {
+        method: 'PATCH',
+        headers: this._apiHeaders(false),
+        credentials: 'include',
+      }).catch(() => {});
+      this._renderNotifListOnly(role, this._notifFilter || 'all');
     },
 
     _getNotifIconSvg(type) {
@@ -277,6 +434,11 @@
     },
 
     _renderNotifPanel(role, filter = this._notifFilter || 'all') {
+      this._renderNotifListOnly(role, filter);
+      this.fetchNotificationsFromApi(role);
+    },
+
+    _renderNotifListOnly(role, filter = this._notifFilter || 'all') {
       this._notifFilter = filter;
       const listEl = document.getElementById('rbacNotifList');
       const badgeEl = document.getElementById('rbacNotifBadge');
@@ -316,14 +478,21 @@
         </button>
       `).join('');
 
+      const inPagesDir = window.location.pathname.includes('/pages/');
+      const resolveNotifLink = (href) => {
+        if (!href || href.startsWith('#') || href.startsWith('http')) return href;
+        if (inPagesDir) return href.startsWith('pages/') ? href.slice(6) : `../${href}`;
+        return href;
+      };
+
       listEl.querySelectorAll('.notif-item').forEach((btn) => {
         btn.addEventListener('click', () => {
           const id = btn.dataset.notifId;
           const link = btn.dataset.notifLink;
           this.markNotificationRead(role, id);
-          this._renderNotifPanel(role, this._notifFilter);
+          this._renderNotifListOnly(role, this._notifFilter);
           if (link && link !== this.getCurrentPageName()) {
-            window.location.href = link;
+            window.location.href = resolveNotifLink(link);
           } else {
             document.getElementById('rbacNotifDropdown')?.classList.remove('is-open');
             document.getElementById('rbacNotifBtn')?.setAttribute('aria-expanded', 'false');
@@ -357,6 +526,8 @@
         }
 
         if (user && roleInfo) {
+          const inPagesDir = window.location.pathname.includes('/pages/');
+          const rootPfx = inPagesDir ? '../' : '';
           const initials = (user.name || 'U').trim().split(/\s+/).slice(-1)[0].slice(0, 1).toUpperCase();
           const avatarInner = user.avatarUrl
             ? `<img src="${user.avatarUrl}" alt="${user.name}" style="width:100%;height:100%;object-fit:cover;">`
@@ -393,23 +564,28 @@
               </button>
               <div id="rbacAvatarDropdown" class="user-avatar-dropdown" role="menu">
                 <div style="padding:8px 12px 10px;border-bottom:1px solid var(--green-100);margin-bottom:6px;">
-                  <div style="font-size:13px;font-weight:800;color:var(--text-primary);">${user.name}</div>
-                  <div style="font-size:11px;color:var(--text-muted);">${user.email || user.phone} • ${roleInfo.label}</div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <div style="font-size:13px;font-weight:800;color:var(--text-primary);">${user.name}</div>
+                    ${(user.is_verified || user.verified || user.cccdStatus === 'approved' || user.role === 'admin')
+                      ? '<span style="padding:2px 8px;border-radius:999px;background:#dcfce7;color:#15803d;font-size:10.5px;font-weight:700;white-space:nowrap;">Đã xác thực</span>'
+                      : '<span style="padding:2px 8px;border-radius:999px;background:#fef3c7;color:#b45309;font-size:10.5px;font-weight:700;white-space:nowrap;">Chưa xác thực</span>'}
+                  </div>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${user.email || user.phone} • ${roleInfo.label}</div>
                 </div>
-                <a href="profile.html" class="user-menu-item" role="menuitem">
+                <a href="${rootPfx}profile.html" class="user-menu-item" role="menuitem">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.8 4.8-5.5 8-5.5s6.5 1.7 8 5.5"/></svg>
                   <span>Hồ sơ</span>
                 </a>
-                <a href="chat.html" class="user-menu-item" role="menuitem">
+                <a href="${rootPfx}chat.html" class="user-menu-item" role="menuitem">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                   <span>Tin nhắn &amp; Hỗ trợ</span>
                 </a>
-                ${user.role === 'customer' || user.role === 'admin' ? `
-                <a href="trips.html" class="user-menu-item" role="menuitem">
+                ${user.role === 'customer' ? `
+                <a href="${rootPfx}trips.html" class="user-menu-item" role="menuitem">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
                   <span>Chuyến đi</span>
                 </a>` : ''}
-                <a href="profile.html#change-password" class="user-menu-item" role="menuitem">
+                <a href="${rootPfx}profile.html#change-password" class="user-menu-item" role="menuitem">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                   <span>Đổi mật khẩu</span>
                 </a>
@@ -476,7 +652,15 @@
 
 
 
-          document.getElementById('rbacLogoutBtn')?.addEventListener('click', () => {
+          document.getElementById('rbacLogoutBtn')?.addEventListener('click', async () => {
+            const ok = await this.confirmAction({
+              title: 'Xác nhận đăng xuất',
+              message: 'Bạn có chắc chắn muốn đăng xuất khỏi tài khoản hiện tại không?',
+              confirmText: 'Đăng xuất',
+              cancelText: 'Hủy',
+              danger: true,
+            });
+            if (!ok) return;
             this.logout();
             const isPublicPage = currentPage === 'index.html' || currentPage === 'vehicles.html' || currentPage === 'auth.html' || currentPage === 'privacy-policy.html';
             if (!isPublicPage) {
@@ -490,23 +674,48 @@
         }
       }
 
-      // 2. Filter Navbar & Mobile Drawer links based on role
-      const alwaysPublicPages = ['index.html', 'vehicles.html', 'booking.html', 'auth.html', 'privacy-policy.html'];
-      const allowed = roleInfo ? [...roleInfo.allowedPages, 'privacy-policy.html'] : alwaysPublicPages;
-      document.querySelectorAll('.nav-links a, .mobile-drawer a').forEach((link) => {
-        const href = link.getAttribute('href');
-        if (!href || href.startsWith('#')) return;
-        const page = href.split('#')[0].split('/').pop();
-        const ok = allowed.includes(page);
-        link.style.display = ok ? '' : 'none';
-      });
+      // 2. Render Header (.nav-links) & Mobile Drawer (.mobile-drawer) riêng cho từng role (4 roles: guest, customer, store_owner, admin)
+      const activeRoleKey = user && ROLES[user.role] ? user.role : 'guest';
+      const activeRoleCfg = ROLES[activeRoleKey];
+      const inPagesDir = window.location.pathname.includes('/pages/');
+      const rootPfx = inPagesDir ? '../' : '';
+      const resolveRoleHref = (href) => {
+        if (!href || href.startsWith('#') || href.startsWith('http')) return href;
+        if (inPagesDir) {
+          return href.startsWith('pages/') ? href.slice(6) : `../${href}`;
+        }
+        return href;
+      };
 
-      // 3. Enforce Page Guard (403 Forbidden if unauthorized)
+      const alwaysPublicPages = ROLES.guest.allowedPages;
+      const allowed = activeRoleCfg ? activeRoleCfg.allowedPages : alwaysPublicPages;
+
+      if (!DISABLE_FRONTEND_RBAC && activeRoleCfg && Array.isArray(activeRoleCfg.menu)) {
+        const navLinksContainer = document.querySelector('.nav-links');
+        if (navLinksContainer) {
+          navLinksContainer.innerHTML = activeRoleCfg.menu
+            .map((item) => {
+              const targetHref = resolveRoleHref(item.href);
+              const pageName = item.href.split('#')[0].split('/').pop();
+              const isActive = currentPage === pageName && !item.href.includes('#');
+              return `<a href="${targetHref}" class="nav-link${isActive ? ' is-active' : ''}">${item.label}</a>`;
+            })
+            .join('');
+        }
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        if (mobileDrawer) {
+          mobileDrawer.innerHTML = activeRoleCfg.menu
+            .map((item) => `<a href="${resolveRoleHref(item.href)}">${item.label}</a>`)
+            .join('');
+        }
+      }
+
+      // 3. Enforce Page Guard (403 Forbidden if unauthorized) — tạm tắt khi DISABLE_FRONTEND_RBAC = true
       const existingGuard = document.getElementById('rbacGuardOverlay');
       if (existingGuard) existingGuard.remove();
 
       const isPublic = alwaysPublicPages.includes(currentPage);
-      if (!isPublic && !allowed.includes(currentPage)) {
+      if (!DISABLE_FRONTEND_RBAC && !isPublic && !allowed.includes(currentPage)) {
         const guard = document.createElement('div');
         guard.id = 'rbacGuardOverlay';
         guard.style.cssText = 'position:fixed;inset:0;z-index:180;background:rgba(248,252,249,0.96);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:24px;';
@@ -519,16 +728,16 @@
               ${user ? `Bạn đang đăng nhập với tài khoản: <strong>${user.name} (${roleInfo.label})</strong>.` : 'Trang này yêu cầu quyền truy cập phù hợp.'}
             </p>
             <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;">
-              <a href="auth.html" class="btn btn-soft" style="font-size:12px;">Mở trang đăng nhập (auth.html)</a>
-              <a href="${roleInfo ? roleInfo.home : 'index.html'}" class="btn btn-soft" style="font-size:12px;">Về trang chủ</a>
+              <a href="${resolveRoleHref('pages/auth.html')}" class="btn btn-soft" style="font-size:12px;">Mở trang đăng nhập (auth.html)</a>
+              <a href="${resolveRoleHref(roleInfo ? roleInfo.home : 'index.html')}" class="btn btn-soft" style="font-size:12px;">Về trang chủ</a>
             </div>
           </div>
         `;
         document.body.appendChild(guard);
       }
 
-      // 4. Enforce Tab-Level Restrictions (BR-24 for store_staff, Admin tabs for operator)
-      if (roleInfo && roleInfo.restrictedTabs) {
+      // 4. Enforce Tab-Level Restrictions (tạm tắt khi DISABLE_FRONTEND_RBAC = true)
+      if (!DISABLE_FRONTEND_RBAC && roleInfo && roleInfo.restrictedTabs) {
         roleInfo.restrictedTabs.forEach((tabName) => {
           const tabBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
           if (tabBtn) {
@@ -543,6 +752,206 @@
     }
   };
 
+  const initPageTransitionLoader = () => {
+    if (global.__rhTransitionLoaderInit) return;
+    global.__rhTransitionLoaderInit = true;
+
+    const inPagesDir = window.location.pathname.includes('/pages/');
+    const logoSrc = inPagesDir ? '../assets/logo-rh.png' : 'assets/logo-rh.png';
+
+    if (!document.getElementById('rhTransitionLoaderStyle')) {
+      const style = document.createElement('style');
+      style.id = 'rhTransitionLoaderStyle';
+      style.textContent = `
+        .rh-nav-loader {
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          background: linear-gradient(160deg, #f0fdf4, #ffffff 55%, #ecfccb);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 20px;
+          clip-path: inset(0 0 0 0);
+          opacity: 1;
+          transition: clip-path 0.72s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+        }
+        .rh-nav-loader.is-revealing {
+          clip-path: inset(0 0 100% 0);
+          pointer-events: none;
+        }
+        .rh-nav-loader.is-done {
+          display: none;
+        }
+        .rh-nav-road-track {
+          position: relative;
+          width: min(440px, 84vw);
+          height: 64px;
+          overflow: hidden;
+          border-bottom: 3px solid #86efac;
+        }
+        .rh-nav-road-track::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 4px;
+          height: 2px;
+          background: repeating-linear-gradient(90deg, #4ade80 0 18px, transparent 18px 34px);
+          opacity: 0.55;
+        }
+        .rh-nav-moto {
+          position: absolute;
+          bottom: 6px;
+          left: -80px;
+          width: 72px;
+          height: 46px;
+          animation: rhNavMotoZoom 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .rh-nav-moto .wheel-spin {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: rhNavWheelSpin 0.45s linear infinite;
+        }
+        @keyframes rhNavMotoZoom {
+          0% { transform: translate3d(0, 0, 0) scale(0.95); }
+          75% { transform: translate3d(calc(min(440px, 84vw) * 0.72), -1px, 0) scale(1); }
+          100% { transform: translate3d(calc(min(440px, 84vw) + 120px), -2px, 0) scale(1.06); }
+        }
+        @keyframes rhNavWheelSpin {
+          to { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const createLoaderEl = (labelText) => {
+      let el = document.getElementById('rhNavPageLoader');
+      if (el) el.remove();
+      el = document.createElement('div');
+      el.id = 'rhNavPageLoader';
+      el.className = 'rh-nav-loader';
+      el.setAttribute('aria-hidden', 'true');
+      el.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;">
+          <img src="${logoSrc}" alt="RideHub" style="height:42px;width:auto;object-fit:contain;" />
+          <span style="font-family:var(--font-display, Outfit, sans-serif);font-weight:800;font-size:1.5rem;color:#15803d;">RideHub</span>
+        </div>
+        <div class="rh-nav-road-track">
+          <div class="rh-nav-moto">
+            <svg viewBox="0 0 110 64" width="72" height="46">
+              <path d="M22 36 C28 22, 46 20, 60 25 L76 17 L85 20 L75 36 Z" fill="#22c55e" />
+              <path d="M32 25 C40 20, 52 20, 58 25 L48 29 L30 29 Z" fill="#132a1c" />
+              <g transform="translate(27,45)">
+                <g class="wheel-spin">
+                  <circle r="11" fill="#132a1c" />
+                  <circle r="5" fill="#dcfce7" />
+                  <line x1="-5" y1="0" x2="5" y2="0" stroke="#22c55e" stroke-width="1.6" />
+                </g>
+              </g>
+              <g transform="translate(81,45)">
+                <g class="wheel-spin">
+                  <circle r="11" fill="#132a1c" />
+                  <circle r="5" fill="#dcfce7" />
+                  <line x1="-5" y1="0" x2="5" y2="0" stroke="#22c55e" stroke-width="1.6" />
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <span style="font-size:13px;font-weight:600;color:#64748b;">${labelText || 'Đang tải nội dung...'}</span>
+      `;
+      document.body.appendChild(el);
+      return el;
+    };
+
+    const hasIndexLoader = Boolean(document.getElementById('pageLoader'));
+    const fromTransition = sessionStorage.getItem('ridehub_page_transition') === '1';
+    if (fromTransition) {
+      sessionStorage.removeItem('ridehub_page_transition');
+      if (!hasIndexLoader) {
+        const arrivalEl = createLoaderEl('Đang tải nội dung...');
+        setTimeout(() => {
+          arrivalEl.classList.add('is-revealing');
+          setTimeout(() => arrivalEl.classList.add('is-done'), 740);
+        }, 420);
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const anchor = e.target.closest('a[href]');
+      if (!anchor) return;
+      if (anchor.hasAttribute('download') || (anchor.target && anchor.target !== '_self')) return;
+      const rawHref = anchor.getAttribute('href') || '';
+      if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('javascript:') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:')) return;
+
+      let targetUrl;
+      try {
+        targetUrl = new URL(anchor.href, window.location.href);
+      } catch (_) {
+        return;
+      }
+      if (targetUrl.origin !== window.location.origin) return;
+      if (targetUrl.pathname === window.location.pathname && targetUrl.search === window.location.search && targetUrl.hash) return;
+
+      e.preventDefault();
+      sessionStorage.setItem('ridehub_page_transition', '1');
+      createLoaderEl('Đang chuyển hướng trang...');
+      setTimeout(() => {
+        window.location.href = targetUrl.href;
+      }, 280);
+    });
+
+    window.addEventListener('pageshow', (evt) => {
+      if (evt.persisted) {
+        document.getElementById('rhNavPageLoader')?.remove();
+      }
+    });
+  };
+
+  const initGlobalChatWidget = () => {
+    const currentPage = AuthRBAC.getCurrentPageName();
+    if (currentPage === 'auth.html' || currentPage === 'chat.html' || window.location.pathname.includes('auth.html')) {
+      return;
+    }
+    const inPagesDir = window.location.pathname.includes('/pages/');
+    const pfx = inPagesDir ? '../' : '';
+    if (!document.querySelector('link[href*="chat-widget.css"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `${pfx}css/components/chat-widget.css`;
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[src*="chat-widget.js"]')) {
+      const script = document.createElement('script');
+      script.src = `${pfx}js/components/chat-widget.js`;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  };
+
+  const initGlobalGeoMap = () => {
+    const currentPage = AuthRBAC.getCurrentPageName();
+    if (currentPage === 'auth.html' || window.location.pathname.includes('auth.html')) {
+      return;
+    }
+    const inPagesDir = window.location.pathname.includes('/pages/');
+    const pfx = inPagesDir ? '../' : '';
+    if (!document.querySelector('script[src*="geo-map.js"]')) {
+      const script = document.createElement('script');
+      script.src = `${pfx}js/components/geo-map.js`;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  };
+
   global.AuthRBAC = AuthRBAC;
-  document.addEventListener('DOMContentLoaded', () => AuthRBAC.applyUI());
+  document.addEventListener('DOMContentLoaded', () => {
+    AuthRBAC.applyUI();
+    initPageTransitionLoader();
+    initGlobalChatWidget();
+    initGlobalGeoMap();
+  });
 })(window);

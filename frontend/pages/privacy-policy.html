@@ -157,17 +157,20 @@
           />
           <span>RideHub</span>
         </a>
-        <nav class="nav-links">
+        <nav class="nav-links" aria-label="Điều hướng chính">
           <a href="../index.html" class="nav-link">Trang chủ</a>
-          <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
-          <a href="../trips.html" class="nav-link">Chuyến đi</a>
+          <a href="../vehicles.html" class="nav-link">Thuê xe</a>
           <a href="../index.html#storySection" class="nav-link">Hướng dẫn thuê xe</a>
+          <a href="../index.html#faqSection" class="nav-link">Câu hỏi thường gặp</a>
         </nav>
         <div class="nav-actions">
-          <a href="auth.html" class="btn btn-primary" style="min-height: 38px; padding: 6px 16px; font-size: 13px;">Đăng nhập / Đăng ký</a>
+          <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+            <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+          </button>
         </div>
       </div>
     </header>
+    <div id="mobileDrawer" class="mobile-drawer" aria-hidden="true"></div>
 
     <main style="padding-top: 96px; background: #fdfdfd; min-height: 85vh;">
       <div class="policy-container">
@@ -369,6 +372,11 @@
     </footer>
 
     <script src="../js/auth-rbac.js"></script>
-    <script src="../js/layout.js"></script>
+    <script>
+      document.getElementById('hamburgerBtn')?.addEventListener('click', () => {
+        document.getElementById('hamburgerBtn')?.classList.toggle('is-open');
+        document.getElementById('mobileDrawer')?.classList.toggle('is-open');
+      });
+    </script>
   </body>
 </html>

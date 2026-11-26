@@ -378,7 +378,7 @@
         }
 
         if (typeof showRideHubToast === 'function') {
-          showRideHubToast(`Xin chào ${user.name}! Đăng nhập thành công.`);
+          showRideHubToast('Chào mừng bạn đến với hệ thống!');
         }
 
         setTimeout(() => {
@@ -601,7 +601,7 @@
         }
 
         if (typeof showRideHubToast === 'function') {
-          showRideHubToast(`Đăng nhập Google thành công! Đang chuyển hướng vào trang tìm xe...`);
+          showRideHubToast('Chào mừng bạn đến với hệ thống! Đang chuyển hướng vào trang tìm xe...');
         }
 
         window.__lastRegisteredUser = user;
@@ -797,7 +797,7 @@
         }
 
         if (typeof showRideHubToast === 'function') {
-          showRideHubToast(`Đăng ký thành công! Đang chuyển vào phòng chờ xác thực...`);
+          showRideHubToast('Xác thực tài khoản thành công!');
         }
 
         // Lưu thông tin để eKYC sử dụng
