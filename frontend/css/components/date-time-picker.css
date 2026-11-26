@@ -1,8 +1,11 @@
 .dt-picker-modal {
-  width: min(460px, 95vw);
+  width: min(470px, 95vw);
+  max-height: 90vh;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border-radius: 20px !important;
   display: flex;
   flex-direction: column;
-  gap: 14px;
 }
 
 .dt-picker-header {
@@ -10,24 +13,48 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 16px 22px;
+  border-bottom: 1px solid rgba(22, 163, 74, 0.12);
+  background: #ffffff;
+  flex-shrink: 0;
 }
 
 .dt-picker-header h3 {
   flex: 1;
   margin: 0;
   font-size: 1.15rem;
-  text-align: center;
+  font-weight: 800;
+  text-align: left;
+}
+
+.dt-picker-body {
+  padding: 16px 22px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+.dt-picker-footer {
+  padding: 14px 22px;
+  border-top: 1px solid rgba(22, 163, 74, 0.12);
+  background: #f9fcfa;
+  flex-shrink: 0;
 }
 
 .dt-picker-close {
   min-height: 32px;
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: 12px;
+  flex-shrink: 0;
 }
 
 .dt-picker-title {
   font-weight: 800;
-  font-size: 1.05rem;
+  font-size: 1rem;
+  color: var(--text-primary);
 }
 
 .dt-picker-summary-block {
@@ -87,6 +114,7 @@
 
 .dt-picker-done {
   width: 100%;
+  min-height: 42px;
 }
 
 .dt-cal-nav:disabled {
