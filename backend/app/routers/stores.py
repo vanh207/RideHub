@@ -1,6 +1,10 @@
 from pathlib import Path
 from typing import Optional
 
+from datetime import date
+from app.schemas.store_revenue import StoreRevenueReportResponse
+from app.crud.store_revenue import get_store_revenue_report
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -208,3 +212,36 @@ def reject_store_order(
     except BookingCancellationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+# ==============================================================================
+# BÁO CÁO DOANH THU & HIỆU SUẤT CỬA HÀNG (STORE REVENUE REPORTING)
+# ==============================================================================
+
+@router.get(
+    "/{store_id}/revenue/report",
+    response_model=StoreRevenueReportResponse,
+    summary="Báo cáo tổng hợp doanh thu theo ngày/tháng, số đơn và top xe cho cửa hàng",
+    description="Tổng hợp doanh thu thuần, tiền thuê, phí giao nhận, timeline theo ngày/tháng và danh sách xe được thuê nhiều nhất.",
+)
+def get_store_revenue_report_endpoint(
+    store_id: int,
+    period: str = Query("day", regex="^(day|month)$", description="Chu kỳ tổng hợp: 'day' hoặc 'month'"),
+    from_date: Optional[date] = Query(None, description="Ngày bắt đầu lọc (YYYY-MM-DD)"),
+    to_date: Optional[date] = Query(None, description="Ngày kết thúc lọc (YYYY-MM-DD)"),
+    limit_top_vehicles: int = Query(5, ge=1, le=20, description="Số lượng top xe được thuê nhiều nhất"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return get_store_revenue_report(
+            db,
+            user=current_user,
+            store_id=store_id,
+            period=period,
+            from_date=from_date,
+            to_date=to_date,
+            limit_top_vehicles=limit_top_vehicles,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except BookingPermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc

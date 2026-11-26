@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.core.auth_rate_limit import limit_auth_sensitive_attempts, limit_login_attempts
 from app.core.config import settings
 from app.db.session import get_db
 from app.core.dependencies import (
@@ -71,7 +72,12 @@ def _set_auth_cookies(
     )
 
 
-@router.post("/register", status_code=201, summary="Đăng ký tài khoản (kết hợp Firebase)")
+@router.post(
+    "/register",
+    status_code=201,
+    summary="Đăng ký tài khoản (kết hợp Firebase)",
+    dependencies=[Depends(limit_auth_sensitive_attempts)],
+)
 async def register(body: UserCreate, db: Session = Depends(get_db)):
     """
     **Đăng ký tài khoản mới theo đúng form giao diện web RideHub:**
@@ -90,7 +96,7 @@ async def register(body: UserCreate, db: Session = Depends(get_db)):
     new_user, access_token, refresh_token = register_user(db, body)
     response = create_response(
         status_code=201,
-        message="Đăng ký tài khoản thành công. Email xác thực đã được gửi tới hộp thư của bạn.",
+        message="Xác thực tài khoản thành công. Email xác thực đã được gửi tới hộp thư của bạn.",
         data={
             "user_id": new_user.id,
             "firebase_uid": new_user.firebase_uid,
@@ -113,7 +119,11 @@ async def register(body: UserCreate, db: Session = Depends(get_db)):
     return response
 
 
-@router.post("/login", summary="Đăng nhập bằng Email & Mật khẩu")
+@router.post(
+    "/login",
+    summary="Đăng nhập bằng Email & Mật khẩu",
+    dependencies=[Depends(limit_login_attempts)],
+)
 async def login(body: UserLogin, db: Session = Depends(get_db)):
     """
     **Đăng nhập tài khoản trên giao diện web RideHub:**
@@ -123,7 +133,7 @@ async def login(body: UserLogin, db: Session = Depends(get_db)):
     user, access_token, refresh_token = login_user(db, body)
     response = create_response(
         status_code=200,
-        message="Đăng nhập thành công.",
+        message="Chào mừng bạn đến với hệ thống.",
         data={
             "user_id": user.id,
             "firebase_uid": user.firebase_uid,
@@ -146,7 +156,11 @@ async def login(body: UserLogin, db: Session = Depends(get_db)):
     return response
 
 
-@router.post("/firebase-login", summary="Đăng nhập bằng Firebase ID Token (Google / Phone OTP)")
+@router.post(
+    "/firebase-login",
+    summary="Đăng nhập bằng Firebase ID Token (Google / Phone OTP)",
+    dependencies=[Depends(limit_login_attempts)],
+)
 async def firebase_login(body: FirebaseLoginRequest, db: Session = Depends(get_db)):
     """
     **Đăng nhập tài khoản bằng Firebase ID Token từ Client:**
@@ -155,7 +169,7 @@ async def firebase_login(body: FirebaseLoginRequest, db: Session = Depends(get_d
     user, access_token, refresh_token = login_with_firebase(db, body.id_token)
     response = create_response(
         status_code=200,
-        message="Đăng nhập qua Firebase thành công.",
+        message="Chào mừng bạn đến với hệ thống.",
         data={
             "user_id": user.id,
             "firebase_uid": user.firebase_uid,
@@ -229,7 +243,11 @@ async def check_verification(email: str):
         )
 
 
-@router.post("/forgot-password", summary="Gửi email đặt lại mật khẩu từ Firebase")
+@router.post(
+    "/forgot-password",
+    summary="Gửi email đặt lại mật khẩu từ Firebase",
+    dependencies=[Depends(limit_auth_sensitive_attempts)],
+)
 async def forgot_password_api(body: EmailOnlyRequest, db: Session = Depends(get_db)):
     """Gửi email đặt lại mật khẩu thật từ Firebase tới hòm thư người dùng."""
     user = db.query(User).filter(User.email == body.email).first()

@@ -148,6 +148,13 @@
     return `${state.year}-${pad(state.month + 1)}-${pad(state.startDay)}T${state.pickupHour}:00`;
   }
 
+  function toDateTime(year, month, day, time) {
+    const pad = (value) => String(value).padStart(2, '0');
+    const [hour, minute] = time.split(':').map(Number);
+    const date = new Date(year, month, day, hour, minute, 0, 0);
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+  }
+
   async function proceedBooking() {
     const button = byId('proceedBookingBtn');
     const vehTotal = byId('detailTotalPrice')?.textContent?.trim() || '';
@@ -181,6 +188,12 @@
       button.disabled = false;
     }
 
+    const scheduleState = picker.getState();
+    if (!scheduleState.endDay) {
+      toast('Vui lòng chọn ngày trả xe trước khi tiếp tục.', true);
+      return;
+    }
+
     const specs = Array.from(document.querySelectorAll('#detailChips .meta-chip')).map((chip) => chip.textContent.trim()).join(' • ');
     const isDelivery = byId('btnDelivery').classList.contains('btn-primary');
     const deliveryMode = isDelivery ? 'Giao xe tận nơi' : 'Tôi tự đến lấy xe';
@@ -198,8 +211,8 @@
       vehicle: vehicle.name,
       specs,
       schedule: byId('detailScheduleInput').value,
-      startTime: toDateTime(selectedTime.startDay, selectedTime.pickupHour),
-      endTime: toDateTime(selectedTime.endDay, selectedTime.returnHour),
+      startTime: toDateTime(scheduleState.year, scheduleState.month, scheduleState.startDay, scheduleState.pickupHour),
+      endTime: toDateTime(scheduleState.year, scheduleState.month, scheduleState.endDay, scheduleState.returnHour),
       deliveryMode,
       deliveryAddress,
       deliveryFee,
