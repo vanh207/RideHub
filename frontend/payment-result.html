@@ -4,148 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#16a34a" />
+    <link rel="icon" type="image/png" href="assets/logo-rh.png" />
     <title>Kết quả thanh toán | RideHub</title>
-    <style>
-      * { box-sizing: border-box; }
-      body {
-        min-height: 100vh;
-        margin: 0;
-        padding: 28px 16px;
-        display: grid;
-        place-items: center;
-        color: #132a1c;
-        background: linear-gradient(135deg, #f8fcf9, #f1f9f3 55%, #f0fdf4);
-        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-      }
-      .result-card {
-        width: min(100%, 560px);
-        padding: 32px;
-        border-radius: 24px;
-        background: #fff;
-        box-shadow: 0 16px 48px rgba(19, 42, 28, .12);
-      }
-      .brand {
-        margin-bottom: 24px;
-        color: #16a34a;
-        font-size: .85rem;
-        font-weight: 800;
-        letter-spacing: .14em;
-        text-align: center;
-      }
-      .state-icon {
-        width: 64px;
-        height: 64px;
-        margin: 0 auto 16px;
-        display: grid;
-        place-items: center;
-        border-radius: 50%;
-        background: #f0fdf4;
-        color: #15803d;
-        font-size: 30px;
-        font-weight: 700;
-      }
-      .result-card.success .state-icon { color: #15803d; background: #dcfce7; }
-      .result-card.failure .state-icon { color: #b91c1c; background: #fee2e2; }
-      .result-card.warning .state-icon { color: #b45309; background: #fef3c7; }
-      h1 { margin: 0; font-size: clamp(1.45rem, 5vw, 1.9rem); text-align: center; }
-      .message {
-        max-width: 440px;
-        margin: 12px auto 22px;
-        color: #3f5e4b;
-        line-height: 1.6;
-        text-align: center;
-      }
-      .booking-ref {
-        margin: 0 0 20px;
-        color: #132a1c;
-        font-weight: 700;
-        text-align: center;
-      }
-      .details {
-        margin: 0;
-        padding: 6px 16px;
-        border: 1px solid #e2e9e4;
-        border-radius: 14px;
-      }
-      .detail-row {
-        min-height: 46px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        border-bottom: 1px solid #f1f9f3;
-      }
-      .detail-row:last-child { border-bottom: 0; }
-      .detail-row dt { color: #6b8a76; font-size: .9rem; }
-      .detail-row dd {
-        max-width: 62%;
-        margin: 0;
-        overflow-wrap: anywhere;
-        font-size: .9rem;
-        font-weight: 650;
-        text-align: right;
-      }
-      .alert {
-        margin-top: 16px;
-        padding: 12px 14px;
-        border-radius: 12px;
-        background: #fff7ed;
-        color: #9a3412;
-        font-size: .92rem;
-        line-height: 1.5;
-      }
-      .actions {
-        margin-top: 24px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-      }
-      .button {
-        min-height: 44px;
-        padding: 11px 17px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 0;
-        border-radius: 11px;
-        background: #16a34a;
-        color: #fff;
-        font: inherit;
-        font-weight: 700;
-        text-decoration: none;
-        cursor: pointer;
-        transition: background-color .15s ease;
-      }
-      .button:not(.secondary):not(.tertiary):hover { background: #15803d; }
-      .button.secondary { background: #f0fdf4; color: #166534; }
-      .button.secondary:hover { background: #dcfce7; }
-      .button.tertiary { background: #f1f9f3; color: #3f5e4b; }
-      .button:focus-visible {
-        outline: 3px solid #86efac;
-        outline-offset: 3px;
-      }
-      .button[hidden], [hidden] { display: none !important; }
-      .footnote {
-        margin: 20px 0 0;
-        color: #6b8a76;
-        font-size: .8rem;
-        line-height: 1.5;
-        text-align: center;
-      }
-      @media (max-width: 480px) {
-        .result-card { padding: 26px 20px; }
-        .actions { display: grid; }
-        .button { width: 100%; }
-      }
-      @media (max-height: 500px) {
-        body { place-items: start center; padding-top: 12px; padding-bottom: 12px; }
-      }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/payment-result.css" />
   </head>
   <body>
-    <main class="result-card" id="resultCard" aria-busy="true">
-      <div class="brand">RIDEHUB</div>
+    <header id="mainNavbar" class="navbar is-scrolled" aria-label="Điều hướng RideHub"></header>
+    <main class="result-main">
+      <section class="result-card" id="resultCard" aria-busy="true">
       <div class="state-icon" id="stateIcon" aria-hidden="true">…</div>
       <h1 id="statusTitle">Đang xác minh thanh toán</h1>
       <p class="message" id="statusMessage" role="status" aria-live="polite">
@@ -180,8 +51,11 @@
         <a class="button tertiary" href="vehicles.html">Đặt xe khác</a>
       </div>
       <p class="footnote">Trạng thái hiển thị được xác minh từ máy chủ RideHub, không dựa vào tham số kết quả trên đường dẫn.</p>
+      </section>
     </main>
+    <footer id="mainFooter"></footer>
     <script src="js/config.js" defer></script>
+    <script src="js/layout.js" defer></script>
     <script src="js/payment-result.js" defer></script>
   </body>
 </html>

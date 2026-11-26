@@ -3,17 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
   <title>Hàng chờ giao dịch bất thường — RideHub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
   <link rel="stylesheet" href="./css/operations-anomalies.css" />
 </head>
 <body>
+  <header id="mainNavbar" class="navbar is-scrolled" aria-label="Điều hướng RideHub"></header>
   <main class="page-shell">
     <header class="page-header">
       <div>
-        <a class="back-link" href="../index.html">← RideHub</a>
         <p class="eyebrow">TRUNG TÂM VẬN HÀNH</p>
         <h1>Hàng chờ giao dịch bất thường</h1>
         <p class="intro">Theo dõi giao dịch cần đối soát và xác nhận các khoản hoàn tiền đang chờ xử lý.</p>
@@ -94,7 +97,9 @@
     </form>
   </dialog>
 
-  <script src="../js/config.js"></script>
-  <script src="../js/operations-anomalies.js"></script>
+  <footer id="mainFooter"></footer>
+  <script src="../js/config.js" defer></script>
+  <script src="../js/layout.js" defer></script>
+  <script src="../js/operations-anomalies.js" defer></script>
 </body>
 </html>

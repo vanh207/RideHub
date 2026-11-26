@@ -16,7 +16,7 @@
 
 body {
   margin: 0;
-  background: #f3f7f4;
+  background: var(--bg-page);
   color: var(--ink);
 }
 
@@ -27,7 +27,7 @@ button, a, select { -webkit-tap-highlight-color: transparent; }
 .page-shell {
   width: min(1440px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 38px 0 64px;
+  padding: 104px 0 64px;
 }
 
 .page-header, .queue-heading, .filters, .dialog-actions {
@@ -38,7 +38,6 @@ button, a, select { -webkit-tap-highlight-color: transparent; }
 }
 
 .page-header { margin-bottom: 26px; }
-.back-link { color: var(--green-dark); font-weight: 700; text-decoration: none; }
 .eyebrow { margin: 18px 0 5px; color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: .12em; }
 h1, h2, p { margin-top: 0; }
 h1 { margin-bottom: 8px; font: 800 clamp(26px, 4vw, 36px)/1.15 Outfit, sans-serif; }
@@ -159,7 +158,7 @@ td { font-size: 13px; }
 }
 
 @media (max-width: 520px) {
-  .page-shell { width: min(100% - 24px, 1440px); padding-top: 24px; }
+  .page-shell { width: min(100% - 24px, 1440px); padding-top: 96px; }
   .stats { gap: 8px; }
   .stat-card { padding: 13px; }
   .filters { align-items: stretch; flex-direction: column; }
