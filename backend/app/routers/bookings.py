@@ -422,6 +422,61 @@ def create_booking_complaint_endpoint(
 
 
 @router.get(
+    "/me",
+    summary="Danh sách đơn đặt xe của người dùng hiện tại (đã thanh toán, chờ duyệt, chờ thanh toán)",
+)
+def get_my_bookings(
+    group: str = Query("all", description="all | paid | pending_approval | pending_payment"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from app.models.booking import Booking
+    from app.models.vehicle import Vehicle
+
+    rows = (
+        db.query(Booking, Vehicle)
+        .outerjoin(Vehicle, Booking.vehicle_id == Vehicle.id)
+        .filter(Booking.customer_id == current_user.id)
+        .order_by(Booking.id.desc())
+        .all()
+    )
+
+    def _classify(st: str) -> str:
+        s = (st or "").upper()
+        if s in ("PAID", "CONFIRMED", "DEPOSIT_PAID", "IN_PROGRESS", "ACTIVE", "COMPLETED", "HANDED_OVER"):
+            return "paid"
+        if s in ("AWAITING_PAYMENT", "HOLD", "PENDING_PAYMENT", "APPROVED"):
+            return "pending_payment"
+        if s in ("PENDING", "PENDING_APPROVAL", "PENDING_STORE_APPROVAL", "BOOKED"):
+            return "pending_approval"
+        return "other"
+
+    items = []
+    for b, v in rows:
+        grp = _classify(b.status)
+        if group != "all" and grp != group:
+            continue
+        items.append({
+            "id": b.id,
+            "order_code": f"RH-{b.id}",
+            "vehicle_id": b.vehicle_id,
+            "vehicle_name": v.name if v else f"Xe #{b.vehicle_id}",
+            "license_plate": v.license_plate if v else "",
+            "start_time": b.start_time.isoformat() if b.start_time else None,
+            "end_time": b.end_time.isoformat() if b.end_time else None,
+            "hold_expires_at": b.hold_expires_at.isoformat() if b.hold_expires_at else None,
+            "status": b.status,
+            "group": grp,
+            "rental_amount": float(b.rental_amount or 0),
+            "delivery_fee": float(b.delivery_fee or 0),
+            "deposit_amount": float(b.deposit_amount or 0),
+            "total_amount": float(b.total_amount or 0),
+        })
+
+    return {"success": True, "total": len(items), "items": items}
+
+
+@router.get(
     "/store/orders",
     response_model=StoreOrderListResponse,
     summary="Danh sách đơn đặt xe và chỉ số KPI cho Cửa hàng (TF1A595)",
