@@ -2,13 +2,266 @@
 Hỗ trợ BackgroundTasks để gửi email bất đồng bộ không làm chậm phản hồi API.
 """
 
+from datetime import datetime
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy import desc, or_
+from sqlalchemy.orm import Session
 
+from app.core.dependencies import get_current_user
+from app.db.session import get_db
+from app.models.notification import Notification
+from app.models.user import User
 from app.services.email_service import email_service, MockEmailSender
 
-router = APIRouter(prefix="/notifications", tags=["Email Notifications Service"])
+router = APIRouter(prefix="/notifications", tags=["Notifications & Email Service"])
+
+ROLE_ALIASES = {
+    "store_staff": "store_owner",
+    "operator": "admin",
+}
+
+DEFAULT_NOTIFICATIONS_BY_ROLE: Dict[str, List[Dict[str, Any]]] = {
+    "customer": [
+        {
+            "type": "booking",
+            "title": "Đặt xe thành công & giữ chỗ 30 phút",
+            "body": "Đơn thuê xe của bạn đã được tạo. Vui lòng hoàn tất thanh toán cọc qua VietQR trước khi hết thời gian giữ chỗ.",
+            "link": "trips.html",
+            "is_read": False,
+        },
+        {
+            "type": "payment",
+            "title": "Chính sách hoàn cọc minh bạch 100%",
+            "body": "Tiền cọc sẽ được hoàn tự động về tài khoản sau khi hoàn tất biên bản trả xe.",
+            "link": "trips.html",
+            "is_read": False,
+        },
+        {
+            "type": "system",
+            "title": "Hoàn tất hồ sơ eKYC",
+            "body": "Cập nhật CCCD gắn chip và GPLX để được duyệt tự động khi nhận xe.",
+            "link": "profile.html",
+            "is_read": True,
+        },
+    ],
+    "store_owner": [
+        {
+            "type": "booking",
+            "title": "Có đơn đặt xe mới cần xác nhận",
+            "body": "Khách hàng vừa đặt cọc đơn thuê xe. Kiểm tra và xác nhận lịch bàn giao ngay.",
+            "link": "pages/store-orders.html",
+            "is_read": False,
+        },
+        {
+            "type": "alert",
+            "title": "Lịch bàn giao xe sắp tới",
+            "body": "Kiểm tra danh sách xe cần bàn giao và chuẩn bị biên bản Check-out 4 bước.",
+            "link": "pages/handover.html",
+            "is_read": False,
+        },
+        {
+            "type": "payment",
+            "title": "Quản lý lịch xe & doanh thu cửa hàng",
+            "body": "Theo dõi trạng thái xe trống và lịch giao nhận tại cổng cửa hàng.",
+            "link": "pages/vehicle_schedule.html",
+            "is_read": True,
+        },
+    ],
+    "admin": [
+        {
+            "type": "system",
+            "title": "Phê duyệt đối tác mới",
+            "body": "Kiểm tra các hồ sơ chủ cửa hàng và eKYC đang chờ Admin phê duyệt trên hệ thống.",
+            "link": "profile.html#admin-reviews",
+            "is_read": False,
+        },
+        {
+            "type": "payment",
+            "title": "Đối soát giao dịch bất thường",
+            "body": "Theo dõi hàng chờ giao dịch VietQR, webhook và yêu cầu hoàn tiền cần xử lý.",
+            "link": "pages/operations-anomalies.html",
+            "is_read": False,
+        },
+        {
+            "type": "alert",
+            "title": "Cấu hình chính sách & Nhật ký Audit",
+            "body": "Quản lý tham số giữ chỗ, đặt cọc, hoàn tiền và tra cứu lịch sử thao tác hệ thống.",
+            "link": "pages/admin-policies-audit.html",
+            "is_read": True,
+        },
+    ],
+}
+
+
+def _normalize_role(raw_role: Optional[str]) -> str:
+    role = (raw_role or "customer").strip().lower()
+    return ROLE_ALIASES.get(role, role)
+
+
+def _format_relative_time(dt: Optional[datetime]) -> str:
+    if not dt:
+        return "Vừa xong"
+    delta = max(0, int((datetime.now() - dt).total_seconds()))
+    if delta < 60:
+        return "Vừa xong"
+    if delta < 3600:
+        return f"{delta // 60} phút trước"
+    if delta < 86400:
+        return f"{delta // 3600} giờ trước"
+    if delta < 172800:
+        return "Hôm qua"
+    return dt.strftime("%d/%m/%Y %H:%M")
+
+
+def _ensure_role_notifications(db: Session, role: str) -> None:
+    if role not in DEFAULT_NOTIFICATIONS_BY_ROLE:
+        return
+    exists = db.query(Notification.id).filter(Notification.role == role).first()
+    if exists:
+        return
+    for item in DEFAULT_NOTIFICATIONS_BY_ROLE[role]:
+        db.add(
+            Notification(
+                role=role,
+                type=item["type"],
+                title=item["title"],
+                body=item["body"],
+                link=item.get("link"),
+                is_read=item.get("is_read", False),
+            )
+        )
+    db.commit()
+
+
+def _serialize_notification(n: Notification) -> Dict[str, Any]:
+    return {
+        "id": n.id,
+        "role": n.role,
+        "user_id": n.user_id,
+        "type": n.type,
+        "title": n.title,
+        "body": n.body,
+        "link": n.link or "",
+        "read": bool(n.is_read),
+        "is_read": bool(n.is_read),
+        "time": _format_relative_time(n.created_at),
+        "created_at": n.created_at.isoformat() if n.created_at else None,
+    }
+
+
+class CreateNotificationRequest(BaseModel):
+    role: str = Field(..., description="Role nhận thông báo: customer, store_owner, admin")
+    user_id: Optional[int] = None
+    type: str = Field("booking", description="booking, payment, alert, system")
+    title: str = Field(..., min_length=1, max_length=200)
+    body: str = Field(..., min_length=1)
+    link: Optional[str] = None
+
+
+@router.get("", summary="Lấy danh sách thông báo theo role đang đăng nhập")
+def list_role_notifications(
+    unread_only: bool = Query(False, description="Chỉ lấy thông báo chưa đọc"),
+    limit: int = Query(30, ge=1, le=100),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    role = _normalize_role(current_user.role)
+    _ensure_role_notifications(db, role)
+
+    base_q = db.query(Notification).filter(
+        Notification.role == role,
+        or_(Notification.user_id.is_(None), Notification.user_id == current_user.id),
+    )
+    unread_count = base_q.filter(Notification.is_read.is_(False)).count()
+
+    q = base_q
+    if unread_only:
+        q = q.filter(Notification.is_read.is_(False))
+    rows = q.order_by(desc(Notification.created_at), desc(Notification.id)).limit(limit).all()
+
+    return {
+        "success": True,
+        "role": role,
+        "unread_count": unread_count,
+        "items": [_serialize_notification(r) for r in rows],
+    }
+
+
+@router.post("", status_code=status.HTTP_201_CREATED, summary="Tạo thông báo mới cho role")
+def create_role_notification(
+    payload: CreateNotificationRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    caller_role = _normalize_role(current_user.role)
+    target_role = _normalize_role(payload.role)
+    if caller_role not in ("admin", "store_owner") and target_role != caller_role:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Không có quyền tạo thông báo cho vai trò khác.",
+        )
+    notif = Notification(
+        role=target_role,
+        user_id=payload.user_id,
+        type=payload.type,
+        title=payload.title.strip(),
+        body=payload.body.strip(),
+        link=payload.link,
+        is_read=False,
+    )
+    db.add(notif)
+    db.commit()
+    db.refresh(notif)
+    return {"success": True, "item": _serialize_notification(notif)}
+
+
+@router.patch("/read-all", summary="Đánh dấu tất cả thông báo của role hiện tại là đã đọc")
+def mark_all_notifications_read(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    role = _normalize_role(current_user.role)
+    updated = (
+        db.query(Notification)
+        .filter(
+            Notification.role == role,
+            or_(Notification.user_id.is_(None), Notification.user_id == current_user.id),
+            Notification.is_read.is_(False),
+        )
+        .update({"is_read": True}, synchronize_session=False)
+    )
+    db.commit()
+    return {"success": True, "role": role, "updated_count": updated}
+
+
+@router.patch("/{notif_id}/read", summary="Đánh dấu một thông báo là đã đọc")
+def mark_notification_read(
+    notif_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    role = _normalize_role(current_user.role)
+    notif = (
+        db.query(Notification)
+        .filter(
+            Notification.id == notif_id,
+            Notification.role == role,
+            or_(Notification.user_id.is_(None), Notification.user_id == current_user.id),
+        )
+        .first()
+    )
+    if not notif:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy thông báo #{notif_id}.",
+        )
+    if not notif.is_read:
+        notif.is_read = True
+        db.commit()
+        db.refresh(notif)
+    return {"success": True, "item": _serialize_notification(notif)}
 
 
 class SendBookingEmailRequest(BaseModel):

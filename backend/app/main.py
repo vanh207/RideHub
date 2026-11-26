@@ -26,6 +26,7 @@ from app.middleware.audit_log import AuditLogMiddleware
 from app.jobs.booking_expiry_job import start_expiry_job, stop_expiry_job
 from app.routers import (
     admin_reviews,
+    audit_logs,
     bookings,
     chat,
     delivery,
@@ -36,6 +37,7 @@ from app.routers import (
     login,
     notifications,
     payment,
+    policies,
     reports,
     store_staff,
     stores,
@@ -117,6 +119,8 @@ app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
 app.include_router(stores.router, prefix="/api")
 app.include_router(admin_reviews.router, prefix="/api")
+app.include_router(audit_logs.router, prefix="/api")
+app.include_router(policies.router, prefix="/api")
 app.include_router(login.router)
 app.include_router(login.router, prefix="/api")
 app.include_router(vehicle_schedules.router, prefix="/api")
