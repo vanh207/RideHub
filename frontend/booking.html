@@ -63,141 +63,22 @@
 
   <main class="subpage-main">
     <div class="container">
-      <!-- Stepper with Moving Vehicle -->
-      <div class="panel-card" style="margin-bottom:24px;">
-        <div id="bookingStepper" class="stepper-track">
-          <div class="stepper-line"><div id="stepperFill" class="stepper-line-fill"></div></div>
-          <div id="stepperVehicle" class="stepper-vehicle">
-            <svg viewBox="0 0 110 64" width="48" height="30">
-              <path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#22c55e"/>
-              <g transform="translate(27,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g>
-              <g transform="translate(81,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g>
-            </svg>
+      <!-- Danh sách đơn đặt xe của tôi -->
+      <section class="panel-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+          <div>
+            <h2 style="margin:0 0 4px;font-size:1.2rem;font-family:var(--font-display);">Danh sách đơn đặt xe của tôi</h2>
+            <p style="margin:0;font-size:13px;color:var(--text-secondary);">Theo dõi các đơn đã thanh toán, đơn đang chờ cửa hàng duyệt và đơn đang chờ thanh toán cọc.</p>
           </div>
-          <button class="step-node is-current" type="button"><span class="step-circle">1</span><span style="font-size:12px;font-weight:700;">Tạo đơn</span></button>
-          <button class="step-node" type="button"><span class="step-circle">2</span><span style="font-size:12px;font-weight:700;">Cửa hàng duyệt</span></button>
-          <button class="step-node" type="button"><span class="step-circle">3</span><span style="font-size:12px;font-weight:700;">Đặt cọc</span></button>
-          <button class="step-node" type="button"><span class="step-circle">4</span><span style="font-size:12px;font-weight:700;">Tạo đơn trên hệ thống</span></button>
-        </div>
-      </div>
-
-      <div class="booking-studio">
-        <!-- Left: 4-Step Interactive Flow -->
-        <div class="panel-card" style="position:relative;overflow:hidden;">
-          <canvas id="bookingSuccessConfetti" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
-
-          <!-- BƯỚC 1: TẠO ĐƠN -->
-          <div id="stepPanel0">
-            <h2 id="checkoutVehicleHeading" style="margin:0 0 4px;font-size:1.15rem;">Bước 1: Tạo đơn — VinFast Feliz S</h2>
-            <div id="checkoutScheduleSub" style="font-size:13px;color:var(--green-700);font-weight:700;margin-bottom:12px;"></div>
-
-            <div style="padding:14px;border-radius:var(--radius-md);background:var(--bg-surface-soft);margin-bottom:14px;">
-              <div class="summary-row"><span>Thông số xe</span><span id="sumVehicleSpecs">Số tự động • Điện • 2 chỗ</span></div>
-              <div class="summary-row"><span>Hình thức nhận xe</span><span id="sumDeliveryMode">Tôi tự đến lấy xe</span></div>
-              <div class="summary-row"><span>Địa điểm giao / nhận</span><span id="sumDeliveryAddr">45 Lý Tự Trọng, Q.1</span></div>
-              <div class="summary-row"><span>Tiện ích bổ sung</span><span id="sumAddons">Không chọn</span></div>
-              <div class="summary-row"><span>Chi tiết tính giá</span><span id="sumBreakdown">160.000đ × 2 ngày</span></div>
-              <div class="summary-row"><span>Phí giao nhận</span><span id="sumDeliveryFee">0đ</span></div>
-              <div class="summary-row"><span>Tổng giá trị đơn</span><strong id="sumTotalFee">320.000đ</strong></div>
-              <div class="summary-row"><span>Tiền cọc đặt trước (30%)</span><strong id="sumDepositFee" style="color:var(--green-700);">96.000đ</strong></div>
-              <div class="summary-row"><span>Còn lại khi nhận xe</span><span id="sumRemainFee">224.000đ</span></div>
-            </div>
-
-            <div class="filter-group">
-              <label class="filter-label" for="bookingNote">Ghi chú cho cửa hàng</label>
-              <input id="bookingNote" class="form-input" type="text" value="Chuẩn bị 2 nón bảo hiểm size M" />
-            </div>
-
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button id="goStep2Btn" class="btn btn-primary btn-premium btn-shine" type="button">Gửi đơn cho cửa hàng duyệt</button>
-              <button class="btn btn-soft btn-premium" type="button" data-open-modal="cancelModal">Chính sách hủy</button>
-            </div>
-          </div>
-
-          <!-- BƯỚC 2: CỬA HÀNG DUYỆT -->
-          <div id="stepPanel1" hidden style="text-align:center;padding:18px 8px;">
-            <span class="status-badge status-badge--booked" style="margin-bottom:12px;"><span class="status-dot status-dot-pulse"></span>Đang chờ cửa hàng duyệt</span>
-            <h2 style="margin:0 0 8px;font-size:1.25rem;">Bước 2: Cửa hàng xác nhận đơn</h2>
-            <p style="color:var(--text-secondary);font-size:14px;margin:0 0 18px;">
-              Yêu cầu thuê xe đã được gửi tới chủ cửa hàng. Hệ thống giữ lịch trong 30 phút để tránh trùng đơn.
-            </p>
-            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-              <button id="goStep3Btn" class="btn btn-primary btn-premium btn-shine" type="button">Cửa hàng xác nhận duyệt đơn</button>
-            </div>
-          </div>
-
-          <!-- BƯỚC 3: ĐẶT CỌC -->
-          <div id="stepPanel2" hidden style="text-align:center;padding:12px 8px;">
-            <span class="status-badge status-badge--transit" style="margin-bottom:12px;"><span class="status-orbit-wrap"><span class="status-orbit-dot"></span></span>Cửa hàng đã duyệt</span>
-            <h2 style="margin:0 0 8px;font-size:1.25rem;">Bước 3: Thanh toán tiền cọc</h2>
-            <p style="color:var(--text-secondary);font-size:14px;margin:0 0 16px;">
-              Vui lòng quét mã QR ở khung bên phải để thanh toán khoản tiền cọc 30% trước khi hết thời gian giữ chỗ.
-            </p>
-            <button id="goStep4Btn" class="btn btn-primary btn-premium btn-shine" type="button">Xác nhận đã đặt cọc thành công</button>
-          </div>
-
-          <!-- BƯỚC 4: TẠO ĐƠN THUÊ TRÊN HỆ THỐNG -->
-          <div id="stepPanel3" hidden style="text-align:center;padding:16px 8px;">
-            <svg width="68" height="68" viewBox="0 0 76 76" style="margin:0 auto 12px;">
-              <circle cx="38" cy="38" r="34" fill="#dcfce7" stroke="#22c55e" stroke-width="4"/>
-              <path d="M22 39l11 11 21-22" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <h2 style="margin:0 0 8px;font-size:1.3rem;">Bước 4: Đã tạo đơn thuê trên hệ thống!</h2>
-            <p id="finalOrderInfo" style="color:var(--text-secondary);font-size:14px;margin:0 0 18px;"></p>
-            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-              <a href="trips.html" class="btn btn-primary btn-premium btn-shine">Xem trong trang Chuyến đi</a>
-              <a href="vehicles.html" class="btn btn-soft">Thuê thêm xe khác</a>
-            </div>
+          <div id="myBookingsTabs" style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary my-booking-tab is-active" data-group="all" style="min-height:34px;padding:6px 14px;font-size:12.5px;">Tất cả</button>
+            <button type="button" class="btn btn-soft my-booking-tab" data-group="pending_approval" style="min-height:34px;padding:6px 14px;font-size:12.5px;">Đang chờ duyệt</button>
+            <button type="button" class="btn btn-soft my-booking-tab" data-group="pending_payment" style="min-height:34px;padding:6px 14px;font-size:12.5px;">Đang chờ thanh toán</button>
+            <button type="button" class="btn btn-soft my-booking-tab" data-group="paid" style="min-height:34px;padding:6px 14px;font-size:12.5px;">Đã thanh toán</button>
           </div>
         </div>
-
-        <!-- Right: Hold Timer + PayOS QR + E-Receipt -->
-        <div class="panel-card" style="display:flex;flex-direction:column;gap:16px;">
-          <div class="hold-timer-card">
-            <svg width="60" height="60" viewBox="0 0 60 60">
-              <circle cx="30" cy="30" r="24" fill="none" stroke="#dcfce7" stroke-width="5"/>
-              <circle id="holdTimerRing" cx="30" cy="30" r="24" fill="none" stroke="#22c55e" stroke-width="5" stroke-linecap="round" transform="rotate(-90 30 30)"/>
-              <g transform="translate(30,30)">
-                <g id="holdTimerWheel" class="wheel-spin wheel-spin--slow">
-                  <circle r="8" fill="none" stroke="#15803d" stroke-width="2"/>
-                  <line x1="-8" y1="0" x2="8" y2="0" stroke="#15803d" stroke-width="1.5"/>
-                </g>
-              </g>
-            </svg>
-            <div style="flex:1;">
-              <div style="font-size:12px;font-weight:700;color:var(--text-muted);">Giữ chỗ 30 phút</div>
-              <div id="holdOdometer" class="odometer">29:58</div>
-            </div>
-            <button id="simulateLowTimerBtn" class="btn btn-soft" style="padding:10px 12px;min-height:44px;font-size:13px;" type="button">&lt;5 phút</button>
-          </div>
-
-          <div id="qrWaitingNotice" style="text-align:center;padding:24px 16px;border-radius:var(--radius-md);background:var(--bg-surface-soft);color:var(--text-secondary);font-size:13px;">
-            <strong style="display:block;color:var(--text-primary);margin-bottom:6px;">Mã QR thanh toán cọc</strong>
-            Mã QR sẽ tự động hiển thị khi tiến trình chuyển sang bước <strong>3. Đặt cọc</strong> sau khi cửa hàng duyệt đơn.
-          </div>
-
-          <div id="qrPaymentPanel" hidden style="text-align:center;padding:18px;border-radius:var(--radius-md);background:var(--bg-surface-soft);">
-            <div id="qrOrderTitle" style="font-size:13px;font-weight:700;margin-bottom:8px;">QR Thanh toán cọc PayOS</div>
-            <div id="qrBox" style="position:relative;width:150px;height:150px;margin:0 auto 12px;background:#ffffff;border-radius:14px;padding:12px;border:1px solid var(--green-200);overflow:hidden;">
-              <svg viewBox="0 0 100 100" width="100%" height="100%">
-                <rect x="6" y="6" width="26" height="26" rx="4" fill="#132a1c"/><rect x="12" y="12" width="14" height="14" fill="#ffffff"/><rect x="15" y="15" width="8" height="8" fill="#16a34a"/>
-                <rect x="68" y="6" width="26" height="26" rx="4" fill="#132a1c"/><rect x="74" y="12" width="14" height="14" fill="#ffffff"/><rect x="77" y="15" width="8" height="8" fill="#16a34a"/>
-                <rect x="6" y="68" width="26" height="26" rx="4" fill="#132a1c"/><rect x="12" y="74" width="14" height="14" fill="#ffffff"/><rect x="15" y="77" width="8" height="8" fill="#16a34a"/>
-                <rect x="42" y="42" width="18" height="18" rx="3" fill="#22c55e"/><rect x="68" y="68" width="22" height="22" rx="3" fill="#132a1c"/>
-              </svg>
-              <div class="qr-scan-beam"></div>
-            </div>
-            <div id="qrSuccess" hidden style="padding:14px 0;">
-              <svg width="56" height="56" viewBox="0 0 56 56" style="margin:0 auto;">
-                <circle cx="28" cy="28" r="25" fill="#dcfce7" stroke="#22c55e" stroke-width="3"/>
-                <path d="M17 29l7 7 15-15" fill="none" stroke="#16a34a" stroke-width="4" stroke-linecap="round"/>
-              </svg>
-              <div style="font-weight:800;color:var(--green-700);margin-top:8px;">Webhook hợp lệ! Đã xuất biên nhận điện tử</div>
-            </div>
-            <button id="simulateQrPayBtn" class="btn btn-primary btn-premium btn-shine" type="button">Giả lập Webhook thanh toán thành công</button>
-          </div>
-        </div>
-      </div>
+        <div id="myBookingsList" style="display:grid;gap:12px;"></div>
+      </section>
     </div>
   </main>
 
@@ -304,131 +185,124 @@
     </div>
   </div>
 
+  <script src="js/config.js"></script>
   <script src="js/vehicle-anim.js"></script>
   <script src="js/effects.js"></script>
   <script src="js/auth-rbac.js"></script>
   <script>
     (function () {
-      let draft = {
-        orderCode: 'RH-482910',
-        vehicle: 'VinFast Feliz S (2025)',
-        specs: 'Số tự động • Điện • 2 chỗ',
-        schedule: '12/11 21:00 → 15/11 11:00',
-        deliveryMode: 'Tôi tự đến lấy xe',
-        deliveryAddress: '45 Lý Tự Trọng, Quận 1, TP.HCM',
-        deliveryFee: 0,
-        addons: [],
-        breakdown: '160.000đ × 2 ngày',
-        totalNum: 320000,
-        depositNum: 96000,
-        remainNum: 224000,
-        totalText: '320.000đ'
+      // Danh sách đơn đặt xe của tôi (đã thanh toán, chờ duyệt, chờ thanh toán)
+      const listEl = document.getElementById('myBookingsList');
+      const tabsWrap = document.getElementById('myBookingsTabs');
+      let currentGroup = 'all';
+      let cachedBookings = [];
+
+      const formatVnd = (n) => Number(n || 0).toLocaleString('vi-VN') + 'đ';
+      const formatDt = (iso) => {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return iso;
+        return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
       };
-      try {
-        const raw = localStorage.getItem('ridehub_checkout_draft');
-        if (raw) draft = { ...draft, ...JSON.parse(raw) };
-      } catch (_) {}
-
-      document.getElementById('checkoutVehicleHeading').textContent = `Bước 1: Tạo đơn #${draft.orderCode} — ${draft.vehicle}`;
-      document.getElementById('checkoutScheduleSub').textContent = 'Thời gian thuê: ' + draft.schedule;
-      document.getElementById('sumVehicleSpecs').textContent = draft.specs || 'Số tự động';
-      document.getElementById('sumDeliveryMode').textContent = draft.deliveryMode || 'Tôi tự đến lấy xe';
-      document.getElementById('sumDeliveryAddr').textContent = draft.deliveryAddress || 'Tại cửa hàng';
-      document.getElementById('sumAddons').textContent = (draft.addons && draft.addons.length) ? draft.addons.join(', ') : 'Không chọn';
-      document.getElementById('sumBreakdown').textContent = draft.breakdown || draft.totalText;
-      document.getElementById('sumDeliveryFee').textContent = (draft.deliveryFee || 0).toLocaleString('vi-VN') + 'đ';
-      document.getElementById('sumTotalFee').textContent = (draft.totalNum || 320000).toLocaleString('vi-VN') + 'đ';
-      document.getElementById('sumDepositFee').textContent = (draft.depositNum || 96000).toLocaleString('vi-VN') + 'đ';
-      document.getElementById('sumRemainFee').textContent = (draft.remainNum || 224000).toLocaleString('vi-VN') + 'đ';
-      document.getElementById('qrOrderTitle').textContent =
-        `QR Thanh toán cọc đơn #${draft.orderCode} (${(draft.depositNum || 96000).toLocaleString('vi-VN')}đ)`;
-
-      const panels = [0, 1, 2, 3].map((i) => document.getElementById('stepPanel' + i));
-      const qrPanel = document.getElementById('qrPaymentPanel');
-      const qrWaiting = document.getElementById('qrWaitingNotice');
-
-      const goStep = (idx) => {
-        panels.forEach((p, i) => { if (p) p.hidden = i !== idx; });
-        // Chỉ hiển thị QR thanh toán khi tiến trình nhảy đến Bước 3 (idx === 2)
-        if (qrPanel && qrWaiting) {
-          qrPanel.hidden = idx !== 2;
-          qrWaiting.hidden = idx === 2;
-        }
-        if (window.VehicleAnim && typeof window.VehicleAnim.setStepperStep === 'function') {
-          window.VehicleAnim.setStepperStep(idx);
-        }
+      const groupBadge = (grp, statusText) => {
+        if (grp === 'paid') return { cls: 'status-badge--available', text: 'Đã thanh toán' };
+        if (grp === 'pending_payment') return { cls: 'status-badge--transit', text: 'Đang chờ thanh toán' };
+        if (grp === 'pending_approval') return { cls: 'status-badge--booked', text: 'Đang chờ duyệt' };
+        return { cls: 'status-badge--maintenance', text: statusText || 'Đã hủy / Hết hạn' };
       };
 
-      document.addEventListener('DOMContentLoaded', () => goStep(0));
+      const renderMyBookings = () => {
+        if (!listEl) return;
+        const filtered = currentGroup === 'all'
+          ? cachedBookings
+          : cachedBookings.filter((b) => b.group === currentGroup);
 
-      document.getElementById('goStep2Btn')?.addEventListener('click', () => {
-        goStep(1);
-        showRideHubToast('Đã tạo đơn giữ chỗ! Đang chờ cửa hàng duyệt.');
-      });
+        if (!filtered.length) {
+          listEl.innerHTML = '<div style="padding:20px;border-radius:14px;background:var(--bg-surface-soft);text-align:center;color:var(--text-muted);font-size:13.5px;">Chưa có đơn đặt xe nào trong mục này.</div>';
+          return;
+        }
 
-      document.getElementById('goStep3Btn')?.addEventListener('click', () => {
-        goStep(2);
-        showRideHubToast(`Cửa hàng đã duyệt đơn #${draft.orderCode}! Vui lòng quét QR đặt cọc.`);
-        if (window.AuthRBAC?.pushNotification) {
-          window.AuthRBAC.pushNotification({
-            role: 'customer',
-            type: 'payment',
-            title: `Đơn #${draft.orderCode} đã được cửa hàng duyệt`,
-            body: `Cửa hàng đã duyệt xe ${draft.vehicle}. Vui lòng quét VietQR để đặt cọc 30%.`,
-            link: 'booking.html'
+        listEl.innerHTML = filtered.map((b) => {
+          const badge = groupBadge(b.group, b.status);
+          const sched = b.scheduleText || `${formatDt(b.start_time)} → ${formatDt(b.end_time)}`;
+          return `
+            <div style="padding:16px;border-radius:14px;border:1px solid var(--green-100);background:#ffffff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+                  <strong style="font-size:15px;color:var(--text-primary);">${b.order_code || ('RH-' + b.id)} • ${b.vehicle_name}</strong>
+                  <span class="status-badge ${badge.cls}">${badge.text}</span>
+                </div>
+                <div style="font-size:13px;color:var(--text-secondary);">Thời gian: ${sched}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                <div style="text-align:right;">
+                  <div style="font-size:12px;color:var(--text-muted);">Tổng: ${formatVnd(b.total_amount)}</div>
+                  <div style="font-size:13.5px;font-weight:800;color:var(--green-700);">Cọc: ${formatVnd(b.deposit_amount)}</div>
+                </div>
+                ${b.group === 'paid'
+                  ? '<a href="trips.html" class="btn btn-soft" style="min-height:34px;padding:6px 12px;font-size:12.5px;">Xem chuyến đi</a>'
+                  : b.group === 'pending_payment'
+                    ? `<a href="payment-qr.html?booking_id=${encodeURIComponent(b.id)}" class="btn btn-primary" style="min-height:34px;padding:6px 12px;font-size:12.5px;">Thanh toán cọc</a>`
+                    : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      };
+
+      const loadMyBookings = async () => {
+        const apiBase = (window.CONFIG && window.CONFIG.API_BASE_URL)
+          ? window.CONFIG.API_BASE_URL.replace(/\/+$/, '')
+          : 'http://127.0.0.1:8000/api';
+        const token = window.AuthRBAC ? window.AuthRBAC.getToken() : '';
+        let apiItems = [];
+        try {
+          const res = await fetch(`${apiBase}/bookings/me`, {
+            headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+            credentials: 'include',
           });
-        }
-      });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.items)) apiItems = data.items;
+          }
+        } catch (_) {}
 
-      const finishOrderOnSystem = () => {
-        const orderId = draft.orderCode || ('RH-' + Math.floor(100000 + Math.random() * 899999));
-        const listRaw = localStorage.getItem('ridehub_trips_list');
-        const list = listRaw ? JSON.parse(listRaw) : [];
-        list.unshift({
-          id: orderId,
-          vehicle: draft.vehicle,
-          specs: draft.specs,
-          schedule: draft.schedule,
-          deliveryMode: draft.deliveryMode,
-          address: draft.deliveryAddress,
-          addons: draft.addons || [],
-          totalNum: draft.totalNum || 320000,
-          depositNum: draft.depositNum || 96000,
-          phase: 'upcoming',
-          remainingSec: 1 * 86400 + 2 * 3600 + 15 * 60
+        let localTrips = [];
+        try {
+          const raw = JSON.parse(localStorage.getItem('ridehub_trips') || '[]');
+          if (Array.isArray(raw)) {
+            localTrips = raw.map((t) => ({
+              id: t.orderCode || t.id,
+              order_code: t.orderCode || ('RH-' + (t.id || '')),
+              vehicle_name: t.vehicle || 'Xe thuê RideHub',
+              scheduleText: t.schedule || '',
+              status: t.status || 'PAID',
+              group: 'paid',
+              total_amount: t.total || 0,
+              deposit_amount: t.deposit || 0,
+            }));
+          }
+        } catch (_) {}
+
+        const seenCodes = new Set(apiItems.map((i) => i.order_code));
+        cachedBookings = [...apiItems, ...localTrips.filter((l) => !seenCodes.has(l.order_code))];
+        renderMyBookings();
+      };
+
+      tabsWrap?.querySelectorAll('.my-booking-tab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          currentGroup = btn.dataset.group || 'all';
+          tabsWrap.querySelectorAll('.my-booking-tab').forEach((b) => {
+            b.className = b === btn ? 'btn btn-primary my-booking-tab is-active' : 'btn btn-soft my-booking-tab';
+          });
+          renderMyBookings();
         });
-        localStorage.setItem('ridehub_trips_list', JSON.stringify(list));
-        if (window.AuthRBAC?.pushNotification) {
-          window.AuthRBAC.pushNotification({
-            role: 'customer',
-            type: 'booking',
-            title: `Tạo đơn thuê #${orderId} thành công`,
-            body: `Xe ${draft.vehicle} đã được giữ chỗ. Theo dõi đếm ngược nhận xe tại Chuyến đi.`,
-            link: 'trips.html'
-          });
-          window.AuthRBAC.pushNotification({
-            roles: ['store_owner', 'store_staff'],
-            type: 'payment',
-            title: `Đơn thuê mới #${orderId} đã cọc 30%`,
-            body: `Khách đã thanh toán cọc cho xe ${draft.vehicle} (${draft.schedule || 'Lịch thuê mới'}).`,
-            link: 'store-portal.html'
-          });
-        }
-        document.getElementById('finalOrderInfo').textContent =
-          `Mã đơn #${orderId} (${draft.vehicle}) đã được tạo thành công trên hệ thống và đồng bộ vào mục Chuyến đi.`;
-        goStep(3);
-        if (window.VehicleAnim) {
-          window.VehicleAnim.launchConfetti(document.getElementById('bookingSuccessConfetti'));
-        }
-        showRideHubToast(`Tạo đơn thuê #${orderId} thành công!`);
-      };
-
-      document.getElementById('goStep4Btn')?.addEventListener('click', finishOrderOnSystem);
-      document.getElementById('simulateQrPayBtn')?.addEventListener('click', () => {
-        setTimeout(finishOrderOnSystem, 550);
       });
+
+      loadMyBookings();
     })();
   </script>
+  <script src="js/components.js"></script>
 </body>
 </html>
 

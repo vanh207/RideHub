@@ -455,7 +455,7 @@
 
   <!-- Owner Profile & Fleet Modal -->
   <div id="ownerProfileModal" class="modal-backdrop" role="dialog" aria-modal="true">
-    <div class="modal-dialog" style="width:min(560px,95vw);display:flex;flex-direction:column;gap:14px;">
+    <div class="modal-dialog" style="width:min(700px,94vw);max-height:86vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:16px;padding:22px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <h3 style="margin:0;font-size:1.2rem;">Thông tin chủ xe</h3>
         <button data-close-modal class="btn-close-pill" type="button" aria-label="Đóng">
@@ -464,86 +464,90 @@
         </button>
       </div>
 
-      <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:var(--bg-surface-soft);">
-        <div id="ownerModalAvatar" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#ffffff;display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:1.2rem;flex-shrink:0;">GR</div>
-        <div>
-          <h4 id="ownerModalName" style="margin:0 0 4px;font-size:1.05rem;"></h4>
-          <div id="ownerModalStats" style="font-size:13px;color:var(--text-secondary);"></div>
-          <div id="ownerModalAddr" style="font-size:12px;color:var(--text-muted);margin-top:2px;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;padding:16px;border-radius:14px;background:var(--bg-surface-soft);">
+        <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:220px;">
+          <div id="ownerModalAvatar" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#ffffff;display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:1.2rem;flex-shrink:0;">GR</div>
+          <div>
+            <h4 id="ownerModalName" style="margin:0 0 4px;font-size:1.05rem;"></h4>
+            <div id="ownerModalStats" style="font-size:13px;color:var(--text-secondary);"></div>
+            <div id="ownerModalAddr" style="font-size:12px;color:var(--text-muted);margin-top:2px;"></div>
+          </div>
         </div>
+        <a id="ownerChatLinkBtn" href="chat.html" class="btn btn-primary" style="min-height:38px;padding:8px 16px;font-size:13px;text-decoration:none;flex-shrink:0;">Chat với chủ xe</a>
       </div>
 
       <div>
-        <div class="filter-label" style="margin-bottom:8px;">Các xe chủ xe đang cho thuê</div>
-        <div id="ownerFleetList" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <div class="filter-label" style="margin-bottom:10px;">Các xe chủ xe đang cho thuê</div>
+        <div id="ownerFleetList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;"></div>
       </div>
     </div>
   </div>
 
   <!-- Date & Time Range Picker Modal (như mẫu tham khảo) -->
   <div id="dateTimePickerModal" class="modal-backdrop" role="dialog" aria-modal="true">
-    <div class="modal-dialog" style="width:min(440px,95vw);display:flex;flex-direction:column;gap:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <h3 style="margin:0;font-size:1.15rem;flex:1;text-align:center;">Chọn ngày &amp; giờ</h3>
-        <button data-close-modal class="btn-close-pill" type="button" aria-label="Đóng">
-          <span style="font-size:11px;font-weight:900;">✕</span>
-          <span>Đóng</span>
-        </button>
+    <div class="modal-dialog dt-picker-modal">
+      <div class="dt-picker-header">
+        <h3>Chọn ngày &amp; giờ</h3>
+        <button data-close-modal class="btn btn-soft dt-picker-close" type="button" aria-label="Đóng">Đóng</button>
       </div>
 
-      <div style="font-weight:800;font-size:1.05rem;">Thời gian nhận/trả xe</div>
+      <div class="dt-picker-body">
+        <div class="dt-picker-title">Thời gian nhận/trả xe</div>
 
-      <div class="dt-mode-pills">
-        <button type="button" class="dt-mode-btn is-active" data-dt-mode="day">Theo ngày</button>
-        <button type="button" class="dt-mode-btn" data-dt-mode="hour">Theo giờ</button>
-        <button type="button" class="dt-mode-btn" data-dt-mode="week">Theo tuần/tháng</button>
-      </div>
-
-      <div class="dt-calendar-card">
-        <div class="dt-cal-header">
-          <button type="button" id="dtPrevMonth" class="dt-cal-nav" aria-label="Tháng trước">&lt;</button>
-          <span id="dtMonthTitle">Tháng 11 2026</span>
-          <button type="button" id="dtNextMonth" class="dt-cal-nav" aria-label="Tháng sau">&gt;</button>
+        <div class="dt-mode-pills">
+          <button type="button" class="dt-mode-btn is-active" data-dt-mode="day">Theo ngày</button>
+          <button type="button" class="dt-mode-btn" data-dt-mode="hour">Theo giờ</button>
+          <button type="button" class="dt-mode-btn" data-dt-mode="week">Theo tuần/tháng</button>
         </div>
-        <div class="dt-weekdays">
-          <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
-        </div>
-        <div id="dtDaysGrid" class="dt-days-grid"></div>
-      </div>
 
-      <div class="dt-summary-strip">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:#ffffff;color:var(--green-700);display:grid;place-items:center;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <div class="dt-calendar-card">
+          <div class="dt-cal-header">
+            <button type="button" id="dtPrevMonth" class="dt-cal-nav" aria-label="Tháng trước">&lt;</button>
+            <span id="dtMonthTitle">Tháng 11 2026</span>
+            <button type="button" id="dtNextMonth" class="dt-cal-nav" aria-label="Tháng sau">&gt;</button>
           </div>
-          <div>
-            <div style="font-size:11px;color:var(--text-muted);">Thời lượng</div>
-            <strong id="dtSummaryDur" style="font-size:13px;">3 ngày</strong>
+          <div class="dt-weekdays">
+            <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+          </div>
+          <div id="dtDaysGrid" class="dt-days-grid"></div>
+        </div>
+
+        <div class="dt-summary-strip">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:#ffffff;color:var(--green-700);display:grid;place-items:center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);">Thời lượng</div>
+              <strong id="dtSummaryDur" style="font-size:13px;">3 ngày</strong>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:11px;color:var(--text-muted);">Khung thời gian</div>
+            <strong id="dtSummaryRange" style="font-size:13px;color:var(--green-700);">12/11 21:00 &rarr; 15/11 11:00</strong>
           </div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:11px;color:var(--text-muted);">Khung thời gian</div>
-          <strong id="dtSummaryRange" style="font-size:13px;color:var(--green-700);">12/11 21:00 &rarr; 15/11 11:00</strong>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <label for="dtPickupTimeInput" style="font-size:13px;font-weight:700;">Giờ nhận xe</label>
+            <input id="dtPickupTimeInput" type="time" class="form-input" value="21:00" style="width:auto;padding:4px 10px;font-size:13px;font-weight:700;" />
+          </div>
+          <div id="dtPickupHours" class="dt-time-scroll"></div>
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <label for="dtReturnTimeInput" style="font-size:13px;font-weight:700;">Giờ trả xe</label>
+            <input id="dtReturnTimeInput" type="time" class="form-input" value="11:00" style="width:auto;padding:4px 10px;font-size:13px;font-weight:700;" />
+          </div>
+          <div id="dtReturnHours" class="dt-time-scroll"></div>
         </div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <label for="dtPickupTimeInput" style="font-size:13px;font-weight:700;">Giờ nhận xe</label>
-          <input id="dtPickupTimeInput" type="time" class="form-input" value="21:00" style="width:auto;padding:4px 10px;font-size:13px;font-weight:700;" />
-        </div>
-        <div id="dtPickupHours" class="dt-time-scroll"></div>
+      <div class="dt-picker-footer">
+        <button id="dtDoneBtn" type="button" class="btn btn-primary btn-premium btn-shine dt-picker-done">Xác nhận ngày &amp; giờ</button>
       </div>
-
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <label for="dtReturnTimeInput" style="font-size:13px;font-weight:700;">Giờ trả xe</label>
-          <input id="dtReturnTimeInput" type="time" class="form-input" value="11:00" style="width:auto;padding:4px 10px;font-size:13px;font-weight:700;" />
-        </div>
-        <div id="dtReturnHours" class="dt-time-scroll"></div>
-      </div>
-
-      <button id="dtDoneBtn" type="button" class="btn btn-primary btn-premium btn-shine" style="width:100%;">Xong</button>
     </div>
   </div>
 
@@ -567,6 +571,17 @@
 
       document.getElementById('proceedBookingBtn')?.addEventListener('click', async (event) => {
         const button = event.currentTarget;
+        const vehName = document.getElementById('detailTitle')?.textContent?.trim() || 'xe này';
+        const vehTotal = document.getElementById('detailTotalPrice')?.textContent?.trim() || '';
+        if (window.AuthRBAC && typeof window.AuthRBAC.confirmAction === 'function') {
+          const ok = await window.AuthRBAC.confirmAction({
+            title: 'Xác nhận thuê xe',
+            message: `Bạn có chắc chắn muốn đặt thuê <strong>${vehName}</strong>${vehTotal ? ` (tổng dự kiến <strong>${vehTotal}</strong>)` : ''} không?`,
+            confirmText: 'Xác nhận thuê xe',
+            cancelText: 'Xem lại',
+          });
+          if (!ok) return;
+        }
         const eligibilityMessage = document.getElementById('bookingEligibilityMessage');
         button.disabled = true;
         window.RideHubBookingEligibility.clearMessage(eligibilityMessage);
@@ -1081,15 +1096,32 @@
       document.getElementById('ownerModalName').textContent = activeOwner.name;
       document.getElementById('ownerModalStats').textContent = `★ ${activeOwner.rating} • ${activeOwner.trips} • ${activeOwner.response}`;
       document.getElementById('ownerModalAddr').textContent = activeOwner.addr;
-      document.getElementById('ownerFleetList').innerHTML = activeOwner.fleet.map((v) => `
-        <div style="padding:12px 14px;border-radius:12px;background:var(--bg-surface-soft);display:flex;justify-content:space-between;align-items:center;gap:10px;">
-          <div>
-            <strong style="font-size:14px;display:block;">${v.name}</strong>
-            <span style="font-size:12px;color:var(--text-muted);">${v.specs}</span>
+
+      const chatBtn = document.getElementById('ownerChatLinkBtn');
+      if (chatBtn) {
+        chatBtn.href = `chat.html?owner=${encodeURIComponent(activeOwner.name)}&initials=${encodeURIComponent(activeOwner.initials)}&addr=${encodeURIComponent(activeOwner.addr)}`;
+      }
+
+      const isCarOwner = activeOwner === OWNERS_DATA.car;
+      const ownerVehicles = VEHICLES_DATA.filter((item) => item.ownerKey === (isCarOwner ? 'car' : 'moto')).slice(0, 6);
+
+      document.getElementById('ownerFleetList').innerHTML = ownerVehicles.map((v) => `
+        <a href="vehicle-detail.html?id=${encodeURIComponent(v.id)}" class="panel-card" style="padding:14px;display:flex;flex-direction:column;gap:10px;border:1px solid var(--green-100);box-shadow:0 4px 14px rgba(15,23,42,0.04);text-decoration:none;color:inherit;box-sizing:border-box;transition:transform .18s ease,box-shadow .18s ease;">
+          <div style="border-radius:12px;overflow:hidden;position:relative;background:#f0fdf4;">
+            ${getVehSvg(v)}
+            <span class="status-badge status-badge--available" style="position:absolute;top:8px;left:8px;font-size:11px;">Sẵn sàng</span>
           </div>
-          <strong style="color:var(--green-700);font-size:13px;">${v.price}</strong>
-        </div>
+          <div style="flex:1;">
+            <div style="font-weight:800;font-size:15px;color:var(--text-primary);margin-bottom:4px;">${v.name}</div>
+            <div style="font-size:12.5px;color:var(--text-secondary);">${v.transmission} • ${v.fuel} • ${v.seats}</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;border-top:1px solid var(--green-100);">
+            <span style="font-size:12px;color:var(--text-muted);">★ ${v.rating} • ${v.trips}</span>
+            <strong style="color:var(--green-700);font-size:14.5px;white-space:nowrap;">${Number(v.price).toLocaleString('vi-VN')}đ/ngày</strong>
+          </div>
+        </a>
       `).join('');
+
       document.getElementById('ownerProfileModal').classList.add('is-open');
     });
 

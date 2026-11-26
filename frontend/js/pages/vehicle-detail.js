@@ -101,18 +101,32 @@
     byId('ownerModalName').textContent = owner.name;
     byId('ownerModalStats').textContent = `★ ${owner.rating} • ${owner.trips} • ${owner.response}`;
     byId('ownerModalAddr').textContent = owner.addr;
+
+    const chatBtn = byId('ownerChatLinkBtn');
+    if (chatBtn) {
+      chatBtn.href = `chat.html?owner=${encodeURIComponent(owner.name)}&initials=${encodeURIComponent(owner.initials)}&addr=${encodeURIComponent(owner.addr)}`;
+    }
+
     const fleet = data.getOwnerFleet(owner);
     byId('ownerFleetList').innerHTML = fleet.length
       ? fleet.map((item) => `
-          <a class="detail-owner-fleet-item" href="vehicle-detail.html?id=${encodeURIComponent(item.id)}">
-            <div>
-              <div class="detail-owner-fleet-name">${item.name}</div>
-              <div class="detail-owner-fleet-specs">${item.transmission} • ${item.fuel} • ${item.seats}</div>
+          <a href="vehicle-detail.html?id=${encodeURIComponent(item.id)}" class="panel-card" style="padding:14px;display:flex;flex-direction:column;gap:10px;border:1px solid var(--green-100);box-shadow:0 4px 14px rgba(15,23,42,0.04);text-decoration:none;color:inherit;box-sizing:border-box;">
+            <div style="border-radius:12px;overflow:hidden;position:relative;background:#f0fdf4;">
+              ${data.getVehicleSvg(item)}
+              <span class="status-badge status-badge--available" style="position:absolute;top:8px;left:8px;font-size:11px;">Sẵn sàng</span>
             </div>
-            <div class="detail-owner-fleet-price">${data.formatCurrency(item.price)}/ngày</div>
+            <div style="flex:1;">
+              <div style="font-weight:800;font-size:15px;color:var(--text-primary);margin-bottom:4px;">${item.name}</div>
+              <div style="font-size:12.5px;color:var(--text-secondary);">${item.transmission} • ${item.fuel} • ${item.seats}</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;border-top:1px solid var(--green-100);">
+              <span style="font-size:12px;color:var(--text-muted);">★ ${item.rating || '4.8'} • ${item.trips || '100+ chuyến'}</span>
+              <strong style="color:var(--green-700);font-size:14.5px;white-space:nowrap;">${data.formatCurrency(item.price)}/ngày</strong>
+            </div>
           </a>
         `).join('')
       : '<div class="detail-owner-fleet-specs">Chủ xe chưa có phương tiện khác.</div>';
+
     byId('ownerProfileModal').classList.add('is-open');
   }
 
@@ -143,6 +157,16 @@
 
   async function proceedBooking() {
     const button = byId('proceedBookingBtn');
+    const vehTotal = byId('detailTotalPrice')?.textContent?.trim() || '';
+    if (window.AuthRBAC && typeof window.AuthRBAC.confirmAction === 'function') {
+      const ok = await window.AuthRBAC.confirmAction({
+        title: 'Xác nhận thuê xe',
+        message: `Bạn có chắc chắn muốn đặt thuê <strong>${vehicle.name}</strong>${vehTotal ? ` (tổng dự kiến <strong>${vehTotal}</strong>)` : ''} không?`,
+        confirmText: 'Xác nhận thuê xe',
+        cancelText: 'Xem lại',
+      });
+      if (!ok) return;
+    }
     const eligibilityMessage = byId('bookingEligibilityMessage');
     button.disabled = true;
     window.RideHubBookingEligibility.clearMessage(eligibilityMessage);

@@ -355,24 +355,27 @@
   </div>
 
   <div id="ownerProfileModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ownerModalTitle">
-    <div class="modal-dialog detail-owner-modal">
+    <div class="modal-dialog detail-owner-modal" style="max-width:700px;width:min(94vw,700px);max-height:86vh;overflow-y:auto;overflow-x:hidden;padding:22px;">
       <div class="detail-modal-header">
         <h3 id="ownerModalTitle">Thông tin chủ xe</h3>
         <button data-close-modal class="btn btn-soft detail-modal-close" type="button">Đóng</button>
       </div>
 
-      <div class="detail-owner-summary">
-        <div id="ownerModalAvatar" class="detail-owner-avatar">GR</div>
-        <div>
-          <h4 id="ownerModalName" class="detail-owner-name"></h4>
-          <div id="ownerModalStats" class="detail-owner-stats"></div>
-          <div id="ownerModalAddr" class="detail-owner-address"></div>
+      <div class="detail-owner-summary" style="justify-content:space-between;flex-wrap:wrap;gap:14px;">
+        <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:220px;">
+          <div id="ownerModalAvatar" class="detail-owner-avatar">GR</div>
+          <div>
+            <h4 id="ownerModalName" class="detail-owner-name"></h4>
+            <div id="ownerModalStats" class="detail-owner-stats"></div>
+            <div id="ownerModalAddr" class="detail-owner-address"></div>
+          </div>
         </div>
+        <a id="ownerChatLinkBtn" href="chat.html" class="btn btn-primary" style="min-height:38px;padding:8px 16px;font-size:13px;text-decoration:none;flex-shrink:0;">Chat với chủ xe</a>
       </div>
 
       <div>
-        <div class="filter-label detail-fleet-label">Các xe chủ xe đang cho thuê</div>
-        <div id="ownerFleetList" class="detail-owner-fleet"></div>
+        <div class="filter-label detail-fleet-label" style="margin-bottom:10px;">Các xe chủ xe đang cho thuê</div>
+        <div id="ownerFleetList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;"></div>
       </div>
     </div>
   </div>
@@ -385,6 +388,7 @@
   <script src="js/data/vehicles.js"></script>
   <script src="js/components/date-time-picker.js"></script>
   <script src="js/pages/vehicle-detail.js"></script>
+  <script src="js/components.js"></script>
   <script src="js/components/chat-widget.js"></script>
 </body>
 </html>

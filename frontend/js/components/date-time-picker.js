@@ -91,53 +91,57 @@
             <h3 id="rhDtTitle">Chọn ngày &amp; giờ</h3>
             <button type="button" class="btn btn-soft dt-picker-close" data-rh-dt-close>Đóng</button>
           </div>
-          <div class="dt-picker-title">Thời gian nhận/trả xe</div>
-          <div class="dt-mode-pills">
-            <button type="button" class="dt-mode-btn is-active" data-rh-dt-mode="day">Theo ngày</button>
-            <button type="button" class="dt-mode-btn" data-rh-dt-mode="hour">Theo giờ</button>
-            <button type="button" class="dt-mode-btn" data-rh-dt-mode="week">Theo tuần/tháng</button>
-          </div>
-          <div class="dt-calendar-card">
-            <div class="dt-cal-header">
-              <button type="button" id="rhDtPrevMonth" class="dt-cal-nav" aria-label="Tháng trước">&lt;</button>
-              <span id="rhDtMonthTitle">Tháng 1 2026</span>
-              <button type="button" id="rhDtNextMonth" class="dt-cal-nav" aria-label="Tháng sau">&gt;</button>
+          <div class="dt-picker-body">
+            <div class="dt-picker-title">Thời gian nhận/trả xe</div>
+            <div class="dt-mode-pills">
+              <button type="button" class="dt-mode-btn is-active" data-rh-dt-mode="day">Theo ngày</button>
+              <button type="button" class="dt-mode-btn" data-rh-dt-mode="hour">Theo giờ</button>
+              <button type="button" class="dt-mode-btn" data-rh-dt-mode="week">Theo tuần/tháng</button>
             </div>
-            <div class="dt-weekdays">
-              <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
-            </div>
-            <div id="rhDtDaysGrid" class="dt-days-grid"></div>
-          </div>
-          <div class="dt-summary-strip">
-            <div class="dt-picker-summary-block">
-              <div class="dt-picker-summary-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <div class="dt-calendar-card">
+              <div class="dt-cal-header">
+                <button type="button" id="rhDtPrevMonth" class="dt-cal-nav" aria-label="Tháng trước">&lt;</button>
+                <span id="rhDtMonthTitle">Tháng 1 2026</span>
+                <button type="button" id="rhDtNextMonth" class="dt-cal-nav" aria-label="Tháng sau">&gt;</button>
               </div>
-              <div>
-                <div class="dt-picker-label">Thời lượng</div>
-                <strong id="rhDtSummaryDur">3 ngày</strong>
+              <div class="dt-weekdays">
+                <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+              </div>
+              <div id="rhDtDaysGrid" class="dt-days-grid"></div>
+            </div>
+            <div class="dt-summary-strip">
+              <div class="dt-picker-summary-block">
+                <div class="dt-picker-summary-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                </div>
+                <div>
+                  <div class="dt-picker-label">Thời lượng</div>
+                  <strong id="rhDtSummaryDur">3 ngày</strong>
+                </div>
+              </div>
+              <div class="dt-picker-summary-right">
+                <div class="dt-picker-label">Khung thời gian</div>
+                <strong id="rhDtSummaryRange">12/11 21:00 → 15/11 11:00</strong>
               </div>
             </div>
-            <div class="dt-picker-summary-right">
-              <div class="dt-picker-label">Khung thời gian</div>
-              <strong id="rhDtSummaryRange">12/11 21:00 → 15/11 11:00</strong>
+            <div class="dt-picker-time-block">
+              <div class="dt-picker-time-head">
+                <label for="rhDtPickupTimeInput">Giờ nhận xe</label>
+                <input id="rhDtPickupTimeInput" type="time" class="form-input dt-picker-time-input" value="21:00" />
+              </div>
+              <div id="rhDtPickupHours" class="dt-time-scroll"></div>
+            </div>
+            <div class="dt-picker-time-block">
+              <div class="dt-picker-time-head">
+                <label for="rhDtReturnTimeInput">Giờ trả xe</label>
+                <input id="rhDtReturnTimeInput" type="time" class="form-input dt-picker-time-input" value="11:00" />
+              </div>
+              <div id="rhDtReturnHours" class="dt-time-scroll"></div>
             </div>
           </div>
-          <div class="dt-picker-time-block">
-            <div class="dt-picker-time-head">
-              <label for="rhDtPickupTimeInput">Giờ nhận xe</label>
-              <input id="rhDtPickupTimeInput" type="time" class="form-input dt-picker-time-input" value="21:00" />
-            </div>
-            <div id="rhDtPickupHours" class="dt-time-scroll"></div>
+          <div class="dt-picker-footer">
+            <button id="rhDtDoneBtn" type="button" class="btn btn-primary btn-premium btn-shine dt-picker-done">Xác nhận ngày &amp; giờ</button>
           </div>
-          <div class="dt-picker-time-block">
-            <div class="dt-picker-time-head">
-              <label for="rhDtReturnTimeInput">Giờ trả xe</label>
-              <input id="rhDtReturnTimeInput" type="time" class="form-input dt-picker-time-input" value="11:00" />
-            </div>
-            <div id="rhDtReturnHours" class="dt-time-scroll"></div>
-          </div>
-          <button id="rhDtDoneBtn" type="button" class="btn btn-primary btn-premium btn-shine dt-picker-done">Xong</button>
         </div>
       </div>
     `;
