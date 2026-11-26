@@ -35,6 +35,15 @@ from app.crud.store_order_review import (
     store_confirm_booking,
     store_reject_booking,
 )
+from app.crud.booking_feedback import (
+    BookingFeedbackConflictError,
+    BookingFeedbackNotFoundError,
+    BookingFeedbackPermissionError,
+    BookingFeedbackStateError,
+    BookingFeedbackValidationError,
+    create_booking_complaint,
+    create_booking_review,
+)
 from app.db.session import get_db
 from app.models.user import User
 from app.models.vehicle import Vehicle
@@ -50,6 +59,10 @@ from app.schemas.booking import (
     StoreOrderListResponse,
     StoreOrderRejectRequest,
     StoreOrderRejectResponse,
+    BookingReviewRequest,
+    BookingReviewResponse,
+    BookingComplaintRequest,
+    BookingComplaintResponse,
 )
 from app.services.booking_eligibility import check_customer_can_rent
 
@@ -320,6 +333,92 @@ def reject_booking_endpoint(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
+
+
+@router.post(
+    "/{booking_id}/review",
+    response_model=BookingReviewResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Gửi đánh giá cho đơn thuê đã hoàn tất",
+)
+def create_booking_review_endpoint(
+    booking_id: int,
+    payload: BookingReviewRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        review = create_booking_review(
+            db,
+            booking_id=booking_id,
+            customer=current_user,
+            rating=payload.rating,
+            comment=payload.comment,
+        )
+        return BookingReviewResponse(
+            id=review.id,
+            booking_id=review.booking_id,
+            reviewer_id=review.reviewer_id,
+            rating=review.rating,
+            comment=review.comment,
+            created_at=review.created_at,
+        )
+    except BookingFeedbackNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except BookingFeedbackPermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except BookingFeedbackStateError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except BookingFeedbackConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except BookingFeedbackValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post(
+    "/{booking_id}/complaint",
+    response_model=BookingComplaintResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Gửi khiếu nại cho đơn thuê đã hoàn tất",
+)
+def create_booking_complaint_endpoint(
+    booking_id: int,
+    payload: BookingComplaintRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        complaint = create_booking_complaint(
+            db,
+            booking_id=booking_id,
+            customer=current_user,
+            category=payload.category,
+            subject=payload.subject,
+            description=payload.description,
+            against_user_id=payload.against_user_id,
+            evidence_urls=payload.evidence_urls,
+        )
+        return BookingComplaintResponse(
+            id=complaint.id,
+            booking_id=complaint.booking_id,
+            reporter_id=complaint.reporter_id,
+            category=complaint.category,
+            subject=complaint.subject,
+            description=complaint.description,
+            status=complaint.status,
+            priority=complaint.priority,
+            created_at=complaint.created_at,
+        )
+    except BookingFeedbackNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except BookingFeedbackPermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except BookingFeedbackStateError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except BookingFeedbackConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except BookingFeedbackValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get(
