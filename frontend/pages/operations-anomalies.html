@@ -4,22 +4,57 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hàng chờ giao dịch bất thường — RideHub</title>
+  <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/variables.css" />
   <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
   <link rel="stylesheet" href="./css/operations-anomalies.css" />
 </head>
 <body>
+  <!-- Header chung hệ thống RideHub -->
+  <header id="mainNavbar" class="navbar is-scrolled">
+    <div class="container navbar-inner">
+      <a href="../index.html" class="brand-logo">
+        <img src="../assets/logo-rh.png" alt="RideHub" style="height:34px;width:auto;object-fit:contain;" />
+        <span>RideHub</span>
+      </a>
+      <nav class="nav-links" aria-label="Điều hướng chính">
+        <a href="../index.html" class="nav-link">Trang chủ</a>
+        <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+        <a href="../trips.html" class="nav-link">Chuyến đi</a>
+        <a href="store-orders.html" class="nav-link">Cửa hàng</a>
+        <a href="operations-anomalies.html" class="nav-link is-active">Vận hành</a>
+        <a href="admin-policies-audit.html" class="nav-link">Chính sách &amp; Audit</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <aside id="mobileDrawer" class="mobile-drawer">
+    <a href="../index.html">Trang chủ</a>
+    <a href="../vehicles.html">Tìm &amp; Thuê xe</a>
+    <a href="../trips.html">Chuyến đi</a>
+    <a href="store-orders.html">Cửa hàng</a>
+    <a href="operations-anomalies.html">Vận hành</a>
+    <a href="admin-policies-audit.html">Chính sách &amp; Audit</a>
+  </aside>
+
   <main class="page-shell">
     <header class="page-header">
       <div>
-        <a class="back-link" href="../index.html">← RideHub</a>
         <p class="eyebrow">TRUNG TÂM VẬN HÀNH</p>
         <h1>Hàng chờ giao dịch bất thường</h1>
         <p class="intro">Theo dõi giao dịch cần đối soát và xác nhận các khoản hoàn tiền đang chờ xử lý.</p>
       </div>
-      <div style="display:flex; gap:10px; align-items:center;">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <a href="admin-policies-audit.html" class="button button--primary" style="text-decoration:none;">Chính sách &amp; Audit Log</a>
         <button id="refreshButton" class="button button--secondary" type="button">Làm mới</button>
       </div>
@@ -98,8 +133,69 @@
     </form>
   </dialog>
 
-  <script src="../js/components.js"></script>
+  <!-- Footer chung hệ thống RideHub -->
+  <footer class="site-footer">
+    <div class="footer-road-edge">
+      <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Nền tảng thuê xe thông minh">
+        <svg viewBox="0 0 110 64" width="76" height="32"><path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#4ade80"/><g transform="translate(27,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g><g transform="translate(81,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g></svg>
+      </div>
+    </div>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <img src="../assets/logo-rh.png" alt="RideHub Logo" style="height:34px;width:auto;" />
+            <span style="font-family:var(--font-display);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">RideHub</span>
+          </div>
+          <p style="font-size:13px;line-height:1.65;color:#d1fae5;margin:0 0 14px;">
+            Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+          </p>
+          <div style="font-size:12.5px;color:#a7f3d0;display:flex;flex-direction:column;gap:5px;">
+            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868" style="color:var(--green-300);text-decoration:none;">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn" style="color:var(--green-300);text-decoration:none;">support@ridehub.vn</a></div>
+            <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="../index.html">Trang chủ</a></li>
+            <li class="footer-link-item"><a href="../vehicles.html">Tìm &amp; Thuê xe máy, Ô tô</a></li>
+            <li class="footer-link-item"><a href="../trips.html">Hành trình &amp; Chuyến đi của tôi</a></li>
+            <li class="footer-link-item"><a href="../booking.html">Đơn thuê &amp; Thanh toán cọc</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Quản trị &amp; Đối tác</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="store-orders.html">Quản lý đơn hàng Cửa hàng</a></li>
+            <li class="footer-link-item"><a href="operations-anomalies.html">Hàng chờ giao dịch bất thường</a></li>
+            <li class="footer-link-item"><a href="admin-policies-audit.html">Cấu hình Chính sách &amp; Audit Log</a></li>
+            <li class="footer-link-item"><a href="auth.html">Đăng nhập / Đăng ký</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Cam kết &amp; An toàn</div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#d1fae5;line-height:1.55;">
+            <div>✓ <strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt.</div>
+            <div>✓ <strong>Minh bạch bàn giao:</strong> Video 360°, ảnh biên bản &amp; ODO thực tế.</div>
+            <div>✓ <strong>Đối soát hoàn tiền:</strong> Theo dõi bất thường &amp; hoàn cọc minh bạch.</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-bottom-row">
+        <div>© 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+          <a href="../privacy-policy.html" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
   <script src="../js/config.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/effects.js"></script>
+  <script src="../js/auth-rbac.js"></script>
   <script src="../js/operations-anomalies.js"></script>
 </body>
 </html>
