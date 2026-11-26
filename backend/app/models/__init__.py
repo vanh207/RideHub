@@ -5,6 +5,7 @@ except Exception:
     Item = None  # noqa: F401
 
 from app.models.audit_log import AuditLog
+from app.models.system_policy import SystemPolicy
 from app.models.booking import Booking, BookingStatusHistory
 from app.models.vehicle import Vehicle
 from app.models.delivery import DeliveryFeeZone, DeliveryPoint

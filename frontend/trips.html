@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Chuyến đi của tôi — RideHub</title>
   <link rel="icon" type="image/png" href="assets/logo-rh.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/animations.css" />
   <link rel="stylesheet" href="css/components/chat-widget.css" />
+  <link rel="stylesheet" href="css/pages/trips.css" />
 </head>
 <body>
   <div class="noise-overlay" aria-hidden="true"></div>
@@ -68,9 +69,9 @@
       <div class="panel-card" style="margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
         <span style="font-size:13px;font-weight:700;color:var(--text-secondary);">Mô phỏng nhanh trạng thái chuyến #1:</span>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-soft" style="min-height:34px;padding:4px 12px;font-size:12px;" onclick="setDemoTrip(0, 'upcoming', 94520)">Sắp nhận (1 ngày+)</button>
-          <button type="button" class="btn btn-soft" style="min-height:34px;padding:4px 12px;font-size:12px;" onclick="setDemoTrip(0, 'ongoing', 18400)">Đang thực hiện (5+ tiếng)</button>
-          <button type="button" class="btn btn-primary" style="min-height:34px;padding:4px 12px;font-size:12px;" onclick="setDemoTrip(0, 'ongoing', 2700)">Còn 45 phút (Chuẩn bị trả xe)</button>
+          <button type="button" class="btn btn-soft" style="min-height:44px;padding:10px 12px;font-size:13px;" onclick="setDemoTrip(0, 'upcoming', 94520)">Sắp nhận (1 ngày+)</button>
+          <button type="button" class="btn btn-soft" style="min-height:44px;padding:10px 12px;font-size:13px;" onclick="setDemoTrip(0, 'ongoing', 18400)">Đang thực hiện (5+ tiếng)</button>
+          <button type="button" class="btn btn-primary" style="min-height:44px;padding:10px 12px;font-size:13px;" onclick="setDemoTrip(0, 'ongoing', 2700)">Còn 45 phút (Chuẩn bị trả xe)</button>
         </div>
       </div>
 
@@ -169,7 +170,7 @@
     <div class="modal-dialog" style="width:min(600px,95vw);display:flex;flex-direction:column;gap:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <h3 id="tdTitle" style="margin:0;font-size:1.25rem;">Chi tiết đơn thuê</h3>
-        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+        <button data-close-modal class="btn btn-soft" style="min-height:44px;padding:10px 12px;" type="button">Đóng</button>
       </div>
 
       <div id="tdImgBox" class="vehicle-card-media" style="height:185px;min-height:185px;flex-shrink:0;width:100%;"></div>
@@ -246,7 +247,7 @@
           <h3 id="chmTitle" style="margin:6px 0 2px;font-family:var(--font-display);">Xác nhận ảnh &amp; video giao xe</h3>
           <div id="chmMeta" style="font-size:13px;color:var(--text-muted);">Mã đơn • Xe thuê</div>
         </div>
-        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+        <button data-close-modal class="btn btn-soft" style="min-height:44px;padding:10px 12px;" type="button">Đóng</button>
       </div>
 
       <!-- 1. Video quay quanh xe -->
@@ -324,7 +325,7 @@
     <div class="modal-dialog" style="width:min(540px,95vw);display:flex;flex-direction:column;gap:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <h3 id="crmTitle" style="margin:0;font-size:1.25rem;">Yêu cầu đổi thời gian thuê xe</h3>
-        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+        <button data-close-modal class="btn btn-soft" style="min-height:44px;padding:10px 12px;" type="button">Đóng</button>
       </div>
 
       <div id="crmVehicleMeta" style="padding:12px 14px;border-radius:12px;background:var(--bg-surface-soft);font-size:13px;line-height:1.5;"></div>
@@ -373,7 +374,7 @@
 
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <h3 id="csmTitle" style="margin:0;font-size:1.25rem;">Nghiệm thu &amp; Quyết toán trả xe</h3>
-        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+        <button data-close-modal class="btn btn-soft" style="min-height:44px;padding:10px 12px;" type="button">Đóng</button>
       </div>
 
       <!-- MÀN HÌNH 1: CHI TIẾT NGHIỆM THU & HÌNH THỨC THANH TOÁN -->
@@ -489,7 +490,7 @@
           Hóa đơn điện tử và biên bản quyết toán đã được gửi tới email của bạn.
         </div>
 
-        <button data-close-modal type="button" class="btn btn-primary" style="min-width:160px;min-height:38px;">
+        <button data-close-modal type="button" class="btn btn-primary" style="min-width:160px;min-height:44px;">
           Hoàn tất
         </button>
       </div>
@@ -868,13 +869,13 @@
             ` : ''}
 
             <div style="display:flex;gap:6px;margin-top:auto;flex-wrap:wrap;">
-              <button type="button" class="btn btn-soft" style="flex:1;font-size:12px;min-height:34px;padding:4px 8px;" onclick="openTripDetail(${idx})">Chi tiết đơn</button>
-              <button type="button" class="btn ${t.handoverCustomerConfirmed ? 'btn-soft' : t.handoverDelivered ? 'btn-primary btn-premium btn-shine' : 'btn-soft'}" style="flex:1;font-size:12px;min-height:34px;padding:4px 8px;" onclick="openCustHandoverModal(${idx})">
+              <button type="button" class="btn btn-soft" style="flex:1;font-size:12px;min-height:44px;padding:10px 8px;" onclick="openTripDetail(${idx})">Chi tiết đơn</button>
+              <button type="button" class="btn ${t.handoverCustomerConfirmed ? 'btn-soft' : t.handoverDelivered ? 'btn-primary btn-premium btn-shine' : 'btn-soft'}" style="flex:1;font-size:12px;min-height:44px;padding:10px 8px;" onclick="openCustHandoverModal(${idx})">
                 ${t.handoverCustomerConfirmed ? '<span style="color:var(--green-700);font-weight:800;">✓</span> Đã nhận xe' : t.handoverDelivered ? 'Xem video &amp; Nhận xe' : 'Hồ sơ bàn giao'}
               </button>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button type="button" class="btn btn-soft" style="flex:1;font-size:12px;min-height:34px;padding:4px 8px;" onclick="openCustReschedule(${idx})">
+              <button type="button" class="btn btn-soft" style="flex:1;font-size:12px;min-height:44px;padding:10px 8px;" onclick="openCustReschedule(${idx})">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-2px;margin-right:2px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 Yêu cầu đổi lịch / Gia hạn
               </button>
