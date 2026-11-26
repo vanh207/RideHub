@@ -18,6 +18,35 @@ router = APIRouter(
 )
 
 DEFAULT_POLICIES = [
+    # 1. CHÍNH SÁCH GIỮ CHỖ (HOLD)
+    {
+        "policy_key": "booking_hold_minutes",
+        "category": "HOLD",
+        "label": "Thời gian giữ chỗ chờ thanh toán cọc",
+        "value": str(settings.BOOKING_HOLD_MINUTES),
+        "value_type": "number",
+        "unit": "phút",
+        "description": "Thời gian tạm giữ lịch xe khi khách tạo đơn chưa thanh toán cọc.",
+    },
+    {
+        "policy_key": "booking_buffer_minutes",
+        "category": "HOLD",
+        "label": "Thời gian đệm giữa 2 chuyến xe",
+        "value": str(settings.BOOKING_BUFFER_MINUTES),
+        "value_type": "number",
+        "unit": "phút",
+        "description": "Khoảng thời gian nghỉ tối thiểu giữa lần trả xe trước và nhận xe sau.",
+    },
+    {
+        "policy_key": "booking_max_duration_days",
+        "category": "HOLD",
+        "label": "Thời gian thuê tối đa mỗi đơn",
+        "value": str(settings.BOOKING_MAX_DURATION_DAYS),
+        "value_type": "number",
+        "unit": "ngày",
+        "description": "Giới hạn số ngày thuê tối đa cho một đơn đặt xe.",
+    },
+    # 2. CHÍNH SÁCH ĐẶT CỌC & HOÀN TIỀN (DEPOSIT / CANCELLATION)
     {
         "policy_key": "booking_deposit_rate_percent",
         "category": "DEPOSIT",
@@ -72,15 +101,44 @@ DEFAULT_POLICIES = [
         "unit": "%",
         "description": "Phần trăm hoàn tiền trong khung thời gian hủy một phần.",
     },
+    # 3. CHÍNH SÁCH PHÍ & PHỤ THU (FEES)
     {
-        "policy_key": "booking_max_duration_days",
-        "category": "BOOKING",
-        "label": "Thời gian thuê tối đa mỗi đơn",
-        "value": str(settings.BOOKING_MAX_DURATION_DAYS),
+        "policy_key": "late_return_fee_per_hour_vnd",
+        "category": "FEES",
+        "label": "Phí trả xe trễ mỗi giờ",
+        "value": "50000",
         "value_type": "number",
-        "unit": "ngày",
-        "description": "Giới hạn số ngày thuê tối đa cho một đơn đặt xe.",
+        "unit": "VNĐ/giờ",
+        "description": "Mức phụ thu áp dụng khi khách trả xe trễ hơn thời gian cam kết.",
     },
+    {
+        "policy_key": "over_mileage_fee_per_km_vnd",
+        "category": "FEES",
+        "label": "Phí vượt giới hạn quãng đường (250km/ngày)",
+        "value": "3000",
+        "value_type": "number",
+        "unit": "VNĐ/km",
+        "description": "Đơn giá phụ thu trên mỗi km vượt định mức ngày.",
+    },
+    {
+        "policy_key": "cleaning_fee_vnd",
+        "category": "FEES",
+        "label": "Phí vệ sinh / khử mùi",
+        "value": "50000",
+        "value_type": "number",
+        "unit": "VNĐ",
+        "description": "Phí vệ sinh áp dụng khi xe trả lại có bùn đất hoặc mùi nặng.",
+    },
+    {
+        "policy_key": "platform_service_fee_percent",
+        "category": "FEES",
+        "label": "Phí dịch vụ nền tảng",
+        "value": "5",
+        "value_type": "percent",
+        "unit": "%",
+        "description": "Tỷ lệ phí dịch vụ nền tảng tính trên giá trị đơn thuê.",
+    },
+    # 4. BẢO MẬT (SECURITY)
     {
         "policy_key": "login_rate_limit_max_attempts",
         "category": "SECURITY",
@@ -140,10 +198,14 @@ def _serialize_policy(p: SystemPolicy) -> dict:
 
 @router.get("", summary="Lấy danh sách cấu hình chính sách hệ thống")
 def list_policies(
+    category: Optional[str] = None,
     db: Session = Depends(get_db),
     _: User = Depends(get_current_admin),
 ):
     policies = _ensure_default_policies(db)
+    if category:
+        cat_upper = category.strip().upper()
+        policies = [p for p in policies if (p.category or "").upper() == cat_upper]
     return {
         "success": True,
         "data": [_serialize_policy(p) for p in policies],

@@ -96,7 +96,7 @@ async def register(body: UserCreate, db: Session = Depends(get_db)):
     new_user, access_token, refresh_token = register_user(db, body)
     response = create_response(
         status_code=201,
-        message="Đăng ký tài khoản thành công. Email xác thực đã được gửi tới hộp thư của bạn.",
+        message="Xác thực tài khoản thành công. Email xác thực đã được gửi tới hộp thư của bạn.",
         data={
             "user_id": new_user.id,
             "firebase_uid": new_user.firebase_uid,
@@ -133,7 +133,7 @@ async def login(body: UserLogin, db: Session = Depends(get_db)):
     user, access_token, refresh_token = login_user(db, body)
     response = create_response(
         status_code=200,
-        message="Đăng nhập thành công.",
+        message="Chào mừng bạn đến với hệ thống.",
         data={
             "user_id": user.id,
             "firebase_uid": user.firebase_uid,
@@ -169,7 +169,7 @@ async def firebase_login(body: FirebaseLoginRequest, db: Session = Depends(get_d
     user, access_token, refresh_token = login_with_firebase(db, body.id_token)
     response = create_response(
         status_code=200,
-        message="Đăng nhập qua Firebase thành công.",
+        message="Chào mừng bạn đến với hệ thống.",
         data={
             "user_id": user.id,
             "firebase_uid": user.firebase_uid,
