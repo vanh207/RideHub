@@ -15,10 +15,21 @@
     <link rel="stylesheet" href="css/payment-qr.css" />
   </head>
   <body>
-    <header id="mainNavbar" class="navbar is-scrolled" aria-label="Điều hướng RideHub"></header>
+    <header id="mainNavbar" class="navbar is-scrolled" aria-label="Điều hướng RideHub">
+      <div class="container navbar-inner">
+        <a href="index.html" class="brand-logo">
+          <img src="assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;object-fit:contain;" />
+          <span>RideHub</span>
+        </a>
+      </div>
+    </header>
     <main class="page-wrapper">
       <!-- ── Top Bar ── -->
       <div class="topbar">
+        <a href="index.html" class="brand" aria-label="Trang chủ RideHub">
+          <img src="assets/logo-rh.png" alt="RideHub" class="brand-logo-img" />
+          <span>RideHub</span>
+        </a>
         <div class="order-info">
           <span class="order-id">Booking #<span id="bookingIdDisplay">—</span></span>
           <span class="badge badge-warning" id="statusBadge">

@@ -1,0 +1,336 @@
+/* ==========================================================================
+   RIDEHUB — BOOKING & DEPOSIT FLOW STYLES (booking.css)
+   ========================================================================== */
+
+/* Header brand logo sizing */
+.brand-logo img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Subpage Hero */
+.booking-hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Stepper card & nodes */
+.booking-stepper-card {
+  margin-bottom: 24px;
+}
+
+.step-node span:not(.step-circle) {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Interactive Flow Main Panel */
+.booking-flow-main {
+  position: relative;
+  overflow: hidden;
+}
+
+#bookingSuccessConfetti {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Step 1: Booking creation & pricing */
+#checkoutVehicleHeading {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+}
+
+#checkoutScheduleSub {
+  font-size: 13px;
+  color: var(--green-700);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.booking-summary-card {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-soft);
+  margin-bottom: 14px;
+}
+
+#sumDepositFee {
+  color: var(--green-700);
+}
+
+.booking-action-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.booking-action-row--center {
+  justify-content: center;
+}
+
+/* Flow Step Panels */
+.booking-step-panel {
+  text-align: center;
+}
+
+.booking-step-panel--approval {
+  padding: 18px 8px;
+}
+
+.booking-step-panel--approval h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.booking-step-panel--approval p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0 0 18px;
+}
+
+.booking-step-panel--deposit {
+  padding: 12px 8px;
+}
+
+.booking-step-panel--deposit h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.booking-step-panel--deposit p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+.booking-step-panel--complete {
+  padding: 16px 8px;
+}
+
+.booking-step-panel--complete h2 {
+  margin: 0 0 8px;
+  font-size: 1.3rem;
+}
+
+.booking-step-panel--complete p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0 0 18px;
+}
+
+.booking-step-status {
+  margin-bottom: 12px;
+}
+
+.booking-success-icon {
+  margin: 0 auto 12px;
+  display: block;
+}
+
+/* Right Panel: Hold timer & PayOS QR */
+.booking-payment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.booking-hold-timer-copy {
+  flex: 1;
+}
+
+.booking-hold-timer-copy > div:first-child {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+#simulateLowTimerBtn {
+  padding: 6px 12px;
+  min-height: 34px;
+  font-size: 12px;
+}
+
+#qrWaitingNotice {
+  text-align: center;
+  padding: 24px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-soft);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+#qrWaitingNotice strong {
+  display: block;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+#qrPaymentPanel {
+  text-align: center;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-soft);
+}
+
+#qrOrderTitle {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+#qrBox {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 12px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 12px;
+  border: 1px solid var(--green-200);
+  overflow: hidden;
+}
+
+#qrSuccess {
+  padding: 14px 0;
+}
+
+.booking-qr-success-icon {
+  margin: 0 auto;
+  display: block;
+}
+
+.booking-qr-success-message {
+  font-weight: 800;
+  color: var(--green-700);
+  margin-top: 8px;
+}
+
+/* Footer & Road edge */
+#footerCruisingCar {
+  width: 76px;
+  bottom: 2px;
+}
+
+.booking-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.booking-footer-brand img {
+  height: 34px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+.booking-footer-brand span {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.booking-footer-description {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #d1fae5;
+  margin: 0 0 14px;
+}
+
+.booking-footer-contact {
+  font-size: 12.5px;
+  color: #a7f3d0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.booking-footer-contact a {
+  color: var(--green-300);
+  text-decoration: none;
+}
+
+.booking-footer-contact a:hover {
+  text-decoration: underline;
+}
+
+.booking-footer-commitments {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12.5px;
+  color: #d1fae5;
+  line-height: 1.55;
+}
+
+.booking-footer-commitments > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.booking-footer-commitments span:first-child {
+  color: var(--green-400);
+  font-weight: 800;
+}
+
+.booking-footer-bottom-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.booking-footer-bottom-links span {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.15);
+  color: var(--green-300);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.booking-footer-bottom-links a {
+  color: #a7f3d0;
+  text-decoration: none;
+}
+
+.booking-footer-bottom-links a:hover {
+  text-decoration: underline;
+}
+
+/* Modal refund */
+.booking-refund-modal-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.booking-refund-modal-heading h3 {
+  margin: 0;
+}
+
+.booking-refund-modal-heading button {
+  min-height: 34px;
+  padding: 4px 12px;
+}
+
+.booking-refund-summary {
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--bg-surface-soft);
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+
+.booking-refund-submit {
+  width: 100%;
+}

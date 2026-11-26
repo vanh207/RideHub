@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/variables.css" />
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/booking.css" />
 </head>
 <body>
   <div class="noise-overlay" aria-hidden="true"></div>
@@ -22,7 +23,7 @@
   <header id="mainNavbar" class="navbar is-scrolled">
     <div class="container navbar-inner">
       <a href="index.html" class="brand-logo">
-        <img src="assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;object-fit:contain;" />
+        <img src="assets/logo-rh.png" alt="RideHub" />
         <span>RideHub</span>
       </a>
       <nav class="nav-links">
@@ -54,7 +55,7 @@
 
   <section class="subpage-hero">
     <div class="aurora-bg" aria-hidden="true"></div>
-    <div class="container" style="position:relative;z-index:2;">
+    <div class="container booking-hero-content">
       <span class="eyebrow">Đặt xe, Giữ chỗ &amp; Thanh toán</span>
       <h1 class="section-title" data-reveal="text-mask">Đặt giữ chỗ 30 phút, Thanh toán QR &amp; Theo dõi đơn</h1>
       <p class="section-subtitle">Khóa lịch an toàn chống đặt trùng, ghi nhận tiền cọc tự động qua Webhook và tính hoàn tiền minh bạch.</p>
@@ -64,7 +65,7 @@
   <main class="subpage-main">
     <div class="container">
       <!-- Stepper with Moving Vehicle -->
-      <div class="panel-card" style="margin-bottom:24px;">
+      <div class="panel-card booking-stepper-card">
         <div id="bookingStepper" class="stepper-track">
           <div class="stepper-line"><div id="stepperFill" class="stepper-line-fill"></div></div>
           <div id="stepperVehicle" class="stepper-vehicle">
@@ -74,24 +75,24 @@
               <g transform="translate(81,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g>
             </svg>
           </div>
-          <button class="step-node is-current" type="button"><span class="step-circle">1</span><span style="font-size:12px;font-weight:700;">Tạo đơn</span></button>
-          <button class="step-node" type="button"><span class="step-circle">2</span><span style="font-size:12px;font-weight:700;">Cửa hàng duyệt</span></button>
-          <button class="step-node" type="button"><span class="step-circle">3</span><span style="font-size:12px;font-weight:700;">Đặt cọc</span></button>
-          <button class="step-node" type="button"><span class="step-circle">4</span><span style="font-size:12px;font-weight:700;">Tạo đơn trên hệ thống</span></button>
+          <button class="step-node is-current" type="button"><span class="step-circle">1</span><span>Tạo đơn</span></button>
+          <button class="step-node" type="button"><span class="step-circle">2</span><span>Cửa hàng duyệt</span></button>
+          <button class="step-node" type="button"><span class="step-circle">3</span><span>Đặt cọc</span></button>
+          <button class="step-node" type="button"><span class="step-circle">4</span><span>Tạo đơn trên hệ thống</span></button>
         </div>
       </div>
 
       <div class="booking-studio">
         <!-- Left: 4-Step Interactive Flow -->
-        <div class="panel-card" style="position:relative;overflow:hidden;">
-          <canvas id="bookingSuccessConfetti" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+        <div class="panel-card booking-flow-main">
+          <canvas id="bookingSuccessConfetti"></canvas>
 
           <!-- BƯỚC 1: TẠO ĐƠN -->
           <div id="stepPanel0">
-            <h2 id="checkoutVehicleHeading" style="margin:0 0 4px;font-size:1.15rem;">Bước 1: Tạo đơn — VinFast Feliz S</h2>
-            <div id="checkoutScheduleSub" style="font-size:13px;color:var(--green-700);font-weight:700;margin-bottom:12px;"></div>
+            <h2 id="checkoutVehicleHeading">Bước 1: Tạo đơn — VinFast Feliz S</h2>
+            <div id="checkoutScheduleSub"></div>
 
-            <div style="padding:14px;border-radius:var(--radius-md);background:var(--bg-surface-soft);margin-bottom:14px;">
+            <div class="booking-summary-card">
               <div class="summary-row"><span>Thông số xe</span><span id="sumVehicleSpecs">Số tự động • Điện • 2 chỗ</span></div>
               <div class="summary-row"><span>Hình thức nhận xe</span><span id="sumDeliveryMode">Tôi tự đến lấy xe</span></div>
               <div class="summary-row"><span>Địa điểm giao / nhận</span><span id="sumDeliveryAddr">45 Lý Tự Trọng, Q.1</span></div>
@@ -99,7 +100,7 @@
               <div class="summary-row"><span>Chi tiết tính giá</span><span id="sumBreakdown">160.000đ × 2 ngày</span></div>
               <div class="summary-row"><span>Phí giao nhận</span><span id="sumDeliveryFee">0đ</span></div>
               <div class="summary-row"><span>Tổng giá trị đơn</span><strong id="sumTotalFee">320.000đ</strong></div>
-              <div class="summary-row"><span>Tiền cọc đặt trước (30%)</span><strong id="sumDepositFee" style="color:var(--green-700);">96.000đ</strong></div>
+              <div class="summary-row"><span>Tiền cọc đặt trước (30%)</span><strong id="sumDepositFee">96.000đ</strong></div>
               <div class="summary-row"><span>Còn lại khi nhận xe</span><span id="sumRemainFee">224.000đ</span></div>
             </div>
 
@@ -108,43 +109,43 @@
               <input id="bookingNote" class="form-input" type="text" value="Chuẩn bị 2 nón bảo hiểm size M" />
             </div>
 
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div class="booking-action-row">
               <button id="goStep2Btn" class="btn btn-primary btn-premium btn-shine" type="button">Gửi đơn cho cửa hàng duyệt</button>
               <button class="btn btn-soft btn-premium" type="button" data-open-modal="cancelModal">Chính sách hủy</button>
             </div>
           </div>
 
           <!-- BƯỚC 2: CỬA HÀNG DUYỆT -->
-          <div id="stepPanel1" hidden style="text-align:center;padding:18px 8px;">
-            <span class="status-badge status-badge--booked" style="margin-bottom:12px;"><span class="status-dot status-dot-pulse"></span>Đang chờ cửa hàng duyệt</span>
-            <h2 style="margin:0 0 8px;font-size:1.25rem;">Bước 2: Cửa hàng xác nhận đơn</h2>
-            <p style="color:var(--text-secondary);font-size:14px;margin:0 0 18px;">
+          <div id="stepPanel1" class="booking-step-panel booking-step-panel--approval" hidden>
+            <span class="status-badge status-badge--booked booking-step-status"><span class="status-dot status-dot-pulse"></span>Đang chờ cửa hàng duyệt</span>
+            <h2>Bước 2: Cửa hàng xác nhận đơn</h2>
+            <p>
               Yêu cầu thuê xe đã được gửi tới chủ cửa hàng. Hệ thống giữ lịch trong 30 phút để tránh trùng đơn.
             </p>
-            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <div class="booking-action-row booking-action-row--center">
               <button id="goStep3Btn" class="btn btn-primary btn-premium btn-shine" type="button">Cửa hàng xác nhận duyệt đơn</button>
             </div>
           </div>
 
           <!-- BƯỚC 3: ĐẶT CỌC -->
-          <div id="stepPanel2" hidden style="text-align:center;padding:12px 8px;">
-            <span class="status-badge status-badge--transit" style="margin-bottom:12px;"><span class="status-orbit-wrap"><span class="status-orbit-dot"></span></span>Cửa hàng đã duyệt</span>
-            <h2 style="margin:0 0 8px;font-size:1.25rem;">Bước 3: Thanh toán tiền cọc</h2>
-            <p style="color:var(--text-secondary);font-size:14px;margin:0 0 16px;">
+          <div id="stepPanel2" class="booking-step-panel booking-step-panel--deposit" hidden>
+            <span class="status-badge status-badge--transit booking-step-status"><span class="status-orbit-wrap"><span class="status-orbit-dot"></span></span>Cửa hàng đã duyệt</span>
+            <h2>Bước 3: Thanh toán tiền cọc</h2>
+            <p>
               Vui lòng quét mã QR ở khung bên phải để thanh toán khoản tiền cọc 30% trước khi hết thời gian giữ chỗ.
             </p>
             <button id="goStep4Btn" class="btn btn-primary btn-premium btn-shine" type="button">Xác nhận đã đặt cọc thành công</button>
           </div>
 
           <!-- BƯỚC 4: TẠO ĐƠN THUÊ TRÊN HỆ THỐNG -->
-          <div id="stepPanel3" hidden style="text-align:center;padding:16px 8px;">
-            <svg width="68" height="68" viewBox="0 0 76 76" style="margin:0 auto 12px;">
+          <div id="stepPanel3" class="booking-step-panel booking-step-panel--complete" hidden>
+            <svg class="booking-success-icon" width="68" height="68" viewBox="0 0 76 76">
               <circle cx="38" cy="38" r="34" fill="#dcfce7" stroke="#22c55e" stroke-width="4"/>
               <path d="M22 39l11 11 21-22" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <h2 style="margin:0 0 8px;font-size:1.3rem;">Bước 4: Đã tạo đơn thuê trên hệ thống!</h2>
-            <p id="finalOrderInfo" style="color:var(--text-secondary);font-size:14px;margin:0 0 18px;"></p>
-            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <h2>Bước 4: Đã tạo đơn thuê trên hệ thống!</h2>
+            <p id="finalOrderInfo"></p>
+            <div class="booking-action-row booking-action-row--center">
               <a href="trips.html" class="btn btn-primary btn-premium btn-shine">Xem trong trang Chuyến đi</a>
               <a href="vehicles.html" class="btn btn-soft">Thuê thêm xe khác</a>
             </div>
@@ -152,7 +153,7 @@
         </div>
 
         <!-- Right: Hold Timer + PayOS QR + E-Receipt -->
-        <div class="panel-card" style="display:flex;flex-direction:column;gap:16px;">
+        <div class="panel-card booking-payment-card">
           <div class="hold-timer-card">
             <svg width="60" height="60" viewBox="0 0 60 60">
               <circle cx="30" cy="30" r="24" fill="none" stroke="#dcfce7" stroke-width="5"/>
@@ -164,21 +165,21 @@
                 </g>
               </g>
             </svg>
-            <div style="flex:1;">
-              <div style="font-size:12px;font-weight:700;color:var(--text-muted);">Giữ chỗ 30 phút</div>
+            <div class="booking-hold-timer-copy">
+              <div>Giữ chỗ 30 phút</div>
               <div id="holdOdometer" class="odometer">29:58</div>
             </div>
-            <button id="simulateLowTimerBtn" class="btn btn-soft" style="padding:6px 12px;min-height:34px;font-size:12px;" type="button">&lt;5 phút</button>
+            <button id="simulateLowTimerBtn" class="btn btn-soft" type="button">&lt;5 phút</button>
           </div>
 
-          <div id="qrWaitingNotice" style="text-align:center;padding:24px 16px;border-radius:var(--radius-md);background:var(--bg-surface-soft);color:var(--text-secondary);font-size:13px;">
-            <strong style="display:block;color:var(--text-primary);margin-bottom:6px;">Mã QR thanh toán cọc</strong>
+          <div id="qrWaitingNotice">
+            <strong>Mã QR thanh toán cọc</strong>
             Mã QR sẽ tự động hiển thị khi tiến trình chuyển sang bước <strong>3. Đặt cọc</strong> sau khi cửa hàng duyệt đơn.
           </div>
 
-          <div id="qrPaymentPanel" hidden style="text-align:center;padding:18px;border-radius:var(--radius-md);background:var(--bg-surface-soft);">
-            <div id="qrOrderTitle" style="font-size:13px;font-weight:700;margin-bottom:8px;">QR Thanh toán cọc PayOS</div>
-            <div id="qrBox" style="position:relative;width:150px;height:150px;margin:0 auto 12px;background:#ffffff;border-radius:14px;padding:12px;border:1px solid var(--green-200);overflow:hidden;">
+          <div id="qrPaymentPanel" hidden>
+            <div id="qrOrderTitle">QR Thanh toán cọc PayOS</div>
+            <div id="qrBox">
               <svg viewBox="0 0 100 100" width="100%" height="100%">
                 <rect x="6" y="6" width="26" height="26" rx="4" fill="#132a1c"/><rect x="12" y="12" width="14" height="14" fill="#ffffff"/><rect x="15" y="15" width="8" height="8" fill="#16a34a"/>
                 <rect x="68" y="6" width="26" height="26" rx="4" fill="#132a1c"/><rect x="74" y="12" width="14" height="14" fill="#ffffff"/><rect x="77" y="15" width="8" height="8" fill="#16a34a"/>
@@ -187,12 +188,12 @@
               </svg>
               <div class="qr-scan-beam"></div>
             </div>
-            <div id="qrSuccess" hidden style="padding:14px 0;">
-              <svg width="56" height="56" viewBox="0 0 56 56" style="margin:0 auto;">
+            <div id="qrSuccess" hidden>
+              <svg class="booking-qr-success-icon" width="56" height="56" viewBox="0 0 56 56">
                 <circle cx="28" cy="28" r="25" fill="#dcfce7" stroke="#22c55e" stroke-width="3"/>
                 <path d="M17 29l7 7 15-15" fill="none" stroke="#16a34a" stroke-width="4" stroke-linecap="round"/>
               </svg>
-              <div style="font-weight:800;color:var(--green-700);margin-top:8px;">Webhook hợp lệ! Đã xuất biên nhận điện tử</div>
+              <div class="booking-qr-success-message">Webhook hợp lệ! Đã xuất biên nhận điện tử</div>
             </div>
             <button id="simulateQrPayBtn" class="btn btn-primary btn-premium btn-shine" type="button">Giả lập Webhook thanh toán thành công</button>
           </div>
@@ -206,7 +207,7 @@
        ====================================================================== -->
   <footer class="site-footer">
     <div class="footer-road-edge">
-      <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Nền tảng thuê xe thông minh">
+      <div id="footerCruisingCar" class="road-vehicle" title="RideHub — Nền tảng thuê xe thông minh">
         <svg viewBox="0 0 110 64" width="76" height="32"><path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#4ade80"/><g transform="translate(27,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g><g transform="translate(81,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g></svg>
       </div>
     </div>
@@ -214,15 +215,15 @@
       <div class="footer-grid">
         <!-- Cột 1: Về RideHub -->
         <div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-            <img src="assets/logo-ridehub.png" alt="RideHub Logo" style="height:34px;width:auto;filter:brightness(0) invert(1);" />
-            <span style="font-family:var(--font-display);font-size:1.35rem;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">RideHub</span>
+          <div class="booking-footer-brand">
+            <img src="assets/logo-ridehub.png" alt="RideHub Logo" />
+            <span>RideHub</span>
           </div>
-          <p style="font-size:13px;line-height:1.65;color:#d1fae5;margin:0 0 14px;">
+          <p class="booking-footer-description">
             Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
           </p>
-          <div style="font-size:12.5px;color:#a7f3d0;display:flex;flex-direction:column;gap:5px;">
-            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868" style="color:var(--green-300);text-decoration:none;">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn" style="color:var(--green-300);text-decoration:none;">support@ridehub.vn</a></div>
+          <div class="booking-footer-contact">
+            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn">support@ridehub.vn</a></div>
             <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
           </div>
         </div>
@@ -254,17 +255,17 @@
         <!-- Cột 4: Cam kết an tâm & Tiêu chuẩn -->
         <div>
           <div class="footer-col-title">Cam kết &amp; An toàn</div>
-          <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#d1fae5;line-height:1.55;">
-            <div style="display:flex;align-items:flex-start;gap:8px;">
-              <span style="color:var(--green-400);font-weight:800;">✓</span>
+          <div class="booking-footer-commitments">
+            <div>
+              <span>✓</span>
               <span><strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt Face Match.</span>
             </div>
-            <div style="display:flex;align-items:flex-start;gap:8px;">
-              <span style="color:var(--green-400);font-weight:800;">✓</span>
+            <div>
+              <span>✓</span>
               <span><strong>Minh bạch bàn giao:</strong> Quay video toàn cảnh 360°, ảnh biên bản &amp; ảnh ODO thực tế.</span>
             </div>
-            <div style="display:flex;align-items:flex-start;gap:8px;">
-              <span style="color:var(--green-400);font-weight:800;">✓</span>
+            <div>
+              <span>✓</span>
               <span><strong>Hoàn tiền cọc tự động:</strong> Hoàn 100% trước 24h khi khách hủy theo chính sách.</span>
             </div>
           </div>
@@ -277,11 +278,11 @@
         <div>
           © 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.
         </div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
-          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Bảo mật PayOS VietQR</span>
-          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Chuẩn an toàn eKYC Chip</span>
-          <a href="index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Điều khoản sử dụng</a>
-          <a href="index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+        <div class="booking-footer-bottom-links">
+          <span>Bảo mật PayOS VietQR</span>
+          <span>Chuẩn an toàn eKYC Chip</span>
+          <a href="index.html#storySection">Điều khoản sử dụng</a>
+          <a href="index.html#storySection">Chính sách bảo mật</a>
         </div>
       </div>
     </div>
@@ -290,17 +291,17 @@
   <!-- Cancel & Refund Modal -->
   <div id="cancelModal" class="modal-backdrop" role="dialog" aria-modal="true">
     <div class="modal-dialog">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h3 style="margin:0;">Hủy đơn &amp; Tính tiền hoàn</h3>
-        <button data-close-modal class="btn btn-soft" style="min-height:34px;padding:4px 12px;" type="button">Đóng</button>
+      <div class="booking-refund-modal-heading">
+        <h3>Hủy đơn &amp; Tính tiền hoàn</h3>
+        <button data-close-modal class="btn btn-soft" type="button">Đóng</button>
       </div>
-      <div style="padding:14px;border-radius:12px;background:var(--bg-surface-soft);margin-bottom:14px;font-size:14px;">
+      <div class="booking-refund-summary">
         <div class="summary-row"><span>Tiền cọc đã đóng</span><span>105.000đ</span></div>
         <div class="summary-row"><span>Thời điểm hủy</span><span>Trước giờ nhận 36 giờ</span></div>
         <div class="summary-row"><span>Tỷ lệ hoàn</span><span>100%</span></div>
         <div class="summary-row"><span>Số tiền hoàn dự kiến</span><span>105.000đ</span></div>
       </div>
-      <button id="confirmRefundDemoButton" data-close-modal class="btn btn-primary btn-premium" style="width:100%;" type="button">Xác nhận hủy đơn &amp; Tạo yêu cầu hoàn tiền</button>
+      <button id="confirmRefundDemoButton" data-close-modal class="btn btn-primary btn-premium booking-refund-submit" type="button">Xác nhận hủy đơn &amp; Tạo yêu cầu hoàn tiền</button>
     </div>
   </div>
 

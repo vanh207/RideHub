@@ -64,10 +64,25 @@
         max-width: 900px;
         display: flex;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: space-between;
         margin-bottom: 20px;
         flex-wrap: wrap;
         gap: 8px;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: var(--gray-800);
+        text-decoration: none;
+        font-family: var(--font-display, "Outfit", sans-serif);
+      }
+      .brand-logo-img {
+        height: 34px;
+        width: auto;
+        object-fit: contain;
       }
       .order-info {
         display: flex;

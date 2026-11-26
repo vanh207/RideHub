@@ -14,9 +14,20 @@
     <link rel="stylesheet" href="css/payment-result.css" />
   </head>
   <body>
-    <header id="mainNavbar" class="navbar is-scrolled" aria-label="Điều hướng RideHub"></header>
+    <header id="mainNavbar" class="navbar is-scrolled" aria-label="Điều hướng RideHub">
+      <div class="container navbar-inner">
+        <a href="index.html" class="brand-logo">
+          <img src="assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;object-fit:contain;" />
+          <span>RideHub</span>
+        </a>
+      </div>
+    </header>
     <main class="result-main">
       <section class="result-card" id="resultCard" aria-busy="true">
+      <div class="result-brand">
+        <img src="assets/logo-rh.png" alt="RideHub" class="result-brand-logo" />
+        <span>RideHub</span>
+      </div>
       <div class="state-icon" id="stateIcon" aria-hidden="true">…</div>
       <h1 id="statusTitle">Đang xác minh thanh toán</h1>
       <p class="message" id="statusMessage" role="status" aria-live="polite">
