@@ -1,0 +1,930 @@
+/* ==========================================================================
+   RideHub / GreenRide — Dashboard & Báo Cáo Doanh Thu Cửa Hàng
+   Thiết kế chuẩn UI/UX, hỗ trợ Responsive toàn diện Desktop, Tablet & Mobile
+   ========================================================================== */
+
+:root {
+  --green-50: #f0fdf4;
+  --green-100: #dcfce7;
+  --green-200: #bbf7d0;
+  --green-300: #86efac;
+  --green-400: #4ade80;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --green-700: #15803d;
+  --green-800: #166534;
+  --green-900: #14532d;
+
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-soft: #f4f8f5;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --border-card: rgba(22, 163, 74, 0.16);
+  --border-soft: #e2e8f0;
+
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 14px -2px rgba(22, 163, 74, 0.12), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 28px -6px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.06);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 0.18s;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px 16px 48px;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ==========================================================================
+   1. STORE SUB-NAVIGATION BAR (Đồng bộ các phân hệ cửa hàng)
+   ========================================================================== */
+.store-subnav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.store-subnav::-webkit-scrollbar {
+  display: none;
+}
+
+.store-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all var(--dur-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+.store-nav-link:hover {
+  background: var(--green-50);
+  color: var(--green-800);
+}
+.store-nav-link.is-active {
+  background: linear-gradient(135deg, var(--green-600), var(--green-700));
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.28);
+}
+
+/* ==========================================================================
+   2. PAGE HEADER
+   ========================================================================== */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.page-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+}
+
+.page-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.page-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   3. STATUS BADGES & BUTTONS
+   ========================================================================== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+.status-badge--available {
+  background: var(--green-100);
+  color: var(--green-800);
+  border-color: var(--green-200);
+}
+.status-badge--cleaning {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+.status-badge--settled {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+.status-badge--pending {
+  background: #fef9c3;
+  color: #854d0e;
+  border-color: #fef08a;
+}
+.status-badge--holding {
+  background: #e0f2fe;
+  color: #075985;
+  border-color: #bae6fd;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 38px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--dur-fast) var(--ease-out);
+  white-space: nowrap;
+}
+.btn-sm {
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--green-600), var(--green-700));
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.25);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--green-500), var(--green-600));
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(22, 163, 74, 0.35);
+}
+.btn-soft {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-soft);
+}
+.btn-soft:hover {
+  background: var(--green-50);
+  border-color: var(--green-300);
+  color: var(--green-800);
+}
+.btn-soft.is-active {
+  background: var(--green-100);
+  border-color: var(--green-400);
+  color: var(--green-800);
+  font-weight: 800;
+}
+
+/* ==========================================================================
+   4. STAT CARDS (KPIs)
+   ========================================================================== */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--green-300);
+}
+.stat-card--highlight {
+  background: linear-gradient(135deg, #ffffff 0%, var(--green-50) 100%);
+  border-color: var(--green-400);
+  box-shadow: 0 4px 16px -2px rgba(22, 163, 74, 0.15);
+}
+
+.stat-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+.stat-value.text-green { color: var(--green-700); }
+.stat-value.text-amber { color: #d97706; }
+.stat-value.text-blue { color: #2563eb; }
+
+.stat-trend {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+.stat-trend--up {
+  background: var(--green-100);
+  color: var(--green-800);
+}
+
+.stat-badge-tag {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--bg-surface-soft);
+  color: var(--text-muted);
+  border: 1px solid var(--border-soft);
+  text-transform: uppercase;
+}
+.stat-badge-tag.tag-green { background: var(--green-100); color: var(--green-800); border-color: var(--green-300); }
+.stat-badge-tag.tag-amber { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+.stat-badge-tag.tag-blue { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+
+.stat-footer-text {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   5. DASHBOARD TOOLBAR & CONTROLS
+   ========================================================================== */
+.dashboard-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.segmented-control {
+  display: inline-flex;
+  background: var(--bg-surface-soft);
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  gap: 2px;
+}
+
+.seg-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: var(--radius-xs);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.seg-btn:hover {
+  color: var(--text-primary);
+}
+.seg-btn.is-active {
+  background: #ffffff;
+  color: var(--green-800);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.date-quick-filters {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  max-width: 100%;
+}
+.date-quick-filters .btn {
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.select-input {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--dur-fast);
+}
+.select-input:focus {
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+.select-sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   6. PANEL CARDS & SECTIONS
+   ========================================================================== */
+.panel-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   7. INTERACTIVE REVENUE CHART
+   ========================================================================== */
+.chart-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.chart-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.chart-subtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.legend-color--car { background: #16a34a; }
+.legend-color--scooter { background: #4ade80; }
+.legend-color--trend {
+  background: #f59e0b;
+  height: 3px;
+  width: 16px;
+  border-radius: 999px;
+}
+
+.chart-canvas-container {
+  width: 100%;
+  height: 320px;
+  position: relative;
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, #fbfdfc 0%, #f4f9f5 100%);
+  border: 1px solid var(--border-soft);
+  overflow: hidden;
+}
+
+.revenue-chart-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Interactive SVG Elements */
+.chart-bar-group {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.chart-bar-group:hover {
+  opacity: 0.85;
+}
+.chart-bar-group:hover rect {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.12));
+}
+
+.chart-point {
+  cursor: pointer;
+  transition: transform 0.2s ease, r 0.2s ease;
+}
+.chart-point:hover {
+  r: 6;
+}
+
+/* Chart Summary Strip */
+.chart-summary-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-surface-soft);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--green-100);
+}
+
+.summary-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+.summary-pill-label { color: var(--text-muted); }
+.summary-pill-val { color: var(--text-primary); font-weight: 800; }
+
+/* ==========================================================================
+   8. CHART TOOLTIP (Dynamic Floating Tooltip)
+   ========================================================================== */
+.chart-tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transform: translate(-50%, -100%);
+  transition: opacity 0.12s ease;
+  z-index: 9999;
+  white-space: nowrap;
+}
+.chart-tooltip strong {
+  color: #86efac;
+}
+
+/* ==========================================================================
+   9. BREAKDOWN PROGRESS BARS & TOP VEHICLES
+   ========================================================================== */
+.split-analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.breakdown-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.breakdown-item-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.breakdown-name { font-weight: 600; color: var(--text-primary); }
+.breakdown-amount { font-weight: 800; color: var(--green-800); }
+
+.progress-bar-wrap {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-surface-soft);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s var(--ease-out);
+}
+.fill-car { background: linear-gradient(90deg, #16a34a, #22c55e); }
+.fill-scooter { background: linear-gradient(90deg, #22c55e, #86efac); }
+.fill-surcharge { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.fill-delivery { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+
+.info-note-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--green-50);
+  border: 1px solid var(--green-200);
+  font-size: 12px;
+  color: var(--green-900);
+  line-height: 1.5;
+}
+
+/* Top Vehicles Table */
+.top-vehicles-table-wrap {
+  overflow-x: auto;
+}
+
+.top-vehicles-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.top-vehicles-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--green-200);
+}
+.top-vehicles-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+}
+.top-vehicles-table tr:hover td {
+  background: var(--bg-surface-soft);
+}
+
+/* ==========================================================================
+   10. SETTLEMENT & TRANSACTION TABLE
+   ========================================================================== */
+.table-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.table-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.search-input-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-surface-soft);
+  border: 1px solid var(--border-soft);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+.search-input-box input {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  color: var(--text-primary);
+  width: 220px;
+}
+
+.table-scroll-container {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+}
+
+.revenue-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.revenue-table th {
+  background: var(--bg-surface-soft);
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-soft);
+}
+.revenue-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+}
+.revenue-table tbody tr:hover td {
+  background: var(--bg-surface-soft);
+}
+
+.table-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+/* ==========================================================================
+   11. MODAL (RÚT TIỀN PAYOS)
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  display: none;
+  place-items: center;
+  z-index: 9999;
+  padding: 16px;
+}
+.modal-backdrop.is-open {
+  display: grid;
+}
+
+.modal-dialog {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--shadow-lg);
+  animation: modalPop 0.25s var(--ease-out);
+}
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.payout-balance-box {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--green-50), #ffffff);
+  border: 1px solid var(--green-300);
+}
+.balance-large {
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--green-700);
+  margin-top: 2px;
+}
+
+.float-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 13.5px;
+  padding: 9px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--dur-fast);
+  background: #ffffff;
+}
+.float-input:focus {
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+/* ==========================================================================
+   12. TOAST NOTIFICATIONS
+   ========================================================================== */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10000;
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  padding: 12px 18px;
+  background: #0f172a;
+  color: #ffffff;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: toastIn 0.2s var(--ease-out);
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   13. RESPONSIVE MEDIA QUERIES (MOBILE, TABLET)
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .split-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 14px 10px 36px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .page-header-actions {
+    width: 100%;
+  }
+  .page-header-actions .btn {
+    flex: 1;
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .stat-value {
+    font-size: 1.45rem;
+  }
+
+  .dashboard-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .toolbar-group {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .toolbar-group:last-child {
+    margin-left: 0 !important;
+  }
+  .select-input {
+    width: 100%;
+  }
+
+  .chart-canvas-container {
+    height: 280px;
+  }
+  .chart-header {
+    flex-direction: column;
+  }
+
+  .table-header-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .table-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-input-box {
+    width: 100%;
+  }
+  .search-input-box input {
+    width: 100%;
+  }
+
+  .table-footer-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+  .segmented-control {
+    width: 100%;
+  }
+  .seg-btn {
+    flex: 1;
+    text-align: center;
+  }
+  .chart-summary-strip {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
