@@ -1,0 +1,58 @@
+@media (max-width: 640px) {
+  .brand-logo {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .navbar .btn,
+  .navbar .hamburger-btn,
+  .subpage-hero .btn,
+  .form-input,
+  .form-select,
+  .btn,
+  .footer-links-list a,
+  .footer-contact a {
+    min-height: 44px !important;
+  }
+
+  .subpage-hero {
+    padding-top: 96px;
+    padding-bottom: 32px;
+  }
+
+  .subpage-hero .section-title {
+    overflow-wrap: anywhere;
+  }
+
+  .subpage-hero .btn {
+    padding: 8px 14px;
+  }
+
+  .site-footer a,
+  .footer-links-list a,
+  .footer-contact a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px !important;
+  }
+
+  .chat-fab,
+  .chatCloseBtn,
+  .chat-quick-pill {
+    min-width: 44px;
+    min-height: 44px !important;
+    padding: 10px 14px;
+  }
+
+  .chat-quick-replies {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 360px) {
+  #tripsGrid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}

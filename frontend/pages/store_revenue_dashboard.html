@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Cửa Hàng &amp; Báo Cáo Doanh Thu — RideHub</title>
+  
+  <!-- Font chữ tiêu chuẩn từ hệ thống RideHub -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS riêng biệt được bóc tách hoàn chỉnh cho Dashboard & Doanh Thu -->
+  <link rel="stylesheet" href="css/store_revenue_dashboard.css" />
+</head>
+<body>
+  <!-- Container hiển thị thông báo Toast -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Tooltip động theo dõi chuột trên biểu đồ -->
+  <div id="revenueChartTooltip" class="chart-tooltip"></div>
+
+  <div class="container">
+    
+    <!-- Thanh điều hướng các phân hệ Cửa hàng (Sub-navigation bar) -->
+    <nav class="store-subnav" aria-label="Phân hệ quản lý cửa hàng">
+      <a href="dashboard-doanh-thu.html" class="store-nav-link is-active">
+        <span>📊</span> Dashboard &amp; Doanh thu
+      </a>
+      <a href="giao-dien-cua-hang.html" class="store-nav-link">
+        <span>🏬</span> Tổng quan &amp; Cảnh báo
+      </a>
+      <a href="quan-ly-don-dat.html" class="store-nav-link">
+        <span>📋</span> Duyệt &amp; Hủy đơn đặt xe
+      </a>
+      <a href="quan-ly-xe.html" class="store-nav-link">
+        <span>🏍️</span> Kho xe &amp; Thêm/Sửa xe
+      </a>
+      <a href="lich-xe.html" class="store-nav-link">
+        <span>📅</span> Lịch xe ngày &amp; tuần
+      </a>
+      <a href="delivery-points.html" class="store-nav-link">
+        <span>📍</span> Điểm giao nhận &amp; Biểu phí
+      </a>
+      <a href="store-portal.html" class="store-nav-link">
+        <span>🏛️</span> Cổng Cửa hàng (Portal gốc)
+      </a>
+    </nav>
+
+    <!-- Header Trang & Thông tin Cửa hàng -->
+    <div class="page-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+          <h1 class="page-title">
+            <span>Dashboard &amp; Báo Cáo Doanh Thu</span>
+          </h1>
+          <span class="status-badge status-badge--available">GreenRide Q.1 • Đối tác 5★</span>
+          <span class="status-badge status-badge--cleaning">🟢 Đồng bộ PayOS VietQR</span>
+        </div>
+        <p class="page-desc">
+          Theo dõi tổng doanh thu, phân tích xu hướng theo ngày/tháng, cơ cấu nguồn thu và đối soát thanh toán cọc tự động.
+        </p>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="page-header-actions">
+        <button id="exportReportBtn" class="btn btn-soft" type="button" title="Xuất báo cáo Excel / CSV">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Xuất Báo Cáo (CSV)</span>
+        </button>
+        <button id="openPayoutModalBtn" class="btn btn-primary btn-premium" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+            <line x1="2" y1="10" x2="22" y2="10"></line>
+          </svg>
+          <span>Yêu cầu Rút tiền / Đối soát</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- KHỐI 1: CÁC THẺ THỐNG KÊ (KPI STAT CARDS) -->
+    <section class="stat-grid" aria-label="Chỉ số hiệu suất kinh doanh">
+      
+      <!-- Thẻ 1: Tổng doanh thu gộp -->
+      <div class="stat-card stat-card--highlight">
+        <div class="stat-card-head">
+          <span class="stat-label">Tổng doanh thu gộp</span>
+          <span class="stat-trend stat-trend--up">↑ +16.4%</span>
+        </div>
+        <div id="statGrossRevenue" class="stat-value" data-countup="48650000" data-suffix="đ">0đ</div>
+        <div class="stat-footer-text">So với cùng kỳ tháng trước (41.800.000đ)</div>
+      </div>
+
+      <!-- Thẻ 2: Thực nhận sau phí nền tảng 10% -->
+      <div class="stat-card">
+        <div class="stat-card-head">
+          <span class="stat-label">Thực nhận (Sau phí sàn 10%)</span>
+          <span class="stat-badge-tag">Khả dụng</span>
+        </div>
+        <div id="statNetRevenue" class="stat-value text-green" data-countup="43785000" data-suffix="đ">0đ</div>
+        <div class="stat-footer-text">Phí hệ thống: <strong id="statPlatformFee">4.865.000đ</strong></div>
+      </div>
+
+      <!-- Thẻ 3: Tiền cọc đang giữ -->
+      <div class="stat-card">
+        <div class="stat-card-head">
+          <span class="stat-label">Tiền cọc thế chân đang giữ</span>
+          <span class="stat-badge-tag tag-amber">Ký quỹ</span>
+        </div>
+        <div id="statDepositHolding" class="stat-value text-amber" data-countup="15000000" data-suffix="đ">0đ</div>
+        <div class="stat-footer-text">Từ 18 cuốc xe đang trong lịch trình thuê</div>
+      </div>
+
+      <!-- Thẻ 4: Tổng lượt thuê hoàn tất -->
+      <div class="stat-card">
+        <div class="stat-card-head">
+          <span class="stat-label">Tổng lượt thuê thành công</span>
+          <span class="stat-trend stat-trend--up">↑ 98.2%</span>
+        </div>
+        <div id="statCompletedTrips" class="stat-value" data-countup="58" data-suffix=" cuốc">0 cuốc</div>
+        <div class="stat-footer-text">Trung bình: <strong id="statAov">838.000đ</strong> / cuốc</div>
+      </div>
+
+      <!-- Thẻ 5: Tỷ lệ lấp đầy kho xe -->
+      <div class="stat-card">
+        <div class="stat-card-head">
+          <span class="stat-label">Tỷ lệ lấp đầy kho xe</span>
+          <span class="stat-badge-tag tag-green">Tối ưu</span>
+        </div>
+        <div id="statOccupancyRate" class="stat-value text-green" data-countup="84.5" data-suffix="%">0%</div>
+        <div class="stat-footer-text">20/24 xe đang lăn bánh hoặc đã giữ chỗ</div>
+      </div>
+
+      <!-- Thẻ 6: Doanh thu phát sinh phụ phí -->
+      <div class="stat-card">
+        <div class="stat-card-head">
+          <span class="stat-label">Phụ phí phát sinh thu thêm</span>
+          <span class="stat-badge-tag tag-blue">Phụ thu</span>
+        </div>
+        <div id="statSurchargeRevenue" class="stat-value text-blue" data-countup="2450000" data-suffix="đ">0đ</div>
+        <div class="stat-footer-text">Quá giờ, vượt km, vệ sinh &amp; sạc pin</div>
+      </div>
+
+    </section>
+
+    <!-- KHỐI 2: THANH BỘ LỌC THỜI GIAN & CHẾ ĐỘ XEM BIỂU ĐỒ -->
+    <div class="dashboard-toolbar">
+      <!-- Nhóm 1: Chuyển đổi chế độ xem: Theo Ngày vs Theo Tháng -->
+      <div class="toolbar-group">
+        <span class="toolbar-label">Chế độ xem:</span>
+        <div class="segmented-control" role="group" aria-label="Chế độ biểu đồ">
+          <button id="viewDailyBtn" class="seg-btn is-active" type="button" data-view="daily">
+            📅 Theo Ngày
+          </button>
+          <button id="viewMonthlyBtn" class="seg-btn" type="button" data-view="monthly">
+            📊 Theo Tháng
+          </button>
+        </div>
+      </div>
+
+      <!-- Nhóm 2: Chọn khoảng thời gian nhanh -->
+      <div class="toolbar-group">
+        <span class="toolbar-label">Khoảng thời gian:</span>
+        <div class="date-quick-filters" id="dateQuickFilters">
+          <button type="button" class="btn btn-soft is-active" data-range="this_month">Tháng 11/2026</button>
+          <button type="button" class="btn btn-soft" data-range="last_7_days">7 ngày qua</button>
+          <button type="button" class="btn btn-soft" data-range="last_30_days">30 ngày qua</button>
+          <button type="button" class="btn btn-soft" data-range="this_year">Cả năm 2026</button>
+        </div>
+      </div>
+
+      <!-- Nhóm 3: Lọc loại phương tiện -->
+      <div class="toolbar-group" style="margin-left:auto;">
+        <span class="toolbar-label">Phân loại xe:</span>
+        <select id="vehicleCategoryFilter" class="select-input" aria-label="Lọc theo loại xe">
+          <option value="all">Tất cả phương tiện (Xe máy &amp; Ô tô)</option>
+          <option value="scooter">Chỉ xe máy điện (Feliz S, Klara S...)</option>
+          <option value="car">Chỉ ô tô điện (VF 5 Plus, VF 8...)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- KHỐI 3: BIỂU ĐỒ DOANH THU TƯƠNG TÁC (INTERACTIVE REVENUE CHART) -->
+    <section class="panel-card chart-section" aria-label="Biểu đồ phân tích doanh thu">
+      <div class="chart-header">
+        <div>
+          <h2 id="chartTitle" class="chart-title">Biểu đồ doanh thu theo Ngày — Tháng 11/2026</h2>
+          <div id="chartSubtitle" class="chart-subtitle">
+            Rê chuột hoặc chạm vào từng cột/điểm để xem chi tiết doanh thu xe máy, ô tô điện và số cuốc hoàn tất.
+          </div>
+        </div>
+
+        <!-- Chú thích màu sắc (Legend) -->
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-color legend-color--car"></span>
+            <span>Ô tô điện</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color legend-color--scooter"></span>
+            <span>Xe máy điện</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color legend-color--trend"></span>
+            <span>Đường xu hướng (VNĐ)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Container vẽ SVG Biểu đồ tương tác -->
+      <div class="chart-canvas-container" id="chartCanvasContainer">
+        <svg id="revenueChartSvg" class="revenue-chart-svg" viewBox="0 0 960 340" preserveAspectRatio="none">
+          <!-- Các trục tọa độ, cột bar chart và spline curve render tự động bằng JS -->
+        </svg>
+      </div>
+
+      <!-- Tóm tắt số liệu nổi bật bên dưới biểu đồ -->
+      <div class="chart-summary-strip">
+        <div class="summary-pill">
+          <span class="summary-pill-label">Doanh thu cao nhất:</span>
+          <strong id="sumPeakRevenue" class="summary-pill-val">3.650.000đ (Ngày 15/11)</strong>
+        </div>
+        <div class="summary-pill">
+          <span class="summary-pill-label">Doanh thu trung bình:</span>
+          <strong id="sumAvgRevenue" class="summary-pill-val">1.621.000đ / ngày</strong>
+        </div>
+        <div class="summary-pill">
+          <span class="summary-pill-label">Tỷ trọng Ô tô vs Xe máy:</span>
+          <strong id="sumRatio" class="summary-pill-val">58% Ô tô • 42% Xe máy</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- KHỐI 4: GRID 2 CỘT — CƠ CẤU DOANH THU & TOP XE SINH LỜI NHẤT -->
+    <div class="split-analytics-grid">
+      
+      <!-- Cột Trái: Cơ cấu nguồn thu theo loại hình xe & dịch vụ -->
+      <div class="panel-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h3 style="margin:0;font-size:1.15rem;font-family:var(--font-display);">Cơ cấu nguồn thu</h3>
+          <span class="status-badge status-badge--available">Tỷ trọng %</span>
+        </div>
+
+        <div class="breakdown-list">
+          <!-- Mục 1: Ô tô điện -->
+          <div class="breakdown-item">
+            <div class="breakdown-item-header">
+              <span class="breakdown-name">🚗 Ô tô điện tự lái (VF 5, VF 8)</span>
+              <strong class="breakdown-amount">28.217.000đ (58%)</strong>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill fill-car" style="width: 58%;"></div>
+            </div>
+          </div>
+
+          <!-- Mục 2: Xe máy điện -->
+          <div class="breakdown-item">
+            <div class="breakdown-item-header">
+              <span class="breakdown-name">🛵 Xe máy điện (Feliz S, Klara, Dat Bike)</span>
+              <strong class="breakdown-amount">17.983.000đ (37%)</strong>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill fill-scooter" style="width: 37%;"></div>
+            </div>
+          </div>
+
+          <!-- Mục 3: Phụ thu quá giờ & vượt km -->
+          <div class="breakdown-item">
+            <div class="breakdown-item-header">
+              <span class="breakdown-name">⏱️ Phụ phí quá giờ &amp; vượt quãng đường</span>
+              <strong class="breakdown-amount">1.650.000đ (3.4%)</strong>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill fill-surcharge" style="width: 15%;"></div>
+            </div>
+          </div>
+
+          <!-- Mục 4: Phí giao nhận tận nơi -->
+          <div class="breakdown-item">
+            <div class="breakdown-item-header">
+              <span class="breakdown-name">📍 Phí giao xe tận nơi (Bán kính 5-15km)</span>
+              <strong class="breakdown-amount">800.000đ (1.6%)</strong>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill fill-delivery" style="width: 10%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lưu ý đối soát -->
+        <div class="info-note-box" style="margin-top:16px;">
+          <span>💡</span>
+          <div>
+            <strong>Chính sách phân chia:</strong> Cửa hàng nhận <strong>90%</strong> doanh thu cho thuê. Nền tảng RideHub thu <strong>10%</strong> chi phí vận hành, bảo hiểm kết nối và cổng thanh toán VietQR.
+          </div>
+        </div>
+      </div>
+
+      <!-- Cột Phải: Top 5 xe đem lại doanh thu cao nhất -->
+      <div class="panel-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h3 style="margin:0;font-size:1.15rem;font-family:var(--font-display);">Top 5 xe sinh lời cao nhất</h3>
+          <span class="status-badge status-badge--cleaning">Tháng 11/2026</span>
+        </div>
+
+        <div class="top-vehicles-table-wrap">
+          <table class="top-vehicles-table">
+            <thead>
+              <tr>
+                <th>Xe &amp; Biển số</th>
+                <th>Số ngày thuê</th>
+                <th>Doanh thu</th>
+                <th>Lấp đầy</th>
+              </tr>
+            </thead>
+            <tbody id="topVehiclesTableBody">
+              <!-- Render động bằng JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- KHỐI 5: BẢNG LỊCH SỬ ĐỐI SOÁT GIAO DỊCH & DOANH THU CHI TIẾT -->
+    <section class="panel-card" aria-label="Bảng đối soát giao dịch">
+      <div class="table-header-row">
+        <div>
+          <h2 style="margin:0;font-size:1.2rem;font-family:var(--font-display);">
+            Nhật ký Giao dịch &amp; Bảng đối soát PayOS VietQR
+          </h2>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:3px;">
+            Chi tiết các cuốc thuê xe đã hoàn thành, hoàn trả cọc và đối soát tiền về tài khoản ngân hàng.
+          </div>
+        </div>
+
+        <!-- Search & Filter inline -->
+        <div class="table-controls">
+          <div class="search-input-box">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input id="transactionSearchInput" type="text" placeholder="Tìm theo mã đơn, tên xe, khách thuê..." />
+          </div>
+
+          <select id="payoutStatusFilter" class="select-input select-sm">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="settled">Đã đối soát (Tiền đã về)</option>
+            <option value="pending_settle">Chờ giải ngân định kỳ</option>
+            <option value="holding_deposit">Đang giữ cọc</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Bọc bảng hỗ trợ cuộn mượt mà trên mobile -->
+      <div class="table-scroll-container">
+        <table class="revenue-table" id="transactionTable">
+          <thead>
+            <tr>
+              <th>Mã đơn</th>
+              <th>Thời gian hoàn tất</th>
+              <th>Phương tiện</th>
+              <th>Khách thuê</th>
+              <th>Tổng tiền thuê</th>
+              <th>Phí sàn (10%)</th>
+              <th>Thực nhận</th>
+              <th>Tiền cọc</th>
+              <th>Trạng thái PayOS</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="transactionTableBody">
+            <!-- Render động bằng JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Bảng: Phân trang & Tổng kết trang -->
+      <div class="table-footer-row">
+        <div id="tableRecordCount" style="font-size:13px;color:var(--text-secondary);">
+          Hiển thị <strong>8</strong> trên tổng số <strong>58</strong> giao dịch
+        </div>
+        <div class="pagination-buttons">
+          <button class="btn btn-soft btn-sm" type="button" disabled>‹ Trang trước</button>
+          <button class="btn btn-primary btn-sm" type="button">1</button>
+          <button class="btn btn-soft btn-sm" type="button">2</button>
+          <button class="btn btn-soft btn-sm" type="button">3</button>
+          <button class="btn btn-soft btn-sm" type="button">Trang sau ›</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ======================================================================
+       MODAL YÊU CẦU RÚT TIỀN & ĐỐI SOÁT PAYOS VIETQR
+       ====================================================================== -->
+  <div id="payoutModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--border-soft);">
+        <div>
+          <h3 style="margin:0;font-size:1.25rem;font-family:var(--font-display);">Yêu cầu Rút tiền &amp; Đối soát doanh thu</h3>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Cổng thanh toán tự động VietQR 24/7 (PayOS Gateway)</div>
+        </div>
+        <button id="closePayoutModalBtn" class="btn btn-soft btn-sm" type="button">✕ Đóng</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px;">
+        <!-- Khối hiển thị số dư khả dụng -->
+        <div class="payout-balance-box">
+          <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;font-weight:700;">Số dư doanh thu khả dụng rút ngay:</div>
+          <div class="balance-large">43.785.000 VNĐ</div>
+          <div style="font-size:11.5px;color:var(--green-700);margin-top:4px;">
+            ✓ Đã khấu trừ 10% phí vận hành nền tảng • Miễn phí giao dịch Napas 24/7
+          </div>
+        </div>
+
+        <!-- Thông tin tài khoản thụ hưởng của cửa hàng -->
+        <div style="padding:12px 14px;border-radius:var(--radius-sm);background:var(--bg-surface-soft);border:1px solid var(--green-100);display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:800;color:var(--green-900);text-transform:uppercase;">Tài khoản ngân hàng thụ hưởng đã liên kết:</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:36px;height:36px;border-radius:8px;background:#003b73;color:#fff;display:grid;place-items:center;font-weight:800;font-size:12px;">MB</div>
+            <div>
+              <strong style="font-size:14px;display:block;">090123456789 (MB Bank)</strong>
+              <span style="font-size:12px;color:var(--text-secondary);">Chủ TK: CTY TNHH GREENRIDE VIETNAM</span>
+            </div>
+            <span class="status-badge status-badge--available" style="margin-left:auto;font-size:10px;">Đã định danh</span>
+          </div>
+        </div>
+
+        <!-- Form nhập số tiền rút -->
+        <div>
+          <label style="display:block;font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">Số tiền muốn rút về tài khoản (VNĐ):</label>
+          <div style="position:relative;">
+            <input id="payoutAmountInput" class="float-input" type="number" value="43785000" min="100000" step="50000" style="font-size:1.1rem;font-weight:800;color:var(--green-800);" />
+            <button id="withdrawAllBtn" class="btn btn-soft btn-sm" type="button" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;padding:3px 8px;">
+              Rút tối đa
+            </button>
+          </div>
+          <div style="font-size:11.5px;color:var(--text-muted);margin-top:4px;">Hạn mức tối thiểu: 100.000đ • Tiền về tài khoản trong 30 giây</div>
+        </div>
+
+        <div>
+          <label style="display:block;font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">Ghi chú đối soát (tùy chọn):</label>
+          <input id="payoutNoteInput" class="float-input" type="text" placeholder="VD: Đối soát doanh thu tuần 2 tháng 11/2026..." />
+        </div>
+
+        <!-- Nút gửi lệnh rút tiền -->
+        <button id="confirmPayoutBtn" class="btn btn-primary btn-premium" style="width:100%;margin-top:6px;" type="button">
+          Xác nhận tạo lệnh chuyển khoản VietQR ngay →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nạp file JavaScript xử lý tính toán, lọc dữ liệu và vẽ biểu đồ tương tác -->
+  <script src="../js/store_revenue_dashboard.js"></script>
+</body>
+</html>

@@ -253,3 +253,50 @@ class StoreOrderListResponse(BaseModel):
     metrics: StoreOrderKPIMetrics
     orders: list[StoreOrderItem]
 
+
+class BookingReviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    rating: int = Field(..., ge=1, le=5)
+    comment: Optional[str] = Field(None, max_length=2000)
+
+
+class BookingReviewResponse(BaseModel):
+    success: bool = True
+    message: str = "Đánh giá đơn thuê đã được gửi."
+    id: int
+    booking_id: int
+    reviewer_id: int
+    rating: int
+    comment: Optional[str] = None
+    created_at: datetime
+
+
+class BookingComplaintRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    category: str = Field(..., min_length=1, max_length=50)
+    subject: str = Field(..., min_length=3, max_length=200)
+    description: str = Field(..., min_length=3, max_length=5000)
+    against_user_id: Optional[int] = Field(None, gt=0)
+    evidence_urls: list[str] = Field(default_factory=list, max_length=10)
+
+
+class BookingComplaintResponse(BaseModel):
+    success: bool = True
+    message: str = "Khiếu nại đã được gửi."
+    id: int
+    booking_id: int
+    reporter_id: int
+    category: str
+    subject: str
+    description: str
+    status: str
+    priority: str
+    created_at: datetime
+
+
+# Tên ngắn dùng thuận tiện khi tích hợp/kiểm thử.
+ReviewCreateRequest = BookingReviewRequest
+ComplaintCreateRequest = BookingComplaintRequest
+
