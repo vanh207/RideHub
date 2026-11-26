@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#16a34a" />
   <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
   <title>Hàng chờ giao dịch bất thường — RideHub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -11,45 +12,107 @@
   <link rel="stylesheet" href="./css/operations-anomalies.css" />
 </head>
 <body>
-  <main class="page-shell">
-    <header class="page-header">
-      <div>
-        <a class="back-link" href="../index.html">
-          <img src="../assets/logo-rh.png" alt="RideHub" class="back-link-logo" />
-          <span>← RideHub</span>
+  <!-- ========================================================================
+       1. THANH HEADER NAVBAR CHUẨN RIDEHUB
+       ======================================================================== -->
+  <header id="mainNavbar" class="navbar is-scrolled" aria-label="Điều hướng RideHub">
+    <div class="container navbar-inner">
+      <a href="../index.html" class="brand-logo" aria-label="Trang chủ RideHub">
+        <img src="../assets/logo-rh.png" alt="RideHub" class="brand-logo-img" />
+        <span>RideHub</span>
+      </a>
+      <nav class="nav-links" aria-label="Menu vận hành">
+        <a href="../index.html" class="nav-link">Trang chủ</a>
+        <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+        <a href="../trips.html" class="nav-link">Chuyến đi</a>
+        <a href="operations-anomalies.html" class="nav-link is-active">Giao dịch bất thường</a>
+        <a href="admin-ops.html" class="nav-link">Trung tâm Admin</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="../index.html" class="btn btn-soft">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Về trang chủ</span>
         </a>
-        <p class="eyebrow">TRUNG TÂM VẬN HÀNH</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       2. NỘI DUNG CHÍNH (PAGE SHELL)
+       ======================================================================== -->
+  <main class="page-shell">
+    <!-- Breadcrumb điều hướng -->
+    <nav class="breadcrumb-bar" aria-label="Đường dẫn trang">
+      <a class="back-link" href="../index.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Trang chủ</span>
+      </a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Trung tâm vận hành</span>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Hàng chờ giao dịch bất thường</span>
+    </nav>
+
+    <!-- Tiêu đề trang & Thao tác làm mới -->
+    <header class="page-header">
+      <div class="page-header-text">
+        <p class="eyebrow">TRUNG TÂM VẬN HÀNH RIDEHUB</p>
         <h1>Hàng chờ giao dịch bất thường</h1>
         <p class="intro">Theo dõi giao dịch cần đối soát và xác nhận các khoản hoàn tiền đang chờ xử lý.</p>
       </div>
-      <button id="refreshButton" class="button button--secondary" type="button">Làm mới</button>
+      <div class="page-header-actions">
+        <button id="refreshButton" class="btn btn-primary btn-refresh-queue" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Làm mới</span>
+        </button>
+      </div>
     </header>
 
+    <!-- Thông báo quyền hạn khi chưa đăng nhập Admin/Operator -->
     <section id="accessMessage" class="notice" role="status" hidden>
       <p id="accessMessageText"></p>
-      <a id="loginLink" class="button button--primary" href="./auth.html">Đăng nhập</a>
+      <div class="notice-actions">
+        <a id="loginLink" class="btn btn-primary" href="./auth.html">Đăng nhập tài khoản Admin</a>
+        <button id="quickLoginAdminBtn" class="btn btn-soft" type="button">Đăng nhập nhanh Demo Admin</button>
+        <button id="viewDemoDataBtn" class="btn btn-soft" type="button">Xem trước dữ liệu mẫu</button>
+      </div>
     </section>
 
+    <!-- Khối dữ liệu hàng chờ khi đã xác thực -->
     <section id="queueContent" hidden>
+      <!-- 4 Thẻ số liệu thống kê -->
       <div class="stats" aria-label="Thống kê hàng chờ">
-        <article class="stat-card"><span id="statTotal">0</span><span>Tổng giao dịch</span></article>
-        <article class="stat-card"><span id="statPending">0</span><span>Chờ hoàn tiền</span></article>
-        <article class="stat-card"><span id="statReview">0</span><span>Cần kiểm tra</span></article>
-        <article class="stat-card"><span id="statCompleted">0</span><span>Đã hoàn tiền</span></article>
+        <article class="stat-card">
+          <span id="statTotal">0</span>
+          <span>Tổng giao dịch</span>
+        </article>
+        <article class="stat-card">
+          <span id="statPending">0</span>
+          <span>Chờ hoàn tiền</span>
+        </article>
+        <article class="stat-card">
+          <span id="statReview">0</span>
+          <span>Cần kiểm tra</span>
+        </article>
+        <article class="stat-card">
+          <span id="statCompleted">0</span>
+          <span>Đã hoàn tiền</span>
+        </article>
       </div>
 
+      <!-- Khối danh sách giao dịch & Bộ lọc -->
       <section class="queue-card" aria-labelledby="queueTitle">
         <div class="queue-heading">
-          <div>
+          <div class="queue-heading-main">
             <h2 id="queueTitle">Danh sách giao dịch</h2>
             <p id="lastUpdated" class="muted">Đang tải dữ liệu…</p>
           </div>
           <div class="filters">
-            <label>
+            <label class="filter-search-wrap">
               <span class="sr-only">Tìm giao dịch</span>
               <input id="searchInput" type="search" placeholder="Tìm mã giao dịch, đơn, khách hàng…" autocomplete="off" />
             </label>
-            <label>
+            <label class="filter-select-wrap">
               <span class="sr-only">Lọc trạng thái</span>
               <select id="statusFilter">
                 <option value="all">Tất cả trạng thái</option>
@@ -82,8 +145,9 @@
     </section>
   </main>
 
-  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-
+  <!-- ========================================================================
+       3. MODAL XÁC NHẬN HOÀN TIỀN
+       ======================================================================== -->
   <dialog id="refundDialog" class="refund-dialog">
     <form method="dialog">
       <p class="eyebrow">XÁC NHẬN THAO TÁC</p>
@@ -92,12 +156,35 @@
       <label class="note-label" for="refundNote">Ghi chú (không bắt buộc)</label>
       <textarea id="refundNote" rows="3" maxlength="500" placeholder="Bổ sung ghi chú cho lần hoàn tiền này"></textarea>
       <div class="dialog-actions">
-        <button id="cancelRefundButton" class="button button--secondary" type="button">Quay lại</button>
-        <button id="confirmRefundButton" class="button button--danger" type="button">Xác nhận hoàn tiền</button>
+        <button id="cancelRefundButton" class="btn btn-soft" type="button">Quay lại</button>
+        <button id="confirmRefundButton" class="btn btn-danger" type="button">Xác nhận hoàn tiền</button>
       </div>
     </form>
   </dialog>
 
+  <!-- ========================================================================
+       4. FOOTER CHUẨN RIDEHUB
+       ======================================================================== -->
+  <footer id="mainFooter" class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="../assets/logo-rh.png" alt="RideHub" class="footer-logo" />
+        <span class="footer-brand-name">RideHub</span>
+        <span class="footer-meta">© 2026 Nền tảng thuê xe thông minh Việt Nam.</span>
+      </div>
+      <div class="footer-links">
+        <span class="footer-pill">Bảo mật PayOS VietQR</span>
+        <span class="footer-pill">Hệ thống vận hành 24/7</span>
+        <a href="../privacy-policy.html">Chính sách bảo mật</a>
+        <a href="../index.html#storySection">Điều khoản dịch vụ</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast phản hồi -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <!-- Scripts -->
   <script src="../js/config.js"></script>
   <script src="../js/operations-anomalies.js"></script>
 </body>

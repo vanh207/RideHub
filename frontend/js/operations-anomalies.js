@@ -202,7 +202,97 @@
     renderStats();
   }
 
+  const MOCK_ANOMALIES = [
+    {
+      id: 1,
+      transaction_code: 'RH-TXN-902148',
+      booking_id: 1042,
+      customer_name: 'Trần Văn Hoàng',
+      vehicle_name: 'VinFast VF3 Plus',
+      vehicle_plate: '51K-928.31',
+      amount: 450000,
+      anomaly_type: 'AMOUNT_MISMATCH',
+      reason: 'Số tiền webhook nhận được (450.000đ) không khớp số tiền cọc (500.000đ)',
+      occurred_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+      refund_status: null,
+      can_refund: true,
+      refund_id: 88,
+      transaction_status: 'AMOUNT_MISMATCH'
+    },
+    {
+      id: 2,
+      transaction_code: 'RH-TXN-883192',
+      booking_id: 1038,
+      customer_name: 'Lê Thị Thu Cúc',
+      vehicle_name: 'Dat Bike Weaver++',
+      vehicle_plate: '59P1-884.21',
+      amount: 150000,
+      anomaly_type: 'LATE_PAYMENT',
+      reason: 'Thanh toán PayOS gửi về sau khi phiên giữ chỗ 30 phút đã hết hạn',
+      occurred_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+      refund_status: null,
+      can_refund: true,
+      refund_id: 89,
+      transaction_status: 'LATE_PAYMENT'
+    },
+    {
+      id: 3,
+      transaction_code: 'RH-TXN-774012',
+      booking_id: 1025,
+      customer_name: 'Nguyễn Văn An',
+      vehicle_name: 'VinFast Feliz S',
+      vehicle_plate: '59A-123.45',
+      amount: 96000,
+      anomaly_type: 'PENDING_REFUND',
+      reason: 'Khách hàng hủy đơn trước 24 giờ - Hoàn tiền cọc 100% tự động',
+      occurred_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+      refund_status: 'SUCCESS',
+      can_refund: false,
+      refund_id: 85,
+      transaction_status: 'SUCCESS'
+    }
+  ];
+
+  function loadDemoData() {
+    anomalies = MOCK_ANOMALIES;
+    queueContent.hidden = false;
+    accessMessage.hidden = true;
+    document.getElementById('lastUpdated').textContent = `Dữ liệu mẫu lúc ${formatDate(new Date().toISOString())}`;
+    queueStatus.textContent = `${anomalies.length} giao dịch mẫu đang hiển thị.`;
+    renderRows();
+    showToast('Đã nạp dữ liệu giao dịch mẫu để kiểm tra giao diện.', false);
+  }
+
+  async function quickLoginAdmin() {
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/auth/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ username: 'admin@ridehub.vn', password: 'password123' })
+      });
+      const data = await res.json();
+      if (data && data.access_token) {
+        localStorage.setItem('ridehub_token', data.access_token);
+        localStorage.setItem('ridehub_auth_token', data.access_token);
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('ridehub_current_user', JSON.stringify({
+          name: 'Admin Hệ thống',
+          email: 'admin@ridehub.vn',
+          role: 'admin'
+        }));
+        showToast('Đã đăng nhập tài khoản Admin hệ thống thành công!', false);
+        await loadQueue(true);
+        return;
+      }
+    } catch (_) {}
+    window.location.href = './auth.html?next=' + encodeURIComponent(window.location.pathname);
+  }
+
   async function loadQueue(showSuccessToast) {
+    if (window.location.search.includes('demo=true')) {
+      loadDemoData();
+      return;
+    }
     if (!getToken()) {
       showAccessMessage('Bạn cần đăng nhập bằng tài khoản Admin hoặc Điều hành để xem hàng chờ.', true);
       return;
@@ -210,7 +300,7 @@
     refreshButton.disabled = true;
     queueStatus.textContent = 'Đang tải hàng chờ giao dịch…';
     try {
-      const payload = await apiRequest('/payments/operations/anomalies?limit=500');
+      const payload = await apiRequest('/payments/operations/anomalies?page_size=200');
       anomalies = Array.isArray(payload) ? payload : [];
       queueContent.hidden = false;
       accessMessage.hidden = true;
@@ -284,6 +374,11 @@
   refreshButton.addEventListener('click', () => loadQueue(true));
   document.getElementById('cancelRefundButton').addEventListener('click', () => refundDialog.close());
   confirmRefundButton.addEventListener('click', confirmRefund);
+
+  const quickLoginBtn = document.getElementById('quickLoginAdminBtn');
+  if (quickLoginBtn) quickLoginBtn.addEventListener('click', quickLoginAdmin);
+  const viewDemoBtn = document.getElementById('viewDemoDataBtn');
+  if (viewDemoBtn) viewDemoBtn.addEventListener('click', loadDemoData);
 
   Promise.resolve(window.envConfigPromise)
     .catch(() => undefined)
