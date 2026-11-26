@@ -14,8 +14,8 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY_SESSION = 'ridehub_chat_session_id';
-  const STORAGE_KEY_ESCALATED = 'ridehub_chat_is_escalated';
+  const STORAGE_KEY_SESSION_PREFIX = 'ridehub_chat_session_';
+  const STORAGE_KEY_ESCALATED_PREFIX = 'ridehub_chat_escalated_';
 
   // Dùng CONFIG.API_BASE_URL từ config.js nếu có (hỗ trợ cả Live Server lẫn FastAPI port 8000)
   // CONFIG được load bởi js/config.js (phải load trước chat-widget.js)
@@ -31,21 +31,82 @@
     return 'http://127.0.0.1:8000/api/chat';
   }
 
-  // 1. Quản lý Session ID chuẩn UUIDv4
-  function getOrCreateSessionId() {
-    let sessionId = localStorage.getItem(STORAGE_KEY_SESSION);
-    if (!sessionId || !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(sessionId)) {
+  // Xác định định danh tài khoản hiện tại để đồng bộ lịch sử chat theo đúng user
+  function getCurrentAccountKey() {
+    try {
+      const token = localStorage.getItem('ridehub_token') || sessionStorage.getItem('ridehub_token') || '';
+      if (token && token.split('.').length === 3) {
+        const base64Url = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(atob(base64Url));
+        if (payload && payload.sub) {
+          return `user_${String(payload.sub).replace(/[^a-zA-Z0-9_-]/g, '')}`;
+        }
+      }
+      const userRaw = localStorage.getItem('ridehub_user') || sessionStorage.getItem('ridehub_user');
+      if (userRaw) {
+        const u = JSON.parse(userRaw);
+        const uid = u?.id ?? u?.user_id ?? u?.email;
+        if (uid) return `user_${String(uid).replace(/[^a-zA-Z0-9_-]/g, '')}`;
+      }
+    } catch (_) {
+      // Bỏ qua lỗi parse token/user
+    }
+    return 'guest';
+  }
+
+  // Tạo UUIDv4 cố định theo tài khoản để đồng bộ xuyên suốt mọi trang & trình duyệt
+  function buildDeterministicAccountUuid(accountKey) {
+    if (/^user_\d+$/.test(accountKey)) {
+      const numHex = Number(accountKey.replace('user_', '')).toString(16).padStart(12, '0').slice(-12);
+      return `52696465-4875-4000-8000-${numHex}`;
+    }
+    // Hash nhẹ cho trường hợp id dạng chuỗi
+    let h1 = 0x811c9dc5;
+    let h2 = 0x12345678;
+    for (let i = 0; i < accountKey.length; i++) {
+      h1 ^= accountKey.charCodeAt(i);
+      h1 = Math.imul(h1, 0x01000193);
+      h2 ^= accountKey.charCodeAt(i) + i;
+      h2 = Math.imul(h2, 0x85ebca6b);
+    }
+    const p1 = (h1 >>> 0).toString(16).padStart(8, '0');
+    const p2 = ((h2 >>> 0) & 0xffff).toString(16).padStart(4, '0');
+    const p3 = ((h2 >>> 16) & 0x0fff).toString(16).padStart(3, '0');
+    const p4 = ((h1 >>> 0) & 0x3fff | 0x8000).toString(16).padStart(4, '0');
+    const p5 = ((h2 >>> 0).toString(16) + (h1 >>> 0).toString(16)).padStart(12, '0').slice(0, 12);
+    return `${p1}-${p2}-4${p3}-${p4}-${p5}`;
+  }
+
+  function isValidUuidV4(val) {
+    return Boolean(
+      val &&
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(val)
+    );
+  }
+
+  // 1. Quản lý Session ID chuẩn UUIDv4 (đồng bộ theo tài khoản)
+  function getOrCreateSessionId(accountKey) {
+    const key = accountKey || getCurrentAccountKey();
+    const storageKey = `${STORAGE_KEY_SESSION_PREFIX}${key}`;
+
+    if (key !== 'guest') {
+      const accountUuid = buildDeterministicAccountUuid(key);
+      localStorage.setItem(storageKey, accountUuid);
+      return accountUuid;
+    }
+
+    let sessionId = localStorage.getItem(storageKey);
+    if (!isValidUuidV4(sessionId)) {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
         sessionId = crypto.randomUUID();
       } else {
-        // Fallback RFC 4122 v4
         sessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
           const r = (Math.random() * 16) | 0;
           const v = c === 'x' ? r : (r & 0x3) | 0x8;
           return v.toString(16);
         });
       }
-      localStorage.setItem(STORAGE_KEY_SESSION, sessionId);
+      localStorage.setItem(storageKey, sessionId);
     }
     return sessionId;
   }
@@ -54,9 +115,10 @@
   class RideHubChatbot {
     constructor() {
       this.apiBase = getApiBase();
-      this.sessionId = getOrCreateSessionId();
+      this.accountKey = getCurrentAccountKey();
+      this.sessionId = getOrCreateSessionId(this.accountKey);
       this.isOpen = false;
-      this.isEscalated = localStorage.getItem(STORAGE_KEY_ESCALATED) === 'true';
+      this.isEscalated = localStorage.getItem(`${STORAGE_KEY_ESCALATED_PREFIX}${this.accountKey}`) === 'true';
       this.hasComplaintAlert = false;
       this.isSending = false;
 
@@ -162,7 +224,11 @@
           });
           if (data.status === 'ESCALATED_TO_AGENT') {
             this.setEscalatedState(true, data.assigned_agent);
+          } else {
+            this.isEscalated = false;
+            localStorage.setItem(`${STORAGE_KEY_ESCALATED_PREFIX}${this.accountKey}`, 'false');
           }
+          this.scrollToBottom();
         }
       } catch (err) {
         console.warn('[Chatbot] Không thể tải lịch sử phiên cũ:', err);
@@ -291,7 +357,7 @@
 
     setEscalatedState(isEscalated, agentName = 'Mai Linh (Trưởng ca CSKH)') {
       this.isEscalated = isEscalated;
-      localStorage.setItem(STORAGE_KEY_ESCALATED, isEscalated ? 'true' : 'false');
+      localStorage.setItem(`${STORAGE_KEY_ESCALATED_PREFIX}${this.accountKey}`, isEscalated ? 'true' : 'false');
 
       if (this.handoffBtn) {
         this.handoffBtn.classList.add('active');
@@ -327,9 +393,11 @@
         console.warn('[Chatbot] Reset API error (bỏ qua):', e);
       }
 
-      localStorage.removeItem(STORAGE_KEY_SESSION);
-      localStorage.removeItem(STORAGE_KEY_ESCALATED);
-      this.sessionId = getOrCreateSessionId();
+      if (this.accountKey === 'guest') {
+        localStorage.removeItem(`${STORAGE_KEY_SESSION_PREFIX}${this.accountKey}`);
+      }
+      localStorage.removeItem(`${STORAGE_KEY_ESCALATED_PREFIX}${this.accountKey}`);
+      this.sessionId = getOrCreateSessionId(this.accountKey);
       this.isEscalated = false;
 
       if (this.messagesContainer) {
@@ -463,7 +531,7 @@
     return safe
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(
-        /\/vehicles\.html(\?[A-Za-z0-9_=&%-]*)?/g,
+        /(?:https?:\/\/[^\s/]+)?\/vehicles\.html(\?[A-Za-z0-9_=&%-]*)?/g,
         '<a href="vehicles.html$1" target="_blank" style="color:var(--green-600);font-weight:600;text-decoration:underline;">Xem danh sách xe ↗</a>'
       )
       .replace(
