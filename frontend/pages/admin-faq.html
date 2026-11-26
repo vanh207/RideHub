@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản lý Kho Tri Thức &amp; FAQ — RideHub Admin</title>
+  <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+  <style>
+    body {
+      background: linear-gradient(180deg, #eef9f2 0%, #f7fbf9 260px, #f6fbf8 100%);
+      color: var(--text-primary, #132a1c);
+      min-height: 100vh;
+    }
+    .admin-shell {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 20px 72px;
+    }
+    .admin-topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 24px;
+      padding: 22px 26px;
+      background: #ffffff;
+      border: 1px solid rgba(22, 163, 74, 0.18);
+      border-top: 4px solid var(--green-600, #16a34a);
+      border-radius: 20px;
+      box-shadow: 0 14px 36px -18px rgba(19, 42, 28, 0.16);
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: #ecfdf3;
+      border: 1.5px solid #bbf7d0;
+      color: #15803d;
+      font-weight: 700;
+      font-size: 13px;
+      text-decoration: none;
+      margin-bottom: 12px;
+      transition: all 0.16s ease;
+    }
+    .back-link:hover {
+      background: #16a34a;
+      border-color: #16a34a;
+      color: #ffffff;
+      transform: translateX(-2px);
+      box-shadow: 0 6px 16px -6px rgba(22, 163, 74, 0.5);
+    }
+    .back-link svg {
+      transition: transform 0.16s ease;
+    }
+    .back-link:hover svg {
+      transform: translateX(-2px);
+    }
+    .admin-eyebrow {
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--green-700, #15803d);
+      margin: 0 0 4px;
+    }
+    .admin-title {
+      margin: 0;
+      font-family: var(--font-display, 'Outfit', sans-serif);
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #0f291a;
+    }
+    .admin-subtitle {
+      margin: 5px 0 0;
+      font-size: 13.5px;
+      color: #4d6b57;
+    }
+    .admin-nav-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .admin-nav-pills .btn {
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      text-decoration: none;
+    }
+    .admin-nav-pills .btn-primary {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: #ffffff;
+      box-shadow: 0 8px 20px -6px rgba(22, 163, 74, 0.55);
+    }
+    .admin-nav-pills .btn-primary:hover {
+      background: linear-gradient(135deg, #15803d, #166534);
+      transform: translateY(-1px);
+    }
+    .admin-nav-pills .btn-outline {
+      background: #ffffff;
+      border: 1.5px solid #cde5d6;
+      color: #15803d;
+    }
+    .admin-nav-pills .btn-outline:hover {
+      background: #f0fdf4;
+      border-color: #16a34a;
+    }
+    .admin-nav-pills .btn-secondary {
+      background: #edf6f0;
+      color: #1f472f;
+      border: 1px solid #d5e7dc;
+    }
+    .admin-nav-pills .btn-secondary:hover {
+      background: #dff0e5;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .stat-card {
+      background: #ffffff;
+      border: 1px solid rgba(22, 163, 74, 0.14);
+      border-radius: 18px;
+      padding: 18px 20px;
+      box-shadow: 0 10px 26px -18px rgba(19, 42, 28, 0.18);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px -16px rgba(22, 163, 74, 0.22);
+    }
+    .stat-card__icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .stat-card__icon--green { background: #dcfce7; color: #15803d; }
+    .stat-card__icon--emerald { background: #d1fae5; color: #047857; }
+    .stat-card__icon--amber { background: #fef3c7; color: #b45309; }
+    .stat-card__icon--blue { background: #dbeafe; color: #1d4ed8; }
+    .stat-card__value {
+      font-family: var(--font-display, 'Outfit', sans-serif);
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #0f291a;
+      line-height: 1.1;
+    }
+    .stat-card__label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #4d6b57;
+      margin-top: 2px;
+    }
+
+    .faq-card {
+      background: #ffffff;
+      border: 1px solid rgba(22, 163, 74, 0.15);
+      border-radius: 20px;
+      padding: 22px 24px;
+      box-shadow: 0 14px 34px -18px rgba(19, 42, 28, 0.14);
+    }
+    .faq-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .faq-toolbar__title h2 {
+      margin: 0;
+      font-family: var(--font-display, 'Outfit', sans-serif);
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+    .faq-toolbar__title p {
+      margin: 3px 0 0;
+      font-size: 12.5px;
+      color: #5b7a67;
+    }
+    .faq-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .faq-filters input,
+    .faq-filters select {
+      min-height: 42px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 1.5px solid #d5e7dc;
+      background: #fbfefc;
+      font-family: inherit;
+      font-size: 13.5px;
+      color: #132a1c;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .faq-filters input { min-width: 260px; }
+    .faq-filters input:focus,
+    .faq-filters select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.14);
+      background: #ffffff;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 14px;
+      border: 1px solid rgba(22, 163, 74, 0.14);
+    }
+    table.faq-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+      font-size: 13.5px;
+    }
+    table.faq-table th {
+      background: #eef8f2;
+      color: #1f472f;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      text-align: left;
+      padding: 13px 14px;
+      border-bottom: 1.5px solid rgba(22, 163, 74, 0.16);
+      white-space: nowrap;
+    }
+    table.faq-table td {
+      padding: 15px 14px;
+      border-bottom: 1px solid #edf5f0;
+      vertical-align: top;
+    }
+    table.faq-table tbody tr {
+      transition: background 0.14s ease;
+    }
+    table.faq-table tbody tr:hover {
+      background: #f5fbf7;
+    }
+    .cat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #e8f5ee;
+      color: #15803d;
+      white-space: nowrap;
+    }
+    .cat-badge--pricing { background: #fef9c3; color: #854d0e; }
+    .cat-badge--ekyc { background: #eff6ff; color: #1d4ed8; }
+    .cat-badge--deposit { background: #fef3c7; color: #b45309; }
+    .cat-badge--cancel { background: #fae8ff; color: #86198f; }
+    .cat-badge--emergency { background: #fee2e2; color: #b91c1c; }
+    .cat-badge--delivery { background: #ecfeff; color: #0e7490; }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      border: 0;
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+    .status-pill:hover { transform: scale(1.03); }
+    .status-pill--active { background: #dcfce7; color: #15803d; }
+    .status-pill--inactive { background: #f1f5f9; color: #64748b; }
+
+    .faq-question-text {
+      font-weight: 700;
+      color: #0f291a;
+      margin-bottom: 4px;
+      line-height: 1.45;
+    }
+    .faq-answer-preview {
+      color: #4d6b57;
+      font-size: 13px;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .btn-sm {
+      min-height: 34px;
+      padding: 5px 12px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 700;
+      border: 1.5px solid #cde5d6;
+      background: #ffffff;
+      color: #15803d;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-sm:hover { background: #16a34a; border-color: #16a34a; color: #ffffff; }
+    .btn-sm--danger { border-color: #fecaca; color: #b91c1c; background: #fffafa; }
+    .btn-sm--danger:hover { background: #dc2626; border-color: #dc2626; color: #ffffff; }
+
+    .notice-box {
+      background: #ffffff;
+      border: 1.5px solid #fde68a;
+      border-radius: 20px;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: 0 12px 30px -18px rgba(19, 42, 28, 0.2);
+    }
+    .empty-state {
+      text-align: center;
+      padding: 44px 16px;
+      color: #4d6b57;
+      font-weight: 600;
+    }
+
+    /* Dialogs */
+    dialog.faq-dialog {
+      border: 0;
+      border-radius: 24px;
+      padding: 0;
+      width: min(660px, calc(100vw - 24px));
+      box-shadow: 0 28px 70px -16px rgba(15, 41, 26, 0.42);
+      background: #ffffff;
+      color: #132a1c;
+      overflow: hidden;
+    }
+    dialog.faq-dialog::backdrop {
+      background: rgba(15, 23, 42, 0.56);
+      backdrop-filter: blur(5px);
+    }
+    .dialog-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 20px 26px;
+      background: linear-gradient(135deg, #ecfdf3 0%, #f8fcfa 100%);
+      border-bottom: 1px solid #d9efe1;
+    }
+    .dialog-banner--danger {
+      background: linear-gradient(135deg, #fef2f2 0%, #fffafa 100%);
+      border-bottom-color: #fecaca;
+    }
+    .dialog-banner__left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .dialog-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: #16a34a;
+      color: #ffffff;
+      box-shadow: 0 6px 16px -4px rgba(22, 163, 74, 0.45);
+      flex-shrink: 0;
+    }
+    .dialog-icon--danger {
+      background: #dc2626;
+      box-shadow: 0 6px 16px -4px rgba(220, 38, 38, 0.4);
+    }
+    .dialog-banner h2 {
+      margin: 2px 0 0;
+      font-family: var(--font-display, 'Outfit', sans-serif);
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+    .dialog-close-x {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid #d5e7dc;
+      background: #ffffff;
+      color: #34443a;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .dialog-close-x:hover { background: #f1f5f9; }
+    .dialog-body {
+      padding: 22px 26px 24px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .form-field--full { grid-column: 1 / -1; }
+    .form-field label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1f472f;
+    }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1.5px solid #d5e7dc;
+      font-family: inherit;
+      font-size: 14px;
+      color: #132a1c;
+      background: #fbfefc;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .form-field textarea {
+      resize: vertical;
+      min-height: 118px;
+      line-height: 1.55;
+    }
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.14);
+      background: #ffffff;
+    }
+    .form-hint {
+      font-size: 12px;
+      color: #5b7a67;
+    }
+    .form-error {
+      background: #fef2f2;
+      border: 1.5px solid #fecaca;
+      color: #b91c1c;
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #166534;
+      cursor: pointer;
+    }
+    .checkbox-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: #16a34a;
+    }
+    .delete-quote-box {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #fff7f7;
+      border: 1px solid #fecaca;
+      color: #7f1d1d;
+      font-weight: 600;
+      line-height: 1.55;
+      margin-bottom: 12px;
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #eaf2ed;
+    }
+    .dialog-actions .btn {
+      min-height: 42px;
+      padding: 0 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .dialog-actions .btn-primary {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: #ffffff;
+      border: 0;
+      box-shadow: 0 8px 18px -6px rgba(22, 163, 74, 0.5);
+    }
+    .dialog-actions .btn-primary:hover { background: linear-gradient(135deg, #15803d, #166534); }
+    .dialog-actions .btn-secondary {
+      background: #edf4ef;
+      color: #274734;
+      border: 1px solid #d5e7dc;
+    }
+    .dialog-actions .btn-secondary:hover { background: #e1ede5; }
+    .dialog-actions .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #ffffff;
+      border: 0;
+      box-shadow: 0 8px 18px -6px rgba(220, 38, 38, 0.45);
+    }
+    .dialog-actions .btn-danger:hover { background: #b91c1c; }
+
+    .toast-banner {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 9999;
+      padding: 13px 20px;
+      border-radius: 14px;
+      background: #132a1c;
+      color: #ffffff;
+      font-size: 13.5px;
+      font-weight: 700;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
+    }
+    .toast-banner.is-error { background: #b91c1c; }
+    .toast-banner.is-success { background: #15803d; }
+
+    @media (max-width: 960px) {
+      .admin-shell { padding: 20px 14px 56px; }
+      .admin-topbar { padding: 18px; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .faq-filters { width: 100%; }
+      .faq-filters input { flex: 1 1 220px; min-width: 0; }
+      .faq-filters select { flex: 1 1 150px; }
+    }
+
+    @media (max-width: 768px) {
+      .admin-title { font-size: 1.4rem; }
+      .admin-nav-pills { width: 100%; }
+      .admin-nav-pills .btn { flex: 1 1 calc(50% - 6px); justify-content: center; }
+      .faq-card { padding: 16px; }
+      .table-wrap { border: 0; overflow: visible; }
+      table.faq-table { min-width: 0; }
+      table.faq-table thead { display: none; }
+      table.faq-table, table.faq-table tbody, table.faq-table tr, table.faq-table td {
+        display: block;
+        width: 100%;
+      }
+      table.faq-table tbody tr {
+        background: #ffffff;
+        border: 1px solid #d5e7dc;
+        border-radius: 16px;
+        padding: 14px;
+        margin-bottom: 12px;
+        box-shadow: 0 6px 18px -12px rgba(19, 42, 28, 0.16);
+      }
+      table.faq-table td {
+        padding: 6px 0;
+        border-bottom: 0;
+      }
+      table.faq-table td:first-child {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px dashed #e2efe7;
+        padding-bottom: 8px;
+        margin-bottom: 4px;
+      }
+      .row-actions {
+        margin-top: 6px;
+      }
+      .row-actions .btn-sm {
+        flex: 1;
+        text-align: center;
+      }
+      dialog.faq-dialog {
+        max-height: 92dvh;
+        overflow-y: auto;
+      }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 440px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .admin-nav-pills .btn { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="admin-topbar">
+      <div>
+        <a class="back-link" href="../index.html">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Quay lại Trang chủ RideHub
+        </a>
+        <p class="admin-eyebrow">TRUNG TÂM QUẢN TRỊ • CHATBOT AI</p>
+        <h1 class="admin-title">Quản lý Kho Tri Thức &amp; FAQ</h1>
+        <p class="admin-subtitle">Thêm, chỉnh sửa, bật/tắt và xóa các câu hỏi thường gặp để Chatbot AI tư vấn chính xác.</p>
+      </div>
+      <div class="admin-nav-pills">
+        <a href="operations-anomalies.html" class="btn btn-outline">⚡ Giao dịch bất thường</a>
+        <a href="admin-policies-audit.html" class="btn btn-outline">🛡️ Chính sách &amp; Audit</a>
+        <button id="refreshFaqBtn" class="btn btn-secondary" type="button">↻ Làm mới</button>
+        <button id="openCreateFaqBtn" class="btn btn-primary" type="button">+ Thêm FAQ mới</button>
+      </div>
+    </header>
+
+    <section id="accessMessage" class="notice-box" role="status" hidden>
+      <p id="accessMessageText" style="margin:0 0 16px;font-weight:700;font-size:15px;"></p>
+      <a id="loginLink" class="btn btn-primary" href="./auth.html" style="text-decoration:none;display:inline-flex;align-items:center;padding:10px 22px;border-radius:12px;">Đăng nhập tài khoản Admin</a>
+    </section>
+
+    <section id="faqContent" hidden>
+      <div class="stats-grid" aria-label="Thống kê kho FAQ">
+        <article class="stat-card">
+          <div class="stat-card__icon stat-card__icon--emerald">📚</div>
+          <div>
+            <div class="stat-card__value" id="statTotalFaq">0</div>
+            <div class="stat-card__label">Tổng số mục FAQ</div>
+          </div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card__icon stat-card__icon--green">✅</div>
+          <div>
+            <div class="stat-card__value" id="statActiveFaq">0</div>
+            <div class="stat-card__label">Đang hoạt động</div>
+          </div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card__icon stat-card__icon--amber">⏸️</div>
+          <div>
+            <div class="stat-card__value" id="statInactiveFaq">0</div>
+            <div class="stat-card__label">Đang tạm ẩn</div>
+          </div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card__icon stat-card__icon--blue">🏷️</div>
+          <div>
+            <div class="stat-card__value" id="statCategories">0</div>
+            <div class="stat-card__label">Nhóm chủ đề</div>
+          </div>
+        </article>
+      </div>
+
+      <section class="faq-card" aria-labelledby="faqListTitle">
+        <div class="faq-toolbar">
+          <div class="faq-toolbar__title">
+            <h2 id="faqListTitle">Danh sách FAQ &amp; Chính sách trả lời</h2>
+            <p id="faqLastUpdated">Đang tải dữ liệu từ máy chủ…</p>
+          </div>
+          <div class="faq-filters">
+            <input id="faqSearchInput" type="search" placeholder="🔍 Tìm câu hỏi, câu trả lời…" autocomplete="off" />
+            <select id="faqCategoryFilter" aria-label="Lọc theo chủ đề">
+              <option value="all">Tất cả chủ đề</option>
+            </select>
+            <select id="faqStatusFilter" aria-label="Lọc theo trạng thái">
+              <option value="all">Tất cả trạng thái</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="inactive">Đang tạm ẩn</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="faq-table" aria-label="Bảng quản lý FAQ">
+            <thead>
+              <tr>
+                <th style="width:82px;">ID / STT</th>
+                <th style="width:185px;">Nhóm chủ đề</th>
+                <th>Câu hỏi &amp; Nội dung trả lời</th>
+                <th style="width:125px;">Trạng thái</th>
+                <th style="width:95px;">Lượt dùng</th>
+                <th style="width:150px;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="faqTableBody"></tbody>
+          </table>
+        </div>
+        <div id="faqEmptyState" class="empty-state" hidden>Chưa có mục FAQ nào phù hợp với bộ lọc hiện tại.</div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Modal Thêm / Sửa FAQ -->
+  <dialog id="faqModal" class="faq-dialog" aria-labelledby="faqModalTitle">
+    <form id="faqForm" novalidate>
+      <div class="dialog-banner">
+        <div class="dialog-banner__left">
+          <div class="dialog-icon">💡</div>
+          <div>
+            <p class="admin-eyebrow" id="faqModalEyebrow" style="margin:0;">KHO TRI THỨC CHATBOT</p>
+            <h2 id="faqModalTitle">Thêm FAQ mới</h2>
+          </div>
+        </div>
+        <button id="closeFaqModalBtn" class="dialog-close-x" type="button" aria-label="Đóng">✕</button>
+      </div>
+
+      <div class="dialog-body">
+        <div id="faqFormError" class="form-error" hidden></div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="faqCategoryPreset">Nhóm chủ đề</label>
+            <select id="faqCategoryPreset">
+              <option value="pricing|Giá thuê &amp; Phụ phí">Giá thuê &amp; Phụ phí (pricing)</option>
+              <option value="ekyc|eKYC &amp; Thủ tục">eKYC &amp; Thủ tục (ekyc)</option>
+              <option value="deposit|Tiền cọc &amp; Thanh toán">Tiền cọc &amp; Thanh toán (deposit)</option>
+              <option value="delivery|Giao nhận xe">Giao nhận xe (delivery)</option>
+              <option value="cancel|Hủy đơn &amp; Hoàn tiền">Hủy đơn &amp; Hoàn tiền (cancel)</option>
+              <option value="emergency|Cứu hộ &amp; Sự cố">Cứu hộ &amp; Sự cố (emergency)</option>
+              <option value="general|Chính sách chung">Chính sách chung (general)</option>
+              <option value="custom">✏️ Tùy chỉnh mã &amp; tên nhóm…</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="faqDisplayOrder">Thứ tự ưu tiên hiển thị</label>
+            <input id="faqDisplayOrder" type="number" min="0" step="1" value="0" />
+          </div>
+
+          <div class="form-field" id="customCategoryCodeWrap" hidden>
+            <label for="faqCategoryCode">Mã nhóm (2–50 ký tự)</label>
+            <input id="faqCategoryCode" type="text" maxlength="50" placeholder="vd: insurance" />
+          </div>
+
+          <div class="form-field" id="customCategoryNameWrap" hidden>
+            <label for="faqCategoryName">Tên nhóm hiển thị (2–100 ký tự)</label>
+            <input id="faqCategoryName" type="text" maxlength="100" placeholder="vd: Bảo hiểm chuyến đi" />
+          </div>
+
+          <div class="form-field form-field--full">
+            <label for="faqQuestion">Câu hỏi / Chủ đề thường gặp <span style="color:#dc2626;">*</span></label>
+            <input id="faqQuestion" type="text" minlength="5" maxlength="500" required
+              placeholder="Ví dụ: Thuê xe trên RideHub có cần đặt cọc không?" />
+            <span class="form-hint" id="faqQuestionCount">0 / 500 ký tự (tối thiểu 5 ký tự)</span>
+          </div>
+
+          <div class="form-field form-field--full">
+            <label for="faqAnswer">Nội dung trả lời / Chính sách chi tiết <span style="color:#dc2626;">*</span></label>
+            <textarea id="faqAnswer" rows="5" minlength="10" required
+              placeholder="Nhập câu trả lời đầy đủ, rõ ràng để Chatbot AI tóm tắt tự nhiên cho khách hàng..."></textarea>
+            <span class="form-hint" id="faqAnswerCount">0 ký tự (tối thiểu 10 ký tự)</span>
+          </div>
+
+          <div class="form-field form-field--full" style="margin-bottom:0;">
+            <label class="checkbox-row">
+              <input id="faqIsActive" type="checkbox" checked />
+              <span>Kích hoạt hiển thị ngay cho Chatbot AI sử dụng</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="dialog-actions">
+          <button id="cancelFaqModalBtn" class="btn btn-secondary" type="button">Hủy bỏ</button>
+          <button id="saveFaqBtn" class="btn btn-primary" type="submit">✓ Lưu FAQ</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal Xác nhận Xóa FAQ -->
+  <dialog id="deleteFaqModal" class="faq-dialog" aria-labelledby="deleteModalTitle" style="width:min(520px, calc(100vw - 24px));">
+    <div class="dialog-banner dialog-banner--danger">
+      <div class="dialog-banner__left">
+        <div class="dialog-icon dialog-icon--danger">🗑️</div>
+        <div>
+          <p class="admin-eyebrow" style="margin:0;color:#b91c1c;">XÁC NHẬN THAO TÁC</p>
+          <h2 id="deleteModalTitle">Xóa mục FAQ này?</h2>
+        </div>
+      </div>
+      <button id="closeDeleteModalBtn" class="dialog-close-x" type="button" aria-label="Đóng">✕</button>
+    </div>
+
+    <div class="dialog-body">
+      <div id="deleteFaqSummary" class="delete-quote-box"></div>
+      <p class="form-hint" style="margin:0;">Hành động này sẽ xóa vĩnh viễn FAQ khỏi cơ sở dữ liệu và Chatbot AI sẽ không còn sử dụng mục này để trả lời khách hàng.</p>
+      <div class="dialog-actions">
+        <button id="cancelDeleteBtn" class="btn btn-secondary" type="button">Quay lại</button>
+        <button id="confirmDeleteBtn" class="btn btn-danger" type="button">Xóa vĩnh viễn</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="faqToast" class="toast-banner" role="status" aria-live="polite" hidden></div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/admin-faq.js"></script>
+</body>
+</html>
