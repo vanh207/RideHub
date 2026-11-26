@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#16a34a" />
+  <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
+  <title>Báo cáo toàn nền tảng — RideHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/platform-report.css" />
+</head>
+<body>
+
+  <!-- ========================================================================
+       1. HEADER NAVBAR CHUẨN RIDEHUB
+       ======================================================================== -->
+  <header id="mainNavbar" class="navbar is-scrolled" aria-label="Điều hướng RideHub">
+    <div class="container navbar-inner">
+      <a href="../index.html" class="brand-logo" aria-label="Trang chủ RideHub">
+        <img src="../assets/logo-rh.png" alt="RideHub" class="brand-logo-img" />
+        <span>RideHub</span>
+      </a>
+      <nav class="nav-links" aria-label="Menu vận hành">
+        <a href="../index.html" class="nav-link">Trang chủ</a>
+        <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+        <a href="../trips.html" class="nav-link">Chuyến đi</a>
+        <a href="operations-anomalies.html" class="nav-link">Giao dịch bất thường</a>
+        <a href="platform-report.html" class="nav-link is-active">Báo cáo toàn nền tảng</a>
+        <a href="admin-ops.html" class="nav-link">Trung tâm Admin</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="../index.html" class="btn btn-soft">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Về trang chủ</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       2. NỘI DUNG CHÍNH
+       ======================================================================== -->
+  <main class="page-shell">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb-bar" aria-label="Đường dẫn trang">
+      <a class="back-link" href="../index.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Trang chủ</span>
+      </a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Trung tâm vận hành</span>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Báo cáo toàn nền tảng</span>
+    </nav>
+
+    <!-- Tiêu đề trang -->
+    <header class="page-header">
+      <div class="page-header-text">
+        <p class="eyebrow">TRUNG TÂM VẬN HÀNH RIDEHUB</p>
+        <h1>Báo cáo toàn nền tảng</h1>
+        <p class="intro">Tổng hợp doanh thu, số đơn, hoàn tiền và chỉ số vận hành toàn hệ thống theo kỳ báo cáo.</p>
+      </div>
+      <div class="page-header-actions">
+        <button id="refreshButton" class="btn btn-primary" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Làm mới</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ----------------------------------------------------------------
+         Trạng thái chưa đăng nhập / thiếu quyền
+         ---------------------------------------------------------------- -->
+    <section id="accessMessage" class="notice" role="status" hidden>
+      <p id="accessMessageText"></p>
+      <div class="notice-actions">
+        <a id="loginLink" class="btn btn-primary" href="./auth.html">Đăng nhập tài khoản Admin</a>
+        <button id="quickLoginAdminBtn" class="btn btn-soft" type="button">Đăng nhập nhanh Demo Admin</button>
+        <button id="viewDemoDataBtn" class="btn btn-soft" type="button">Xem trước dữ liệu mẫu</button>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------
+         Nội dung báo cáo (hiển thị sau xác thực)
+         ---------------------------------------------------------------- -->
+    <section id="reportContent" hidden>
+
+      <!-- Bộ lọc thời gian -->
+      <div class="filter-bar" role="search" aria-label="Bộ lọc kỳ báo cáo">
+        <div class="filter-group">
+          <label class="filter-label" for="fromDate">Từ ngày</label>
+          <input id="fromDate" type="date" class="filter-input" />
+        </div>
+        <div class="filter-group">
+          <label class="filter-label" for="toDate">Đến ngày</label>
+          <input id="toDate" type="date" class="filter-input" />
+        </div>
+        <button id="applyFilter" class="btn btn-primary btn-sm" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="12" x2="2" y2="12"/><polyline points="8 6 2 12 8 18"/></svg>
+          Áp dụng
+        </button>
+        <div class="quick-filters" role="group" aria-label="Bộ lọc nhanh">
+          <button class="btn-quick" data-days="7" type="button">7 ngày</button>
+          <button class="btn-quick is-active" data-days="30" type="button">30 ngày</button>
+          <button class="btn-quick" data-days="90" type="button">90 ngày</button>
+        </div>
+        <p id="periodLabel" class="period-label" role="status" aria-live="polite"></p>
+      </div>
+
+      <!-- Trạng thái loading -->
+      <div id="loadingState" class="loading-state" role="status" aria-label="Đang tải dữ liệu">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Đang tải báo cáo…</p>
+      </div>
+
+      <!-- Trạng thái lỗi API -->
+      <div id="errorState" class="error-state" role="alert" hidden>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p id="errorMessage">Không thể tải dữ liệu báo cáo.</p>
+        <button id="retryButton" class="btn btn-soft" type="button">Thử lại</button>
+      </div>
+
+      <!-- Nội dung báo cáo -->
+      <div id="reportData" hidden>
+
+        <!-- ================================================================
+             KPI Cards — Thanh toán & Dòng tiền
+             ================================================================ -->
+        <section class="report-section" aria-labelledby="sectionPayment">
+          <h2 id="sectionPayment" class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Thanh toán &amp; Dòng tiền
+          </h2>
+          <div class="kpi-grid">
+            <article class="kpi-card kpi-primary">
+              <div class="kpi-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div class="kpi-body">
+                <span class="kpi-label">Doanh thu thuần (Net)</span>
+                <span class="kpi-value" id="kpiNetAmount">—</span>
+                <span class="kpi-sub">Sau hoàn tiền</span>
+              </div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              </div>
+              <div class="kpi-body">
+                <span class="kpi-label">Tổng thu (Gross)</span>
+                <span class="kpi-value" id="kpiGrossAmount">—</span>
+                <span class="kpi-sub" id="kpiTxnCount">— giao dịch thành công</span>
+              </div>
+            </article>
+            <article class="kpi-card kpi-warning">
+              <div class="kpi-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </div>
+              <div class="kpi-body">
+                <span class="kpi-label">Đã hoàn tiền</span>
+                <span class="kpi-value" id="kpiRefundAmount">—</span>
+                <span class="kpi-sub" id="kpiRefundCount">— lần hoàn</span>
+              </div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="kpi-body">
+                <span class="kpi-label">Chờ hoàn tiền</span>
+                <span class="kpi-value" id="kpiPendingRefund">—</span>
+                <span class="kpi-sub" id="kpiPendingRefundCount">— yêu cầu chờ</span>
+              </div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <div class="kpi-body">
+                <span class="kpi-label">Phí phát sinh CHECK_IN</span>
+                <span class="kpi-value" id="kpiExtraFee">—</span>
+                <span class="kpi-sub" id="kpiExtraFeeCount">— lần phát sinh</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             KPI Cards — Đơn đặt xe
+             ================================================================ -->
+        <section class="report-section" aria-labelledby="sectionBooking">
+          <h2 id="sectionBooking" class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Đơn đặt xe
+          </h2>
+          <div class="kpi-grid kpi-grid-5">
+            <article class="kpi-card">
+              <div class="kpi-body">
+                <span class="kpi-label">Tổng đơn</span>
+                <span class="kpi-value kpi-value-lg" id="kpiBookingTotal">—</span>
+              </div>
+            </article>
+            <article class="kpi-card kpi-status-pending">
+              <div class="kpi-body">
+                <span class="kpi-label">Chờ xử lý</span>
+                <span class="kpi-value kpi-value-lg" id="kpiBookingPending">—</span>
+              </div>
+            </article>
+            <article class="kpi-card kpi-status-booked">
+              <div class="kpi-body">
+                <span class="kpi-label">Đã xác nhận (BOOKED)</span>
+                <span class="kpi-value kpi-value-lg" id="kpiBookingBooked">—</span>
+              </div>
+            </article>
+            <article class="kpi-card kpi-status-completed">
+              <div class="kpi-body">
+                <span class="kpi-label">Hoàn tất</span>
+                <span class="kpi-value kpi-value-lg" id="kpiBookingCompleted">—</span>
+              </div>
+            </article>
+            <article class="kpi-card kpi-status-cancelled">
+              <div class="kpi-body">
+                <span class="kpi-label">Đã hủy</span>
+                <span class="kpi-value kpi-value-lg" id="kpiBookingCancelled">—</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             KPI Cards — Người dùng & Phương tiện
+             ================================================================ -->
+        <section class="report-section" aria-labelledby="sectionPlatform">
+          <h2 id="sectionPlatform" class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Người dùng &amp; Phương tiện
+          </h2>
+          <div class="kpi-grid kpi-grid-3">
+            <article class="kpi-card">
+              <div class="kpi-body">
+                <span class="kpi-label">Tổng người dùng</span>
+                <span class="kpi-value kpi-value-lg" id="kpiUserTotal">—</span>
+                <span class="kpi-sub" id="kpiUserNew">— người dùng mới kỳ này</span>
+              </div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-body">
+                <span class="kpi-label">Người dùng hoạt động</span>
+                <span class="kpi-value kpi-value-lg" id="kpiUserActive">—</span>
+              </div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-body">
+                <span class="kpi-label">Phương tiện đang hoạt động</span>
+                <span class="kpi-value kpi-value-lg" id="kpiVehicleActive">—</span>
+                <span class="kpi-sub" id="kpiVehicleTotal">/ — tổng xe</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             Bảng phân tích giao dịch theo trạng thái
+             ================================================================ -->
+        <section class="report-section" aria-labelledby="sectionTxnBreakdown">
+          <h2 id="sectionTxnBreakdown" class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Phân tích giao dịch theo trạng thái
+          </h2>
+          <div class="table-card">
+            <div class="table-wrap" role="region" aria-label="Bảng phân tích giao dịch" tabindex="0">
+              <table aria-label="Phân tích giao dịch theo trạng thái">
+                <thead>
+                  <tr>
+                    <th>Trạng thái</th>
+                    <th class="text-right">Số lượng</th>
+                    <th class="text-right">Tỷ lệ</th>
+                  </tr>
+                </thead>
+                <tbody id="txnBreakdownRows">
+                  <tr><td colspan="3" class="table-empty">Chưa có dữ liệu.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             Cảnh báo bất thường
+             ================================================================ -->
+        <section class="report-section" aria-labelledby="sectionAnomalies">
+          <h2 id="sectionAnomalies" class="section-title section-title-warning">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Cảnh báo bất thường
+          </h2>
+          <div class="anomaly-grid" id="anomalyGrid">
+            <!-- render by JS -->
+          </div>
+        </section>
+
+        <!-- Thời gian cập nhật -->
+        <p id="lastUpdated" class="last-updated" role="status" aria-live="polite"></p>
+
+      </div><!-- /reportData -->
+
+    </section><!-- /reportContent -->
+
+  </main>
+
+  <!-- ========================================================================
+       3. FOOTER CHUẨN RIDEHUB
+       ======================================================================== -->
+  <footer id="mainFooter" class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="../assets/logo-rh.png" alt="RideHub" class="footer-logo" />
+        <span class="footer-brand-name">RideHub</span>
+        <span class="footer-meta">© 2026 Nền tảng thuê xe thông minh Việt Nam.</span>
+      </div>
+      <div class="footer-links">
+        <span class="footer-pill">Bảo mật PayOS VietQR</span>
+        <span class="footer-pill">Hệ thống vận hành 24/7</span>
+        <a href="../privacy-policy.html">Chính sách bảo mật</a>
+        <a href="../index.html#storySection">Điều khoản dịch vụ</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/platform-report.js"></script>
+</body>
+</html>

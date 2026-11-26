@@ -12,7 +12,7 @@ class SystemPolicy(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     policy_key = Column(String(100), unique=True, nullable=False, index=True)
-    category = Column(String(50), nullable=False, index=True)  # HOLD, DEPOSIT, CANCELLATION, FEES, BOOKING, SECURITY
+    category = Column(String(50), nullable=False, index=True)  # DEPOSIT, CANCELLATION, BOOKING, SECURITY
     label = Column(String(200), nullable=False)
     value = Column(String(255), nullable=False)
     value_type = Column(String(20), nullable=False, default="number")  # number, percent, text, boolean

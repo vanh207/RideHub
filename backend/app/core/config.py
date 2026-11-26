@@ -53,10 +53,12 @@ class Settings(BaseSettings):
     SMTP_FROM_NAME: str = "RideHub Notification"
     SMTP_TLS: bool = True
 
-    # ---- JWT Cấu hình ----
+    # ---- JWT & Giới hạn tần suất đăng nhập ----
     JWT_SECRET_KEY: str = Field(default_factory=lambda: secrets.token_urlsafe(48))
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    LOGIN_RATE_LIMIT_MAX_ATTEMPTS: int = 5
+    LOGIN_RATE_LIMIT_WINDOW_SECONDS: int = 60
 
     # ---- Firebase Admin SDK & Web API Key (Được đọc hoàn toàn từ .env) ----
     FIREBASE_CREDENTIALS_PATH: str = "serviceAccountKey.json"
@@ -97,10 +99,11 @@ class Settings(BaseSettings):
     BOOKING_EXPIRY_JOB_BATCH_SIZE: int = 100
 
     # ---- Cấu hình Chatbot AI & Kho tri thức (Knowledge Base) ----
-    AI_PROVIDER: str = "mock"  # "gemini" | "openai" | "mock"
+    AI_PROVIDER: str = "auto"  # "auto" | "gemini" | "openai" | "mock"
     GEMINI_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
-    AI_MODEL_NAME: str = "gemini-1.5-flash"
+    OPENAI_BASE_URL: str = "https://api.openai.com/v1"
+    AI_MODEL_NAME: str = ""  # Để trống sẽ tự chọn theo provider (vd: gemini-2.5-flash / gpt-4o-mini)
     CHATBOT_RATE_LIMIT_PER_MINUTE: int = 20  # Tối đa 20 tin nhắn/phút mỗi session/IP
     CHATBOT_RATE_LIMIT_PER_DAY: int = 100    # Tối đa 100 tin nhắn/ngày mỗi session/IP
     CHATBOT_MAX_CONTEXT_MESSAGES: int = 10   # Số tin nhắn lịch sử gần nhất nạp vào prompt AI
