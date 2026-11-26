@@ -526,6 +526,113 @@
     </div>
   </section>
 
+  <!-- ======================================================================
+       5. POST-RENTAL REVIEW & COMPLAINT
+       ====================================================================== -->
+  <section id="postRentalSection" class="section post-rental-section">
+    <div class="container">
+      <div class="post-rental-shell">
+        <aside class="post-rental-trip">
+          <span class="eyebrow">Chuyến đi đã hoàn tất</span>
+          <div class="post-rental-trip-media" aria-hidden="true">
+            <svg viewBox="0 0 170 96" role="img">
+              <path d="M24 68h122l-11-25H48L24 68z" fill="#22c55e" />
+              <path d="M48 43l18-18h43l26 18H48z" fill="#dcfce7" />
+              <path d="M63 43l11-13h29l15 13H63z" fill="#86efac" />
+              <circle cx="48" cy="69" r="15" fill="#132a1c" />
+              <circle cx="48" cy="69" r="7" fill="#dcfce7" />
+              <circle cx="123" cy="69" r="15" fill="#132a1c" />
+              <circle cx="123" cy="69" r="7" fill="#dcfce7" />
+            </svg>
+          </div>
+          <div>
+            <h3 style="margin:0 0 6px;">VinFast VF 5 Plus</h3>
+            <p style="margin:0;color:var(--text-secondary);font-size:13px;">Đơn #RH2601128 • 12–13/11/2026</p>
+          </div>
+          <div class="post-rental-meta">
+            <span><strong>246 km</strong>Quãng đường</span>
+            <span><strong>1 ngày</strong>Thời gian thuê</span>
+          </div>
+        </aside>
+
+        <div class="post-rental-form-panel">
+          <div class="post-rental-heading">
+            <div>
+              <h3 style="margin:0 0 4px;">Chia sẻ trải nghiệm của bạn</h3>
+              <p style="margin:0;color:var(--text-secondary);font-size:13px;">Đánh giá hoặc gửi phản ánh để RideHub hỗ trợ nhanh hơn.</p>
+            </div>
+            <span class="post-rental-status">Hoàn tất</span>
+          </div>
+
+          <div class="post-rental-tabs" role="tablist" aria-label="Loại phản hồi">
+            <button class="post-rental-tab is-active" id="reviewTab" type="button" role="tab"
+              aria-selected="true" aria-controls="reviewPanel" data-feedback-tab="review">
+              Đánh giá
+            </button>
+            <button class="post-rental-tab" id="complaintTab" type="button" role="tab"
+              aria-selected="false" aria-controls="complaintPanel" data-feedback-tab="complaint">
+              Gửi khiếu nại
+            </button>
+          </div>
+
+          <div id="reviewPanel" class="post-rental-panel is-active" role="tabpanel" aria-labelledby="reviewTab">
+            <div class="review-stars-wrap">
+              <span class="review-stars-label">Mức độ hài lòng</span>
+              <div id="reviewStars" class="review-stars" role="radiogroup" aria-label="Chọn số sao">
+                <button type="button" role="radio" aria-checked="false" aria-label="1 sao" data-star="1">★</button>
+                <button type="button" role="radio" aria-checked="false" aria-label="2 sao" data-star="2">★</button>
+                <button type="button" role="radio" aria-checked="false" aria-label="3 sao" data-star="3">★</button>
+                <button type="button" role="radio" aria-checked="false" aria-label="4 sao" data-star="4">★</button>
+                <button type="button" role="radio" aria-checked="false" aria-label="5 sao" data-star="5">★</button>
+              </div>
+              <span id="reviewStarsText" class="review-stars-text">Chọn số sao</span>
+            </div>
+            <label class="post-rental-field">
+              <span>Nhận xét của bạn</span>
+              <textarea id="reviewComment" maxlength="500" placeholder="Xe có êm không? Dịch vụ giao – nhận xe thế nào?"></textarea>
+              <small><span id="reviewCommentCount">0</span>/500 ký tự</small>
+            </label>
+            <button id="submitReviewBtn" class="btn btn-primary btn-premium" type="button">Gửi đánh giá</button>
+          </div>
+
+          <div id="complaintPanel" class="post-rental-panel" role="tabpanel" aria-labelledby="complaintTab" hidden>
+            <div class="post-rental-fields-grid">
+              <label class="post-rental-field">
+                <span>Loại vấn đề</span>
+                <select id="complaintType">
+                  <option value="">Chọn loại khiếu nại</option>
+                  <option value="vehicle">Tình trạng xe</option>
+                  <option value="charge">Phí / hoàn tiền</option>
+                  <option value="handover">Giao nhận xe</option>
+                  <option value="other">Vấn đề khác</option>
+                </select>
+              </label>
+              <label class="post-rental-field">
+                <span>Mức độ ưu tiên</span>
+                <select id="complaintPriority">
+                  <option value="normal">Bình thường</option>
+                  <option value="urgent">Khẩn cấp</option>
+                </select>
+              </label>
+            </div>
+            <label class="post-rental-field">
+              <span>Mô tả vấn đề</span>
+              <textarea id="complaintText" maxlength="1000" placeholder="Nêu rõ vấn đề, thời gian xảy ra và yêu cầu hỗ trợ"></textarea>
+              <small><span id="complaintTextCount">0</span>/1000 ký tự</small>
+            </label>
+            <label class="complaint-upload" for="complaintImages">
+              <input id="complaintImages" type="file" accept="image/*" multiple />
+              <span class="complaint-upload-icon">+</span>
+              <span><strong>Thêm ảnh bằng chứng</strong><small>Tối đa 5 ảnh, mỗi ảnh không quá 5 MB</small></span>
+            </label>
+            <div id="complaintPreviews" class="complaint-previews" aria-live="polite"></div>
+            <button id="submitComplaintBtn" class="btn btn-primary btn-premium" type="button">Gửi khiếu nại</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <div id="chartTooltip" class="chart-tooltip"></div>
 
   <!-- Footer with Cruising Vehicle & Comprehensive Links -->
@@ -803,6 +910,145 @@
           localStorage.setItem(FAV_KEY, JSON.stringify(list));
         });
         media.appendChild(btn);
+      });
+    })();
+
+    (function () {
+      const tabs = Array.from(document.querySelectorAll('[data-feedback-tab]'));
+      const panels = {
+        review: document.getElementById('reviewPanel'),
+        complaint: document.getElementById('complaintPanel')
+      };
+
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const selected = tab.dataset.feedbackTab;
+          tabs.forEach((item) => {
+            const active = item === tab;
+            item.classList.toggle('is-active', active);
+            item.setAttribute('aria-selected', String(active));
+          });
+          Object.entries(panels).forEach(([name, panel]) => {
+            const active = name === selected;
+            panel.classList.toggle('is-active', active);
+            panel.hidden = !active;
+          });
+        });
+      });
+
+      const stars = Array.from(document.querySelectorAll('#reviewStars button'));
+      const starsText = document.getElementById('reviewStarsText');
+      const starLabels = ['', 'Rất tệ', 'Chưa hài lòng', 'Tạm ổn', 'Hài lòng', 'Rất hài lòng'];
+      let selectedStars = 0;
+
+      const paintStars = (count, preview = false) => {
+        stars.forEach((star) => {
+          const value = Number(star.dataset.star);
+          star.classList.toggle('is-active', !preview && value <= count);
+          star.classList.toggle('is-preview', preview && value <= count);
+        });
+      };
+
+      stars.forEach((star) => {
+        const value = Number(star.dataset.star);
+        star.addEventListener('mouseenter', () => paintStars(value, true));
+        star.addEventListener('mouseleave', () => paintStars(selectedStars));
+        star.addEventListener('click', () => {
+          selectedStars = value;
+          stars.forEach((item) => item.setAttribute('aria-checked', String(Number(item.dataset.star) === value)));
+          paintStars(selectedStars);
+          starsText.textContent = starLabels[value];
+        });
+      });
+
+      const reviewComment = document.getElementById('reviewComment');
+      const reviewCommentCount = document.getElementById('reviewCommentCount');
+      reviewComment.addEventListener('input', () => {
+        reviewCommentCount.textContent = String(reviewComment.value.length);
+      });
+
+      document.getElementById('submitReviewBtn').addEventListener('click', () => {
+        if (!selectedStars) {
+          showRideHubToast('Vui lòng chọn số sao đánh giá.', 'error');
+          return;
+        }
+        showRideHubToast(`Cảm ơn bạn! Đã ghi nhận đánh giá ${selectedStars} sao.`);
+        reviewComment.value = '';
+        reviewCommentCount.textContent = '0';
+        selectedStars = 0;
+        paintStars(0);
+        starsText.textContent = 'Chọn số sao';
+        stars.forEach((item) => item.setAttribute('aria-checked', 'false'));
+      });
+
+      const complaintText = document.getElementById('complaintText');
+      const complaintTextCount = document.getElementById('complaintTextCount');
+      complaintText.addEventListener('input', () => {
+        complaintTextCount.textContent = String(complaintText.value.length);
+      });
+
+      const imageInput = document.getElementById('complaintImages');
+      const previews = document.getElementById('complaintPreviews');
+      let complaintFiles = [];
+
+      const renderComplaintFiles = () => {
+        previews.replaceChildren();
+        complaintFiles.forEach((file, index) => {
+          const item = document.createElement('div');
+          item.className = 'complaint-preview';
+
+          const image = document.createElement('img');
+          image.src = URL.createObjectURL(file);
+          image.alt = 'Ảnh bằng chứng khiếu nại';
+          image.onload = () => URL.revokeObjectURL(image.src);
+
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.setAttribute('aria-label', 'Xóa ảnh');
+          remove.textContent = '×';
+          remove.addEventListener('click', () => {
+            complaintFiles.splice(index, 1);
+            renderComplaintFiles();
+          });
+
+          item.append(image, remove);
+          previews.appendChild(item);
+        });
+      };
+
+      imageInput.addEventListener('change', () => {
+        const selected = Array.from(imageInput.files || []);
+        const valid = selected.filter((file) => file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024);
+        const remainingSlots = 5 - complaintFiles.length;
+        const exceededLimit = selected.length > remainingSlots;
+        complaintFiles = [...complaintFiles, ...valid].slice(0, 5);
+        if (exceededLimit) {
+          showRideHubToast('Chỉ có thể đính kèm tối đa 5 ảnh.', 'error');
+        } else if (valid.length !== selected.length) {
+          showRideHubToast('Vui lòng chọn ảnh hợp lệ, dung lượng tối đa 5 MB.', 'error');
+        }
+        renderComplaintFiles();
+        imageInput.value = '';
+      });
+
+      document.getElementById('submitComplaintBtn').addEventListener('click', () => {
+        const type = document.getElementById('complaintType');
+        if (!type.value) {
+          type.focus();
+          showRideHubToast('Vui lòng chọn loại vấn đề.', 'error');
+          return;
+        }
+        if (!complaintText.value.trim()) {
+          complaintText.focus();
+          showRideHubToast('Vui lòng mô tả nội dung khiếu nại.', 'error');
+          return;
+        }
+        showRideHubToast('Đã gửi khiếu nại. Mã theo dõi: RH-C' + Date.now().toString().slice(-6));
+        document.getElementById('complaintType').value = '';
+        complaintText.value = '';
+        complaintTextCount.textContent = '0';
+        complaintFiles = [];
+        renderComplaintFiles();
       });
     })();
   </script>
