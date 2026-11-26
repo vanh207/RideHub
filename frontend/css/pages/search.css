@@ -310,3 +310,84 @@
     margin-left: 0;
   }
 }
+
+@media (max-width: 640px) {
+  .brand-logo {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .btn,
+  .navbar .btn,
+  .navbar .hamburger-btn,
+  .search-guest-register,
+  .search-guest-dismiss,
+  .search-schedule-btn,
+  .search-page-btn,
+  .search-page-numbers .btn,
+  .pill-check,
+  .form-select,
+  .form-input {
+    min-height: 44px !important;
+  }
+
+  .pill-check {
+    padding: 8px 14px;
+  }
+
+  .filter-label {
+    white-space: normal;
+    line-height: 1.4;
+  }
+
+  #dismissGuestBanner {
+    box-sizing: border-box;
+    flex: 0 0 44px;
+    width: 44px;
+    min-width: 44px !important;
+    padding: 10px 8px;
+  }
+
+  .search-price-range {
+    height: 44px;
+  }
+
+  .fav-heart-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .site-footer a,
+  .footer-links-list a,
+  .footer-contact a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .chat-fab,
+  .chatCloseBtn,
+  .chat-quick-pill {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-schedule-row {
+    flex-wrap: wrap;
+  }
+
+  .search-schedule-input {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .search-schedule-btn {
+    flex: 0 0 44px;
+    width: 44px;
+    padding: 0;
+  }
+}
