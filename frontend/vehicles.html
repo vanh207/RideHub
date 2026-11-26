@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Tìm &amp; Thuê xe — RideHub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -155,10 +155,10 @@
           </div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;">
-          <button id="openDocsModalBtn" class="btn btn-primary btn-premium btn-shine" style="min-height:38px;padding:6px 18px;font-size:12.5px;" type="button">
+          <button id="openDocsModalBtn" class="btn btn-primary btn-premium btn-shine" style="min-height:44px;padding:10px 18px;font-size:13px;" type="button">
             Bổ sung hồ sơ ngay ›
           </button>
-          <button id="dismissDocsBanner" class="btn btn-soft" style="min-height:38px;padding:6px 14px;font-size:12.5px;" type="button">
+          <button id="dismissDocsBanner" class="btn btn-soft" style="min-height:44px;padding:10px 14px;font-size:13px;" type="button">
             Để sau
           </button>
         </div>
@@ -169,8 +169,8 @@
       <div class="panel-card" style="padding:14px 20px;background:var(--green-50);border-color:var(--green-300);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <div style="font-size:14px;font-weight:600;color:var(--green-800);">Đăng ký 1 phút để giữ chỗ xe này và nhận ưu đãi chuyến đầu tiên.</div>
         <div style="display:flex;gap:8px;">
-          <a href="pages/auth.html" class="btn btn-primary" style="min-height:34px;padding:4px 14px;font-size:12px;">Đăng ký ngay</a>
-          <button id="dismissGuestBanner" class="btn btn-soft" style="min-height:34px;padding:4px 12px;font-size:12px;" type="button">Ẩn</button>
+          <a href="pages/auth.html" class="btn btn-primary" style="min-height:44px;padding:10px 14px;font-size:13px;">Đăng ký ngay</a>
+          <button id="dismissGuestBanner" class="btn btn-soft" style="min-height:44px;padding:10px 12px;font-size:13px;" type="button">Ẩn</button>
         </div>
       </div>
     </div>
@@ -356,7 +356,7 @@
       <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);display:flex;flex-direction:column;gap:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <label class="filter-label" for="detailScheduleInput" style="margin:0;">Thời gian thuê xe (<span id="detailDurationText">3 ngày</span>)</label>
-          <button id="openDateTimePickerBtn" type="button" class="btn btn-soft" style="min-height:30px;padding:4px 10px;font-size:12px;">Mở lịch</button>
+          <button id="openDateTimePickerBtn" type="button" class="btn btn-soft" style="min-height:44px;padding:10px 12px;font-size:13px;">Mở lịch</button>
         </div>
         <input id="detailScheduleInput" class="form-input" type="text" value="12/11 21:00 → 15/11 11:00" placeholder="VD: 12/11 21:00 → 15/11 11:00" style="font-weight:700;color:var(--green-800);" />
       </div>
@@ -863,7 +863,7 @@
     // ======================================================================
     // 24 VEHICLES DATASET (9 CARDS/PAGE, 3 COLUMNS/ROW)
     // ======================================================================
-    const VEHICLES_DATA = [
+    const BASE_VEHICLES_DATA = [
       // 12 xe máy
       { id: 'v1', name: 'VinFast Feliz S (2025)', type: 'moto', category: 'Xe máy', transmission: 'Số tự động', fuel: 'Điện', seats: '2 chỗ', price: 160000, rating: '4.9', trips: '142 chuyến', address: '45 Lý Tự Trọng, Quận 1, TP.HCM', ownerKey: 'moto' },
       { id: 'v2', name: 'Honda Vision Smartkey (2024)', type: 'moto', category: 'Xe máy', transmission: 'Số tự động', fuel: 'Xăng', seats: '2 chỗ', price: 140000, rating: '4.8', trips: '215 chuyến', address: '72 CMT8, Quận 3, TP.HCM', ownerKey: 'moto' },
@@ -892,6 +892,79 @@
       { id: 'v23', name: 'Toyota Corolla Cross Hybrid', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Xăng/Điện', seats: '5 chỗ', price: 950000, rating: '4.9', trips: '115 chuyến', address: '50 Bến Vân Đồn, Quận 4, TP.HCM', ownerKey: 'car' },
       { id: 'v24', name: 'VinFast VF 9 Plus (2025)', type: 'car', category: 'Ô tô', transmission: 'Số tự động', fuel: 'Điện', seats: '7 chỗ', price: 1850000, rating: '5.0', trips: '46 chuyến', address: '45 Lý Tự Trọng, Quận 1, TP.HCM', ownerKey: 'car' }
     ];
+
+        // ======================================================================
+    // ĐỒNG BỘ DỮ LIỆU TỪ KHO XE CỬA HÀNG (LOCALSTORAGE)
+    // ======================================================================
+    const FLEET_STORAGE_KEY = 'ridehub_store_fleet_v2';
+
+    function getMergedVehiclesData() {
+      let storeFleet = [];
+      try {
+        const raw = localStorage.getItem(FLEET_STORAGE_KEY);
+        if (raw) storeFleet = JSON.parse(raw);
+      } catch (_) {}
+
+      if (!storeFleet || !storeFleet.length) {
+        return [...BASE_VEHICLES_DATA];
+      }
+
+      // 1. Cập nhật các xe mặc định nếu đã bị sửa trong kho xe (v1, v2, v3, v4...)
+      let list = BASE_VEHICLES_DATA.map((base) => {
+        const updated = storeFleet.find((f) => f.id === base.id);
+        if (!updated) return { ...base };
+
+        const isCar = updated.category === 'car' || base.type === 'car';
+        return {
+          ...base,
+          name: updated.name || base.name,
+          price: Number(updated.price) || base.price,
+          type: isCar ? 'car' : 'moto',
+          category: isCar ? 'Ô tô' : 'Xe máy',
+          transmission: updated.transmission || base.transmission,
+          fuel: updated.fuel || base.fuel,
+          status: updated.status || 'Sẵn sàng',
+          desc: updated.desc || base.desc,
+          collateral: updated.collateral || base.collateral,
+          photos: updated.photos || []
+        };
+      });
+
+      // 2. Lấy các xe MỚI được thêm từ cửa hàng (chưa có trong danh sách gốc)
+      const baseIds = new Set(BASE_VEHICLES_DATA.map((b) => b.id));
+      const newlyAdded = storeFleet
+        .filter((f) => !baseIds.has(f.id))
+        .map((f) => {
+          const isCar = f.category === 'car';
+          return {
+            id: f.id,
+            name: f.name,
+            type: isCar ? 'car' : 'moto',
+            category: isCar ? 'Ô tô' : 'Xe máy',
+            transmission: f.transmission || (isCar ? 'Số tự động' : 'Xe tay ga'),
+            fuel: f.fuel || 'Điện',
+            seats: isCar ? '5 chỗ' : '2 chỗ',
+            price: Number(f.price) || 150000,
+            rating: '5.0',
+            trips: 'Mới thêm',
+            address: '45 Lý Tự Trọng, Quận 1, TP.HCM',
+            ownerKey: isCar ? 'car' : 'moto',
+            status: f.status || 'Sẵn sàng',
+            desc: f.desc || '',
+            collateral: f.collateral || '',
+            photos: f.photos || []
+          };
+        });
+
+      // Đưa xe mới thêm lên đầu danh sách để khách thấy ngay
+      list = [...newlyAdded, ...list];
+
+            // Chỉ hiển thị những xe đang ở trạng thái "Sẵn sàng" (Ẩn các xe Đang thuê, Đang vệ sinh, Bảo dưỡng)
+      return list.filter((v) => (v.status || 'Sẵn sàng') === 'Sẵn sàng');
+    }
+
+    // Danh sách xe đang hiển thị
+    let VEHICLES_DATA = getMergedVehiclesData();
 
     function getVehSvg(v) {
       if (v.type === 'car') {
@@ -1031,9 +1104,16 @@
     }
 
     function renderVehicles() {
+      VEHICLES_DATA = getMergedVehiclesData(); 
+
       const grid = document.getElementById('vehiclesGrid');
       const filtered = getFilteredVehicles();
+      const resultsCountEl = document.getElementById('resultsCount');
+      if (resultsCountEl) {
+        resultsCountEl.textContent = `${filtered.length} phương tiện`;
+      }
       const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE) || 1;
+      
       if (currentPage > totalPages) currentPage = totalPages;
       if (currentPage < 1) currentPage = 1;
 
@@ -1196,7 +1276,7 @@
         let btns = '';
         for (let p = 1; p <= totalPages; p++) {
           const isAct = p === currentPage;
-          btns += `<button type="button" class="btn ${isAct ? 'btn-primary' : 'btn-soft'}" style="min-width:36px;min-height:36px;padding:6px 10px;font-size:13px;font-weight:700;" data-go-page="${p}">${p}</button>`;
+          btns += `<button type="button" class="btn ${isAct ? 'btn-primary' : 'btn-soft'}" style="min-width:44px;min-height:44px;padding:10px 12px;font-size:13px;font-weight:700;" data-go-page="${p}">${p}</button>`;
         }
         numsWrap.innerHTML = btns;
         numsWrap.querySelectorAll('[data-go-page]').forEach((b) => {
@@ -1235,6 +1315,16 @@
       }, 500);
     });
 
+        // Tự động đồng bộ ngay lập tức khi tab Quản lý xe thêm hoặc sửa xe (không cần F5)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'ridehub_store_fleet_v2') {
+        renderVehicles();
+        if (typeof showRideHubToast === 'function') {
+          showRideHubToast('🔔 Danh sách xe vừa được cập nhật từ cửa hàng!');
+        }
+      }
+    });
+
     // Initial render
     renderVehicles();
   </script>
@@ -1245,9 +1335,8 @@
   <button id="chatFab" class="chat-fab" aria-label="Mở trợ lý AI RideHub" type="button">
     <span class="chat-fab-ring"></span>
     <span class="chat-fab-badge" id="chatFabBadge" aria-hidden="true"></span>
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    <svg class="wheel-spin wheel-spin--slow" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/>
     </svg>
   </button>
 
@@ -1342,7 +1431,7 @@
       <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft, #f8fafc);border:1px solid #e2e8f0;margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <strong style="font-size:13px;color:var(--text-primary);">1. Căn cước công dân (CCCD gắn chip)</strong>
-          <button id="btnAutoDocsSample" type="button" class="btn btn-soft" style="min-height:26px;padding:2px 10px;font-size:11px;color:var(--green-800);background:#fff;border:1px solid var(--green-300);">⚡ Điền mẫu tự động</button>
+          <button id="btnAutoDocsSample" type="button" class="btn btn-soft" style="min-height:44px;padding:10px 12px;font-size:12px;color:var(--green-800);background:#fff;border:1px solid var(--green-300);">⚡ Điền mẫu tự động</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <label id="cccdFrontBox" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:105px;border:1.5px dashed var(--green-400);border-radius:12px;background:#fff;cursor:pointer;text-align:center;padding:8px;">

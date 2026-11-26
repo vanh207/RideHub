@@ -31,9 +31,19 @@ from app.schemas.chat import (
     UserBookingLookupItem,
     VehicleSearchResultItem,
 )
+from app.services.ai_service import ai_service
 from app.services.knowledge_base import KnowledgeBaseService
 
 router = APIRouter(prefix="/chat", tags=["AI Chatbot — Hội thoại, Kho tri thức & Rate Limit"])
+
+
+@router.get(
+    "/status",
+    summary="Kiểm tra trạng thái AI Provider & API Key đang dùng",
+)
+def get_chatbot_ai_status():
+    """Trả về provider AI đang kích hoạt (gemini / openai / knowledge-fallback) mà không lộ API key."""
+    return ai_service.get_provider_status()
 
 
 def require_admin(actor: User = Depends(get_current_user)) -> User:

@@ -1,0 +1,54 @@
+@media (max-width: 640px) {
+  .brand-logo {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .navbar .btn,
+  .navbar .hamburger-btn,
+  .step-node,
+  .form-input,
+  .form-select,
+  .btn,
+  .footer-links-list a,
+  .footer-contact a {
+    min-height: 44px !important;
+  }
+
+  .step-node {
+    min-width: 44px;
+    padding: 0 4px;
+    justify-content: center;
+  }
+
+  .step-circle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .subpage-hero {
+    padding-top: 96px;
+    padding-bottom: 32px;
+  }
+
+  .subpage-hero .section-title {
+    overflow-wrap: anywhere;
+  }
+
+  .site-footer a,
+  .footer-links-list a,
+  .footer-contact a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px !important;
+  }
+
+  .chat-fab,
+  .chatCloseBtn,
+  .chat-quick-pill {
+    min-width: 44px;
+    min-height: 44px !important;
+  }
+}

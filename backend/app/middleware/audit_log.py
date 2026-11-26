@@ -221,6 +221,14 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
             "default_action": "PAYOS_REFUND",
             "resource_type": "payment",
         },
+        # 4. CẤU HÌNH CHÍNH SÁCH HỆ THỐNG
+        {
+            "pattern": re.compile(r"^/api/admin/policies$"),
+            "methods": {"PUT", "PATCH", "POST"},
+            "category": "POLICY",
+            "default_action": "POLICY_UPDATE",
+            "resource_type": "system_policy",
+        },
     ]
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
@@ -481,6 +489,15 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
                 description = f"{actor_label} yêu cầu hoàn tiền giao dịch '{resource_id}'{amount_str}. Lý do: {reason}."
             else:
                 description = f"{actor_label} thực hiện thao tác hoàn tiền thanh toán."
+
+        # D. CẤU HÌNH CHÍNH SÁCH HỆ THỐNG (POLICIES)
+        elif category == "POLICY":
+            action = "POLICY_UPDATE"
+            resource_type = "system_policy"
+            updates = (payload or {}).get("updates", []) if isinstance(payload, dict) else []
+            keys_str = ", ".join(str(u.get("policy_key", "")) for u in updates[:5] if isinstance(u, dict))
+            resource_id = keys_str[:100] if keys_str else "bulk"
+            description = f"{actor_label} đã cập nhật {len(updates)} cấu hình chính sách hệ thống ({keys_str})."
 
         else:
             description = f"{actor_label} thực hiện hành động {action} trên {resource_type} #{resource_id}."
