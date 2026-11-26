@@ -429,6 +429,7 @@
                   id="profileDisplayEmail"
                   style="font-size: 13px; color: var(--text-muted)"
                 ></span>
+                <div id="profileVerifyStatusBox" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
               </div>
               <label class="btn btn-soft" style="cursor: pointer">
                 Đổi ảnh đại diện
@@ -1594,11 +1595,57 @@
       const renderUser = () => {
         const u = AuthRBAC.getCurrentUser();
         if (!u) return;
-        document.querySelector('[data-prof-tab="admin-reviews"]').hidden =
-          u.role !== "admin";
+        const isAdmin = u.role === "admin" || u.role === "operator";
+        const isStoreOwner = u.role === "store_owner" || u.role === "store_staff";
+        const setTabVisible = (tabName, visible) => {
+          const btn = document.querySelector(`[data-prof-tab="${tabName}"]`);
+          if (btn) {
+            btn.hidden = !visible;
+            btn.style.display = visible ? "" : "none";
+          }
+          const panel = document.querySelector(`[data-prof-panel="${tabName}"]`);
+          if (panel && !visible) {
+            panel.hidden = true;
+          }
+        };
+        setTabVisible("profile", true);
+        setTabVisible("password", true);
+        setTabVisible("admin-reviews", isAdmin);
+        setTabVisible("cccd", !isAdmin);
+        setTabVisible("license", !isAdmin && !isStoreOwner);
+        setTabVisible("store", !isAdmin && !isStoreOwner);
+        setTabVisible("favorites", !isAdmin && !isStoreOwner);
+        const activeBtn = document.querySelector(".prof-nav-btn.is-active");
+        if (activeBtn && activeBtn.hidden) {
+          switchProfileTab("profile");
+        }
         document.getElementById("profileDisplayName").textContent = u.name;
         document.getElementById("profileDisplayEmail").textContent =
           `${u.email || ""} • ${u.phone}`;
+
+        const verifyBox = document.getElementById("profileVerifyStatusBox");
+        if (verifyBox) {
+          const accVerified = Boolean(u.is_verified || u.verified || isAdmin || u.cccdStatus === "approved");
+          const cccdOk = u.cccdStatus === "approved";
+          const licOk = u.licenseStatus === "approved";
+          const chip = (label, ok, pending = false) => {
+            const bg = ok ? "#dcfce7" : pending ? "#fef3c7" : "#f1f5f9";
+            const fg = ok ? "#15803d" : pending ? "#b45309" : "#64748b";
+            return `<span style="padding:4px 10px;border-radius:999px;background:${bg};color:${fg};font-size:12px;font-weight:700;">${label}</span>`;
+          };
+          if (isAdmin) {
+            verifyBox.innerHTML = chip("✓ Tài khoản Quản trị đã xác nhận", true);
+          } else if (isStoreOwner) {
+            verifyBox.innerHTML =
+              chip(accVerified ? "✓ Tài khoản đã xác thực" : "Chưa xác thực tài khoản", accVerified) +
+              chip(cccdOk ? "✓ CCCD đã duyệt" : u.cccdStatus === "pending" ? "CCCD đang chờ duyệt" : "CCCD chưa xác thực", cccdOk, u.cccdStatus === "pending");
+          } else {
+            verifyBox.innerHTML =
+              chip(accVerified ? "✓ Tài khoản đã xác thực" : "Chưa xác thực tài khoản", accVerified) +
+              chip(cccdOk ? "✓ CCCD đã duyệt" : u.cccdStatus === "pending" ? "CCCD đang chờ duyệt" : "CCCD chưa xác thực", cccdOk, u.cccdStatus === "pending") +
+              chip(licOk ? "✓ GPLX đã duyệt" : u.licenseStatus === "pending" ? "GPLX đang chờ duyệt" : "GPLX chưa xác thực", licOk, u.licenseStatus === "pending");
+          }
+        }
         document.getElementById("profNameIn").value = u.name || "";
         document.getElementById("profEmailIn").value = u.email || "";
         document.getElementById("profPhoneIn").value = u.phone || "";
