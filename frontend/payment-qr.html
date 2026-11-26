@@ -15,20 +15,20 @@
         padding: 0;
       }
       :root {
-        --primary: #2563eb;
-        --primary-l: #eff6ff;
-        --success: #16a34a;
+        --primary: #16a34a;
+        --primary-l: #f0fdf4;
+        --success: #15803d;
         --success-l: #dcfce7;
-        --warning: #d97706;
+        --warning: #975b00;
         --warning-l: #fef3c7;
-        --danger: #dc2626;
+        --danger: #b42332;
         --danger-l: #fee2e2;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-400: #9ca3af;
-        --gray-600: #4b5563;
-        --gray-800: #1f2937;
+        --gray-50: #f8fcf9;
+        --gray-100: #f1f9f3;
+        --gray-200: #e2e9e4;
+        --gray-400: #6b8a76;
+        --gray-600: #3f5e4b;
+        --gray-800: #132a1c;
         --radius: 16px;
         --shadow: 0 4px 32px rgba(0, 0, 0, 0.1);
       }
@@ -37,8 +37,8 @@
         min-height: 100vh;
         background: linear-gradient(
           135deg,
-          #eff6ff 0%,
-          #f3f4f6 50%,
+          #f8fcf9 0%,
+          #f1f9f3 50%,
           #f0fdf4 100%
         );
         font-family:
@@ -81,7 +81,7 @@
       .brand-icon {
         width: 36px;
         height: 36px;
-        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        background: linear-gradient(135deg, #15803d, #22c55e);
         border-radius: 10px;
         display: flex;
         align-items: center;
@@ -160,9 +160,9 @@
       .col-left {
         background: linear-gradient(
           160deg,
-          #1e3a8a 0%,
-          #2563eb 60%,
-          #3b82f6 100%
+          #14532d 0%,
+          #15803d 60%,
+          #16a34a 100%
         );
         color: white;
         padding: 32px 28px;
@@ -254,7 +254,7 @@
       .progress-fill {
         height: 100%;
         border-radius: 999px;
-        background: linear-gradient(90deg, #34d399, #fcd34d);
+        background: linear-gradient(90deg, #4ade80, #bef264);
         transition: width 0.9s linear;
       }
 
@@ -282,7 +282,7 @@
         position: absolute;
         width: 22px;
         height: 22px;
-        border-color: #2563eb;
+        border-color: #16a34a;
         border-style: solid;
         border-width: 0;
       }
@@ -323,7 +323,7 @@
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(37, 99, 235, 0.8),
+          rgba(22, 163, 74, 0.8),
           transparent
         );
         border-radius: 2px;
@@ -378,7 +378,7 @@
         transition: background 0.2s;
       }
       .btn-refresh:hover {
-        background: #1d4ed8;
+        background: #15803d;
       }
 
       .btn-download {
@@ -399,6 +399,13 @@
       }
       .btn-download:hover {
         background: rgba(255, 255, 255, 0.28);
+      }
+      .btn-refresh:focus-visible,
+      .btn-download:focus-visible,
+      .btn-cancel:focus-visible,
+      .btn-primary:focus-visible {
+        outline: 3px solid #86efac;
+        outline-offset: 3px;
       }
 
       /* ── Steps ── */
@@ -472,7 +479,7 @@
       }
       .info-row:hover {
         background: var(--primary-l);
-        border-color: #bfdbfe;
+        border-color: #bbf7d0;
       }
       .info-label {
         font-size: 0.78rem;
@@ -491,37 +498,6 @@
         color: var(--primary);
       }
 
-      .btn-copy {
-        min-height: 44px;
-        flex-shrink: 0;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 5px 10px;
-        border-radius: 6px;
-        border: 1.5px solid var(--gray-200);
-        background: white;
-        color: var(--gray-600);
-        font-size: 0.75rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.15s;
-        white-space: nowrap;
-      }
-      .btn-copy:hover {
-        background: var(--primary);
-        border-color: var(--primary);
-        color: white;
-      }
-      .btn-copy.copied {
-        background: var(--success);
-        border-color: var(--success);
-        color: white;
-      }
-      .btn-copy:disabled {
-        cursor: not-allowed;
-        opacity: 0.55;
-      }
       .info-value.unavailable {
         color: var(--gray-400);
         font-weight: 400;
@@ -723,7 +699,7 @@
         transition: background 0.2s;
       }
       .btn-primary:hover {
-        background: #1d4ed8;
+        background: #15803d;
       }
 
       /* ═══════════════════════════════════════════
@@ -972,41 +948,26 @@
               <div class="info-row" id="bankNameRow">
                 <span class="info-label">Ngân hàng</span>
                 <span class="info-value" id="bankName">—</span>
-                <button class="btn-copy" data-copy-field="bankName">
-                  📋 Copy
-                </button>
               </div>
 
               <div class="info-row" id="accountNumberRow">
                 <span class="info-label">Số TK</span>
                 <span class="info-value" id="accountNumber">—</span>
-                <button class="btn-copy" data-copy-field="accountNumber">
-                  📋 Copy
-                </button>
               </div>
 
               <div class="info-row" id="accountNameRow">
                 <span class="info-label">Chủ TK</span>
                 <span class="info-value" id="accountName">—</span>
-                <button class="btn-copy" data-copy-field="accountName">
-                  📋 Copy
-                </button>
               </div>
 
               <div class="info-row" id="amountRow">
                 <span class="info-label">Số tiền</span>
-                <span class="info-value highlight"><span id="amountCopyDisplay">—</span> VNĐ</span>
-                <button class="btn-copy" data-copy-field="amountRaw">
-                  📋 Copy
-                </button>
+                <span class="info-value highlight"><span id="amountDetailsDisplay">—</span> VNĐ</span>
               </div>
 
               <div class="info-row" id="descriptionRow">
                 <span class="info-label">Nội dung CK</span>
                 <span class="info-value" id="transferDescription" style="font-weight: 700; letter-spacing: 0.04em">—</span>
-                <button class="btn-copy" data-copy-field="transferDescription">
-                  📋 Copy
-                </button>
               </div>
             </div>
             <p class="beneficiary-source" id="beneficiarySource" role="status" aria-live="polite"></p>

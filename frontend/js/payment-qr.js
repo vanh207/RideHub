@@ -20,7 +20,7 @@
       : `http://127.0.0.1:8000/api`;
   const ui = {
     amount: document.getElementById("amountDisplay"),
-    amountCopy: document.getElementById("amountCopyDisplay"),
+    amountDetails: document.getElementById("amountDetailsDisplay"),
     bankName: document.getElementById("bankName"),
     beneficiarySource: document.getElementById("beneficiarySource"),
     accountName: document.getElementById("accountName"),
@@ -231,7 +231,7 @@
       state.amount = Number(data.amount);
       const formatted = formatAmount(state.amount);
       ui.amount.textContent = formatted;
-      ui.amountCopy.textContent = formatted;
+      ui.amountDetails.textContent = formatted;
       ui.receiptAmount.textContent = formatted;
     }
     if (data.transaction_code) {
@@ -267,11 +267,8 @@
     const missingBeneficiaryFields = [];
     bankValues.forEach(({ key, label, value }) => {
       const element = ui[key];
-      const row = document.getElementById(`${key}Row`);
-      const copyButton = row.querySelector(".btn-copy");
       element.textContent = value || "Chưa có";
       element.classList.toggle("unavailable", !value);
-      copyButton.disabled = !value;
       if (!value) missingBeneficiaryFields.push(label);
     });
     if (ui.beneficiarySource) {
@@ -520,47 +517,8 @@
     }
   }
 
-  async function copyField(event) {
-    const button = event.currentTarget;
-    if (button.disabled) return;
-    const field = button.dataset.copyField;
-    const element = field === "amountRaw" ? null : document.getElementById(field);
-    const value =
-      field === "amountRaw"
-        ? state.amount
-          ? String(Math.round(state.amount))
-          : ""
-        : element
-          ? element.textContent.trim()
-          : "";
-    if (!value || value === "—") return;
-    const original = button.textContent;
-    try {
-      await navigator.clipboard.writeText(value);
-    } catch (_) {
-      const textarea = document.createElement("textarea");
-      textarea.value = value;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      textarea.remove();
-    }
-    button.textContent = "✅ Đã copy";
-    button.classList.add("copied");
-    window.setTimeout(() => {
-      button.textContent = original;
-      button.classList.remove("copied");
-    }, 1800);
-  }
-
   ui.retryButton.addEventListener("click", loadPayment);
   ui.cancelButton.addEventListener("click", cancelPayment);
-  document
-    .querySelectorAll("[data-copy-field]")
-    .forEach((button) => button.addEventListener("click", copyField));
   window.addEventListener("pagehide", () => {
     state.active = false;
     if (state.timer) window.clearInterval(state.timer);

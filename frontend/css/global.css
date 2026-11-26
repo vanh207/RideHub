@@ -558,7 +558,7 @@ button, input, select, textarea {
   flex-shrink: 0;
 }
 
-.notif-icon--payment { background: #e0f2fe; color: #0284c7; }
+.notif-icon--payment { background: #dcfce7; color: #15803d; }
 .notif-icon--alert { background: #fef3c7; color: #d97706; }
 .notif-icon--system { background: #f3e8ff; color: #7c3aed; }
 
