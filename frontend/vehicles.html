@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Tìm &amp; Thuê xe — RideHub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -155,10 +155,10 @@
           </div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;">
-          <button id="openDocsModalBtn" class="btn btn-primary btn-premium btn-shine" style="min-height:38px;padding:6px 18px;font-size:12.5px;" type="button">
+          <button id="openDocsModalBtn" class="btn btn-primary btn-premium btn-shine" style="min-height:44px;padding:10px 18px;font-size:13px;" type="button">
             Bổ sung hồ sơ ngay ›
           </button>
-          <button id="dismissDocsBanner" class="btn btn-soft" style="min-height:38px;padding:6px 14px;font-size:12.5px;" type="button">
+          <button id="dismissDocsBanner" class="btn btn-soft" style="min-height:44px;padding:10px 14px;font-size:13px;" type="button">
             Để sau
           </button>
         </div>
@@ -169,8 +169,8 @@
       <div class="panel-card" style="padding:14px 20px;background:var(--green-50);border-color:var(--green-300);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <div style="font-size:14px;font-weight:600;color:var(--green-800);">Đăng ký 1 phút để giữ chỗ xe này và nhận ưu đãi chuyến đầu tiên.</div>
         <div style="display:flex;gap:8px;">
-          <a href="pages/auth.html" class="btn btn-primary" style="min-height:34px;padding:4px 14px;font-size:12px;">Đăng ký ngay</a>
-          <button id="dismissGuestBanner" class="btn btn-soft" style="min-height:34px;padding:4px 12px;font-size:12px;" type="button">Ẩn</button>
+          <a href="pages/auth.html" class="btn btn-primary" style="min-height:44px;padding:10px 14px;font-size:13px;">Đăng ký ngay</a>
+          <button id="dismissGuestBanner" class="btn btn-soft" style="min-height:44px;padding:10px 12px;font-size:13px;" type="button">Ẩn</button>
         </div>
       </div>
     </div>
@@ -356,7 +356,7 @@
       <div style="padding:14px 16px;border-radius:14px;background:var(--bg-surface-soft);display:flex;flex-direction:column;gap:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <label class="filter-label" for="detailScheduleInput" style="margin:0;">Thời gian thuê xe (<span id="detailDurationText">3 ngày</span>)</label>
-          <button id="openDateTimePickerBtn" type="button" class="btn btn-soft" style="min-height:30px;padding:4px 10px;font-size:12px;">Mở lịch</button>
+          <button id="openDateTimePickerBtn" type="button" class="btn btn-soft" style="min-height:44px;padding:10px 12px;font-size:13px;">Mở lịch</button>
         </div>
         <input id="detailScheduleInput" class="form-input" type="text" value="12/11 21:00 → 15/11 11:00" placeholder="VD: 12/11 21:00 → 15/11 11:00" style="font-weight:700;color:var(--green-800);" />
       </div>
@@ -1196,7 +1196,7 @@
         let btns = '';
         for (let p = 1; p <= totalPages; p++) {
           const isAct = p === currentPage;
-          btns += `<button type="button" class="btn ${isAct ? 'btn-primary' : 'btn-soft'}" style="min-width:36px;min-height:36px;padding:6px 10px;font-size:13px;font-weight:700;" data-go-page="${p}">${p}</button>`;
+          btns += `<button type="button" class="btn ${isAct ? 'btn-primary' : 'btn-soft'}" style="min-width:44px;min-height:44px;padding:10px 12px;font-size:13px;font-weight:700;" data-go-page="${p}">${p}</button>`;
         }
         numsWrap.innerHTML = btns;
         numsWrap.querySelectorAll('[data-go-page]').forEach((b) => {
@@ -1342,7 +1342,7 @@
       <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft, #f8fafc);border:1px solid #e2e8f0;margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <strong style="font-size:13px;color:var(--text-primary);">1. Căn cước công dân (CCCD gắn chip)</strong>
-          <button id="btnAutoDocsSample" type="button" class="btn btn-soft" style="min-height:26px;padding:2px 10px;font-size:11px;color:var(--green-800);background:#fff;border:1px solid var(--green-300);">⚡ Điền mẫu tự động</button>
+          <button id="btnAutoDocsSample" type="button" class="btn btn-soft" style="min-height:44px;padding:10px 12px;font-size:12px;color:var(--green-800);background:#fff;border:1px solid var(--green-300);">⚡ Điền mẫu tự động</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <label id="cccdFrontBox" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:105px;border:1.5px dashed var(--green-400);border-radius:12px;background:#fff;cursor:pointer;text-align:center;padding:8px;">
