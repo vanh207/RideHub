@@ -39,13 +39,13 @@
       label: 'Chủ cửa hàng',
       badgeClass: 'status-badge--transit',
       home: 'store-portal.html',
-      allowedPages: ['index.html', 'store-portal.html', 'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html']
+      allowedPages: ['index.html', 'store-portal.html', 'vehicle_management.html', 'delivery.html', 'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html']
     },
     admin: {
       label: 'Quản trị hệ thống',
       badgeClass: 'status-badge--maintenance',
       home: 'admin-ops.html',
-      allowedPages: ['index.html', 'admin-ops.html', 'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html']
+      allowedPages: ['index.html', 'admin-ops.html', 'vehicle_management.html', 'delivery.html', 'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html']
     }
   };
 
@@ -496,7 +496,7 @@
       document.querySelectorAll('.nav-links a, .mobile-drawer a').forEach((link) => {
         const href = link.getAttribute('href');
         if (!href || href.startsWith('#')) return;
-        const page = href.split('#')[0];
+        const page = href.split('#')[0].split('/').pop();
         const ok = allowed.includes(page);
         link.style.display = ok ? '' : 'none';
       });

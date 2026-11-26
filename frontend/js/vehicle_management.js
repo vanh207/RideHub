@@ -250,6 +250,8 @@
     updateTransmissionOptions('motorcycle', 'Xe tay ga');
     document.getElementById('addVehName').value = 'Honda Vision (2025)';
     document.getElementById('addVehPrice').value = 150000;
+    const statusSelect = document.getElementById('addVehStatus');
+    if (statusSelect) statusSelect.value = 'Sẵn sàng';
     uploadedPhotoUrls = [];
     renderPhotoPreviews();
     addModal.classList.add('is-open');
@@ -270,6 +272,8 @@
     document.getElementById('addVehTransmission').value = v.transmission || (cat === 'car' ? 'Số tự động' : 'Xe tay ga');
     document.getElementById('addVehFuel').value = v.fuel || 'Điện';
     document.getElementById('addVehPrice').value = v.price || 150000;
+    const statusSelect = document.getElementById('addVehStatus');
+    if (statusSelect) statusSelect.value = v.status || 'Sẵn sàng';
     document.getElementById('addVehDesc').value = v.desc || '';
     document.getElementById('addVehCollateral').value = v.collateral || '';
     document.getElementById('addVehTerms').value = v.terms || '';
@@ -322,6 +326,7 @@
     const payload = {
       category,
       name: document.getElementById('addVehName').value.trim(),
+      status: document.getElementById('addVehStatus')?.value || 'Sẵn sàng',
       transmission: document.getElementById('addVehTransmission').value,
       fuel: document.getElementById('addVehFuel').value,
       price: Number(document.getElementById('addVehPrice').value) || 150000,
