@@ -122,8 +122,8 @@ class Settings(BaseSettings):
     KYC_VENDOR_TIMEOUT_SECONDS: int = 10
 
     KYC_CONSENT_VERSION: str = "2026-11-v1"
-    KYC_PRIVACY_CONTACT_EMAIL: str = "[ĐIỀN email nhóm]"
-    KYC_LEGAL_REVIEWER: str = "[ĐIỀN tên nhóm trưởng/giảng viên]"
+    KYC_PRIVACY_CONTACT_EMAIL: str = "vietanh282007@gmail.com"
+    KYC_LEGAL_REVIEWER: str = "Đỗ Việt Anh"
 
     KYC_SESSION_TTL_MINUTES: int = 15
     KYC_DAILY_ATTEMPT_LIMIT: int = 5

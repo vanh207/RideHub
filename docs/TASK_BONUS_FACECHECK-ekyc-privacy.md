@@ -42,8 +42,8 @@ Các mốc 30/180 ngày là giả định kỹ thuật, chưa được pháp ch�
 
 Người dùng có thể yêu cầu truy cập, chỉnh sửa hoặc xóa dữ liệu eKYC qua:
 
-- Email liên hệ: `KYC_PRIVACY_CONTACT_EMAIL` = `[ĐIỀN email nhóm]`.
-- Người review nội bộ: `KYC_LEGAL_REVIEWER` = `[ĐIỀN tên nhóm trưởng/giảng viên]`.
+- Email liên hệ: `KYC_PRIVACY_CONTACT_EMAIL` = `vietanh282007@gmail.com`.
+- Người review nội bộ: `KYC_LEGAL_REVIEWER` = `Đỗ Việt Anh`.
 
 Yêu cầu xóa phải được đối chiếu với hợp đồng thuê xe còn hiệu lực trước khi thực hiện.
 
