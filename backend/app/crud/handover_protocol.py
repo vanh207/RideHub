@@ -167,9 +167,13 @@ def create_handover_protocol(
 
     is_signed = bool(payload.customer_signature and payload.staff_signature)
 
-    eff_deposit_type = getattr(payload, "deposit_type", None) or getattr(booking, "deposit_type", None) or "CASH"
-    eff_collateral_info = getattr(payload, "collateral_info", None) or getattr(booking, "collateral_info", None)
-    eff_collateral_status = getattr(payload, "collateral_status", None) or ("HELD" if eff_deposit_type == "VEHICLE_PLEDGE" else None)
+    eff_deposit_type = (getattr(payload, "deposit_type", None) or getattr(booking, "deposit_type", None) or "CASH").upper()
+    has_pledge = eff_deposit_type in ("VEHICLE_PLEDGE", "COMBINED")
+    eff_collateral_info = (getattr(payload, "collateral_info", None) or getattr(booking, "collateral_info", None)) if has_pledge else None
+    eff_collateral_status = getattr(payload, "collateral_status", None) or ("HELD" if has_pledge else None)
+    eff_handler = getattr(payload, "collateral_handler_name", None) or (actor.full_name or "Nhân viên bàn giao") if has_pledge else None
+    eff_handled_at = getattr(payload, "collateral_handled_at", None) or (datetime.now() if has_pledge and eff_collateral_status == "HELD" else None)
+    eff_cust_conf = bool(getattr(payload, "collateral_customer_confirmed", False)) if has_pledge else False
     eff_deposit_orig = Decimal(0) if eff_deposit_type == "VEHICLE_PLEDGE" else (payload.deposit_original or booking.deposit_amount or Decimal(0))
 
     protocol = HandoverProtocol(
@@ -197,6 +201,9 @@ def create_handover_protocol(
         deposit_type=eff_deposit_type,
         collateral_info=eff_collateral_info,
         collateral_status=eff_collateral_status,
+        collateral_handler_name=eff_handler,
+        collateral_handled_at=eff_handled_at,
+        collateral_customer_confirmed=eff_cust_conf,
         deposit_original=eff_deposit_orig,
         customer_signature=payload.customer_signature,
         staff_signature=payload.staff_signature,
@@ -285,15 +292,19 @@ def create_checkin_protocol(
         or (checkout_protocol.deposit_type if checkout_protocol else None)
         or getattr(booking, "deposit_type", None)
         or "CASH"
-    )
+    ).upper()
+    has_pledge = eff_deposit_type in ("VEHICLE_PLEDGE", "COMBINED")
     eff_collateral_info = (
         getattr(payload, "collateral_info", None)
         or (checkout_protocol.collateral_info if checkout_protocol else None)
         or getattr(booking, "collateral_info", None)
-    )
+    ) if has_pledge else None
     eff_collateral_status = getattr(payload, "collateral_status", None) or (
-        "RETURNED" if eff_deposit_type == "VEHICLE_PLEDGE" else None
+        "RETURNED" if has_pledge else None
     )
+    eff_handler = (getattr(payload, "collateral_handler_name", None) or (actor.full_name or "Nhân viên nhận xe")) if has_pledge else None
+    eff_handled_at = (getattr(payload, "collateral_handled_at", None) or (datetime.now() if eff_collateral_status == "RETURNED" else None)) if has_pledge else None
+    eff_cust_conf = bool(getattr(payload, "collateral_customer_confirmed", False)) if has_pledge else False
 
     checkin_protocol = HandoverProtocol(
         protocol_code=payload.protocol_code,
@@ -322,6 +333,9 @@ def create_checkin_protocol(
         deposit_type=eff_deposit_type,
         collateral_info=eff_collateral_info,
         collateral_status=eff_collateral_status,
+        collateral_handler_name=eff_handler,
+        collateral_handled_at=eff_handled_at,
+        collateral_customer_confirmed=eff_cust_conf,
         deposit_original=Decimal(0) if eff_deposit_type == "VEHICLE_PLEDGE" else deposit_orig,
         fee_overtime=payload.fee_overtime or Decimal(0),
         fee_excess_km=payload.fee_excess_km or Decimal(0),

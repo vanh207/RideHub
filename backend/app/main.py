@@ -61,6 +61,9 @@ def _ensure_collateral_columns() -> None:
             "deposit_type": "ALTER TABLE handover_protocols ADD COLUMN deposit_type VARCHAR(30) NOT NULL DEFAULT 'CASH'",
             "collateral_info": "ALTER TABLE handover_protocols ADD COLUMN collateral_info TEXT NULL",
             "collateral_status": "ALTER TABLE handover_protocols ADD COLUMN collateral_status VARCHAR(30) NULL",
+            "collateral_handler_name": "ALTER TABLE handover_protocols ADD COLUMN collateral_handler_name VARCHAR(100) NULL",
+            "collateral_handled_at": "ALTER TABLE handover_protocols ADD COLUMN collateral_handled_at TIMESTAMP NULL",
+            "collateral_customer_confirmed": "ALTER TABLE handover_protocols ADD COLUMN collateral_customer_confirmed BOOLEAN NOT NULL DEFAULT FALSE",
         },
     }
     try:

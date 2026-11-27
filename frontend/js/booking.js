@@ -30,11 +30,13 @@
     if (draftVehicleBadge && draft.vehicle) {
       draftVehicleBadge.textContent = draft.vehicle;
     }
-    const dtype = draft.depositType === "VEHICLE_PLEDGE" ? "VEHICLE_PLEDGE" : "CASH";
+    const dtype = (draft.depositType === "VEHICLE_PLEDGE" || draft.depositType === "COMBINED")
+      ? draft.depositType
+      : "CASH";
     document.querySelectorAll('input[name="bookingDepositType"]').forEach((r) => {
       r.checked = r.value === dtype;
     });
-    if (bookingCollateralWrap) bookingCollateralWrap.hidden = dtype !== "VEHICLE_PLEDGE";
+    if (bookingCollateralWrap) bookingCollateralWrap.hidden = dtype === "CASH";
     if (bookingCollateralInput && draft.collateralInfo) {
       bookingCollateralInput.value = draft.collateralInfo;
     }
@@ -47,10 +49,9 @@
 
   document.querySelectorAll('input[name="bookingDepositType"]').forEach((r) => {
     r.addEventListener("change", () => {
-      const isPledge = r.value === "VEHICLE_PLEDGE";
-      if (bookingCollateralWrap) bookingCollateralWrap.hidden = !isPledge;
+      if (bookingCollateralWrap) bookingCollateralWrap.hidden = r.value === "CASH";
       if (submitButton) {
-        submitButton.textContent = isPledge
+        submitButton.textContent = r.value === "VEHICLE_PLEDGE"
           ? "Gửi đơn thế chấp xe"
           : "Tạo đơn & Thanh toán cọc";
       }
@@ -278,8 +279,9 @@
 
     const selectedRadio = document.querySelector('input[name="bookingDepositType"]:checked');
     const depositType = selectedRadio ? selectedRadio.value : "CASH";
+    const needsPledge = depositType === "VEHICLE_PLEDGE" || depositType === "COMBINED";
     const collateralInfo = bookingCollateralInput ? bookingCollateralInput.value.trim() : "";
-    if (depositType === "VEHICLE_PLEDGE" && !collateralInfo) {
+    if (needsPledge && !collateralInfo) {
       message.textContent = "Vui lòng nhập thông tin xe và giấy tờ thế chấp.";
       if (bookingCollateralInput) bookingCollateralInput.focus();
       return;
@@ -305,7 +307,7 @@
             start_time: startInput.value,
             end_time: endInput.value,
             deposit_type: depositType,
-            collateral_info: depositType === "VEHICLE_PLEDGE" ? collateralInfo : null,
+            collateral_info: needsPledge ? collateralInfo : null,
           }),
         },
       );

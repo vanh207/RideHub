@@ -387,8 +387,9 @@
       const hasResched = o.rescheduleRequest && o.rescheduleRequest.status === 'pending_store';
       const depositType = (o.depositType || o.deposit_type || (o.pricing && o.pricing.deposit_type) || 'CASH').toUpperCase();
       const collateralInfo = o.collateralInfo || o.collateral_info || (o.pricing && o.pricing.collateral_info) || '';
-      const isPledge = depositType === 'VEHICLE_PLEDGE';
-      const remainAmount = isPledge ? o.total : Math.max(0, o.total - o.deposit);
+      const isPledgeOnly = depositType === 'VEHICLE_PLEDGE';
+      const isCombined = depositType === 'COMBINED';
+      const remainAmount = isPledgeOnly ? o.total : Math.max(0, o.total - o.deposit);
 
       // Tham số đồng bộ sang biên bản bàn giao xe
       const handoverParams = new URLSearchParams({
@@ -397,9 +398,9 @@
         phone: o.phone,
         vehicle: o.vehicle,
         plate: o.licensePlate,
-        deposit: isPledge ? 0 : o.deposit,
+        deposit: isPledgeOnly ? 0 : o.deposit,
         deposit_type: depositType,
-        collateral_info: collateralInfo || o.collateral || ''
+        collateral_info: collateralInfo || ((isPledgeOnly || isCombined) ? o.collateral : '')
       }).toString();
 
       return `
@@ -478,10 +479,13 @@
                 ${o.total.toLocaleString('vi-VN')} đ
               </div>
               <div class="col-val-sub">
-                ${isPledge
-                  ? `<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;margin-bottom:3px;">🏍️ Thế chấp xe tại trạm</span><br/>
-                     Cọc online: <strong>0 đ</strong><br/>`
-                  : `Đã cọc: <strong style="color:var(--green-700);">${o.deposit.toLocaleString('vi-VN')} đ (VietQR)</strong><br/>`
+                ${isPledgeOnly
+                  ? `<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;margin-bottom:3px;">🏍️ Chỉ thế chấp xe</span><br/>
+                     Tiền cọc: <strong>0 đ</strong><br/>`
+                  : isCombined
+                    ? `<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;font-size:11px;font-weight:700;margin-bottom:3px;">🛡️ Cọc + Thế chấp xe</span><br/>
+                       Đã cọc: <strong style="color:var(--green-700);">${o.deposit.toLocaleString('vi-VN')} đ</strong><br/>`
+                    : `Đã cọc: <strong style="color:var(--green-700);">${o.deposit.toLocaleString('vi-VN')} đ (VietQR)</strong><br/>`
                 }
                 Thu tại trạm: <strong style="color:#b91c1c;">${remainAmount.toLocaleString('vi-VN')} đ</strong>
               </div>
@@ -556,11 +560,6 @@
                   ↩️ Khôi phục lại (Chờ duyệt)
                 </button>
               ` : ''}
-
-              <!-- Nút Sửa lại trạng thái (Đảm bảo người dùng nhỡ bấm nhầm có thể sửa lại) -->
-              <button type="button" class="btn btn-soft btn-sm" style="font-size:12.5px;font-weight:700;border:1.5px solid #dcfce7;color:#15803d;" onclick="window.openChangeStatusModal('${o.id}')" title="Sửa hoặc hoàn tác trạng thái đơn nếu thao tác nhầm">
-                🔄 Sửa trạng thái
-              </button>
             </div>
           </div>
         </article>
@@ -569,13 +568,54 @@
   }
 
   // =========================================================================
-  // 5. NỐI API: XÁC NHẬN DUYỆT ĐƠN ĐẶT XE
+  // 5. NỐI API: XÁC NHẬN DUYỆT ĐƠN ĐẶT XE (CÓ HỘP THOẠI CONFIRM ĐẸP)
   // =========================================================================
-  window.approveOrder = async function (orderId) {
+  let approvingOrderId = null;
+
+  window.approveOrder = function (orderId) {
     const ord = orders.find(o => o.id === orderId);
     if (!ord) return;
 
-    // Hiển thị visual loading trên card
+    const modal = document.getElementById('approveOrderModal');
+    const summaryBox = document.getElementById('approveOrderSummaryBox');
+    if (!modal || !summaryBox) {
+      executeApproveOrder(orderId);
+      return;
+    }
+
+    approvingOrderId = orderId;
+    const dtype = (ord.depositType || ord.deposit_type || 'CASH').toUpperCase();
+    const policyLabel = dtype === 'VEHICLE_PLEDGE'
+      ? '🏍️ Chỉ thế chấp tài sản (0 đ tiền cọc)'
+      : dtype === 'COMBINED'
+        ? `🛡️ Kết hợp cọc (${(ord.deposit || 0).toLocaleString('vi-VN')} đ) &amp; thế chấp xe`
+        : `💳 Chỉ đặt cọc tiền (${(ord.deposit || 0).toLocaleString('vi-VN')} đ)`;
+
+    summaryBox.innerHTML = `
+      <div style="display:flex;justify-content:space-between;gap:8px;">
+        <span style="color:#4d6b57;">Mã đơn / Xe:</span>
+        <strong>#${ord.id} • ${ord.vehicle} (${ord.licensePlate || '—'})</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:8px;">
+        <span style="color:#4d6b57;">Khách thuê:</span>
+        <strong>${ord.customer} • ${ord.phone}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:8px;">
+        <span style="color:#4d6b57;">Lịch trình:</span>
+        <strong>${ord.schedule}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:8px;padding-top:6px;border-top:1px dashed #bbf7d0;">
+        <span style="color:#4d6b57;">Chính sách bảo đảm:</span>
+        <strong style="color:#15803d;">${policyLabel}</strong>
+      </div>
+    `;
+    modal.classList.add('is-open');
+  };
+
+  async function executeApproveOrder(orderId) {
+    const ord = orders.find(o => o.id === orderId);
+    if (!ord) return;
+
     const card = document.querySelector(`.saas-order-card[data-id="${orderId}"]`);
     if (card) card.style.opacity = '0.6';
 
@@ -594,7 +634,6 @@
       console.info('API offline, lưu cập nhật duyệt vào bộ nhớ cửa hàng:', e.message);
     }
 
-    // Cập nhật state
     ord.status = 'approved';
     saveOrdersToLocal(orders);
     updateMetricsAndBadges();
@@ -604,7 +643,19 @@
       'Đã duyệt nhận đơn đặt xe thành công!',
       `Đơn #${ord.id} (${ord.customer} • ${ord.vehicle}) đã chuyển sang trạng thái ĐÃ DUYỆT${apiSuccess ? ' (Đã đồng bộ lên CSDL API)' : ''}. Bạn có thể tiến hành lập Biên bản bàn giao xe ngay.`
     );
-  };
+  }
+
+  document.getElementById('cancelApproveModalBtn')?.addEventListener('click', () => {
+    document.getElementById('approveOrderModal')?.classList.remove('is-open');
+    approvingOrderId = null;
+  });
+
+  document.getElementById('confirmApproveModalBtn')?.addEventListener('click', () => {
+    const id = approvingOrderId;
+    document.getElementById('approveOrderModal')?.classList.remove('is-open');
+    approvingOrderId = null;
+    if (id) executeApproveOrder(id);
+  });
 
   // =========================================================================
   // 6. NỐI API: TỪ CHỐI ĐƠN & HOÀN CỌC (UI MỚI SANG ĐẸP)
@@ -1200,10 +1251,6 @@
             Đóng
           </button>
           
-          <!-- Nút Sửa Lại Trạng Thái Đơn Bất Kỳ Lúc Nào -->
-          <button type="button" class="btn btn-soft" style="border-radius:10px;font-weight:700;padding:8px 16px;border:1.5px solid #dcfce7;color:#15803d;" onclick="document.getElementById('storeOrderDetailModal').classList.remove('is-open');window.openChangeStatusModal('${ord.id}');">
-            🔄 Sửa trạng thái
-          </button>
           
           ${ord.status === 'pending' ? `
             <button type="button" class="btn btn-primary" style="border-radius:10px;font-weight:700;padding:8px 22px;box-shadow:0 4px 12px rgba(22,163,74,0.25);" onclick="window.approveOrder('${ord.id}');document.getElementById('storeOrderDetailModal').classList.remove('is-open');">

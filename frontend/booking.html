@@ -89,25 +89,32 @@
           </div>
 
           <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft);border:1px solid var(--green-100);display:grid;gap:10px;">
-            <div style="font-size:13px;font-weight:800;color:var(--text-primary);">Hình thức đặt cọc / thế chấp</div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;">
+            <div style="font-size:13px;font-weight:800;color:var(--text-primary);">Chính sách đặt cọc / thế chấp</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;">
               <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;border:1.5px solid #d5e7dc;background:#fff;cursor:pointer;">
                 <input type="radio" name="bookingDepositType" value="CASH" checked style="margin-top:3px;accent-color:#16a34a;" />
                 <div>
-                  <div style="font-weight:700;font-size:13px;">💳 Đặt cọc tiền (VietQR 30%)</div>
-                  <div style="font-size:12px;color:var(--text-muted);">Chuyển khoản giữ chỗ online</div>
+                  <div style="font-weight:700;font-size:13px;">💳 Chỉ đặt cọc tiền</div>
+                  <div style="font-size:12px;color:var(--text-muted);">Cọc 30% VietQR online</div>
                 </div>
               </label>
               <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;border:1.5px solid #d5e7dc;background:#fff;cursor:pointer;">
                 <input type="radio" name="bookingDepositType" value="VEHICLE_PLEDGE" style="margin-top:3px;accent-color:#16a34a;" />
                 <div>
-                  <div style="font-weight:700;font-size:13px;">🏍️ Thế chấp xe (Cắm xe tại trạm)</div>
-                  <div style="font-size:12px;color:var(--text-muted);">0đ cọc online • Mang xe + cà vẹt gốc khi nhận</div>
+                  <div style="font-weight:700;font-size:13px;">🏍️ Chỉ thế chấp tài sản</div>
+                  <div style="font-size:12px;color:var(--text-muted);">0đ tiền cọc • Giữ xe + cà vẹt gốc</div>
+                </div>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;border:1.5px solid #d5e7dc;background:#fff;cursor:pointer;">
+                <input type="radio" name="bookingDepositType" value="COMBINED" style="margin-top:3px;accent-color:#16a34a;" />
+                <div>
+                  <div style="font-weight:700;font-size:13px;">🛡️ Kết hợp cọc &amp; thế chấp</div>
+                  <div style="font-size:12px;color:var(--text-muted);">Cọc 30% + Thế chấp xe tại trạm</div>
                 </div>
               </label>
             </div>
             <div id="bookingCollateralWrap" hidden>
-              <label for="bookingCollateralInfo" style="display:block;font-size:12px;font-weight:700;color:#92400e;margin-bottom:4px;">Thông tin xe &amp; giấy tờ thế chấp *</label>
+              <label for="bookingCollateralInfo" style="display:block;font-size:12px;font-weight:700;color:#166534;margin-bottom:4px;">Thông tin xe &amp; giấy tờ thế chấp *</label>
               <input id="bookingCollateralInfo" type="text" class="form-input" placeholder="VD: Xe máy Wave Alpha - BS: 59P1-123.45 (Cà vẹt gốc + CCCD)" />
             </div>
           </div>
@@ -283,11 +290,16 @@
         listEl.innerHTML = filtered.map((b) => {
           const badge = groupBadge(b.group, b.status);
           const sched = b.scheduleText || `${formatDt(b.start_time)} → ${formatDt(b.end_time)}`;
-          const isPledge = (b.deposit_type || '').toUpperCase() === 'VEHICLE_PLEDGE';
-          const depositHtml = isPledge
-            ? `<div style="font-size:13px;font-weight:800;color:#b45309;">🏍️ Thế chấp xe tại trạm (0đ cọc online)</div>
-               ${b.collateral_info ? `<div style="font-size:11.5px;color:#92400e;">${b.collateral_info}</div>` : ''}`
-            : `<div style="font-size:13.5px;font-weight:800;color:var(--green-700);">💳 Cọc: ${formatVnd(b.deposit_amount)}</div>`;
+          const dtype = (b.deposit_type || 'CASH').toUpperCase();
+          const isPledgeOnly = dtype === 'VEHICLE_PLEDGE';
+          const isCombined = dtype === 'COMBINED';
+          const depositHtml = isPledgeOnly
+            ? `<div style="font-size:13px;font-weight:800;color:#15803d;">🏍️ Chỉ thế chấp xe (0đ tiền cọc)</div>
+               ${b.collateral_info ? `<div style="font-size:11.5px;color:#4d6b57;">${b.collateral_info}</div>` : ''}`
+            : isCombined
+              ? `<div style="font-size:13px;font-weight:800;color:#15803d;">🛡️ Kết hợp: Cọc ${formatVnd(b.deposit_amount)} + Thế chấp xe</div>
+                 ${b.collateral_info ? `<div style="font-size:11.5px;color:#4d6b57;">${b.collateral_info}</div>` : ''}`
+              : `<div style="font-size:13.5px;font-weight:800;color:var(--green-700);">💳 Cọc: ${formatVnd(b.deposit_amount)}</div>`;
           return `
             <div style="padding:16px;border-radius:14px;border:1px solid var(--green-100);background:#ffffff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
               <div>

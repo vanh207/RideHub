@@ -282,13 +282,18 @@ def _create_booking_tx(
     ensure_customer_verified(db, customer_id)
 
     rental_amount = calculate_rental_amount(vehicle, start_time, end_time)
-    deposit_type = getattr(payload, "deposit_type", "CASH") or "CASH"
+    deposit_type = (getattr(payload, "deposit_type", "CASH") or "CASH").upper()
     collateral_info = (getattr(payload, "collateral_info", None) or "").strip() or None
     if deposit_type == "VEHICLE_PLEDGE":
         deposit_amount = Decimal("0.00")
         booking_status = "PENDING"
         if not collateral_info:
             collateral_info = "Thế chấp xe + giấy tờ gốc tại trạm"
+    elif deposit_type == "COMBINED":
+        deposit_amount = calculate_deposit_amount(rental_amount)
+        booking_status = HOLD_BOOKING_STATUS
+        if not collateral_info:
+            collateral_info = "Thế chấp xe + giấy tờ gốc kèm đặt cọc tiền"
     else:
         deposit_type = "CASH"
         deposit_amount = calculate_deposit_amount(rental_amount)

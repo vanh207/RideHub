@@ -95,14 +95,16 @@
     byId('detailPriceBreakdown').textContent = `${data.formatCurrency(vehicle.price)} × ${days} ngày + Giao nhận ${data.formatCurrency(deliveryFee)} + Tiện ích ${data.formatCurrency(addons)}`;
     byId('detailTotalPrice').textContent = data.formatCurrency(total);
     if (selectedDepositType === 'VEHICLE_PLEDGE') {
-      byId('detailDeposit').textContent = `Thế chấp xe tại trạm (0đ cọc online) • Thanh toán ${data.formatCurrency(total)} khi nhận xe`;
+      byId('detailDeposit').textContent = `Chỉ thế chấp xe (0đ tiền cọc) • Thanh toán ${data.formatCurrency(total)} khi nhận xe`;
+    } else if (selectedDepositType === 'COMBINED') {
+      byId('detailDeposit').textContent = `Kết hợp: Cọc 30% (${data.formatCurrency(deposit)}) + Thế chấp xe • Còn lại ${data.formatCurrency(total - deposit)}`;
     } else {
-      byId('detailDeposit').textContent = `Cọc 30%: ${data.formatCurrency(deposit)} • Còn lại ${data.formatCurrency(total - deposit)}`;
+      byId('detailDeposit').textContent = `Chỉ đặt cọc 30%: ${data.formatCurrency(deposit)} • Còn lại ${data.formatCurrency(total - deposit)}`;
     }
   }
 
   function setDepositType(type) {
-    selectedDepositType = type === 'VEHICLE_PLEDGE' ? 'VEHICLE_PLEDGE' : 'CASH';
+    selectedDepositType = (type === 'VEHICLE_PLEDGE' || type === 'COMBINED') ? type : 'CASH';
     document.querySelectorAll('#depositOptionGroup .deposit-option-card').forEach((card) => {
       const active = card.dataset.depositType === selectedDepositType;
       card.style.borderColor = active ? '#16a34a' : '#d5e7dc';
@@ -111,7 +113,7 @@
       if (radio) radio.checked = active;
     });
     const wrap = byId('collateralVehicleWrap');
-    if (wrap) wrap.hidden = selectedDepositType !== 'VEHICLE_PLEDGE';
+    if (wrap) wrap.hidden = selectedDepositType === 'CASH';
     recalcTotal();
   }
 
@@ -222,9 +224,9 @@
     const addons = Array.from(document.querySelectorAll('.addon-chk:checked')).map((checkbox) => checkbox.parentElement.textContent.trim());
     const totalText = byId('detailTotalPrice').textContent;
     const totalNum = Number(totalText.replace(/\D/g, '')) || 0;
-    const isPledge = selectedDepositType === 'VEHICLE_PLEDGE';
+    const hasPledge = selectedDepositType === 'VEHICLE_PLEDGE' || selectedDepositType === 'COMBINED';
     let collateralInfo = '';
-    if (isPledge) {
+    if (hasPledge) {
       const colType = byId('collateralVehicleType')?.value || 'Xe máy';
       const colName = (byId('collateralVehicleName')?.value || '').trim();
       const colDocs = (byId('collateralDocs')?.value || 'Cà vẹt gốc + CCCD').trim();
@@ -235,7 +237,7 @@
       }
       collateralInfo = `${colType}: ${colName} (${colDocs})`;
     }
-    const depositNum = isPledge ? 0 : Math.round(totalNum * 0.3);
+    const depositNum = selectedDepositType === 'VEHICLE_PLEDGE' ? 0 : Math.round(totalNum * 0.3);
 
     const draft = {
       orderCode: 'RH-' + Math.floor(100000 + Math.random() * 899999),

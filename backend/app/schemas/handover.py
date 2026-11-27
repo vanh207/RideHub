@@ -84,12 +84,12 @@ class HandoverProtocolCreate(BaseModel):
     checklist_data: Optional[List[ChecklistItem]] = None
 
     # Tài chính & Thế chấp
-    deposit_type: str = Field("CASH", description="CASH (Cọc tiền) hoặc VEHICLE_PLEDGE (Thế chấp xe)")
+    deposit_type: str = Field("CASH", description="CASH (Chỉ cọc tiền) | VEHICLE_PLEDGE (Chỉ thế chấp) | COMBINED (Kết hợp)")
     collateral_info: Optional[str] = Field(None, max_length=500, description="Thông tin xe & giấy tờ thế chấp")
-    collateral_status: Optional[str] = Field(None, max_length=30, description="HELD | RETURNED")
-    deposit_type: str = "CASH"
-    collateral_info: Optional[str] = None
-    collateral_status: Optional[str] = None
+    collateral_status: Optional[str] = Field(None, max_length=30, description="HELD | RETURNED | PENDING")
+    collateral_handler_name: Optional[str] = Field(None, max_length=100, description="Nhân viên bàn giao/tiếp nhận tài sản")
+    collateral_handled_at: Optional[datetime] = Field(None, description="Thời gian bàn giao/tiếp nhận tài sản")
+    collateral_customer_confirmed: bool = Field(False, description="Khách hàng đã xác nhận giao/nhận lại tài sản")
     deposit_original: Decimal = Field(Decimal("0"), ge=0, description="Tiền cọc ban đầu (VNĐ)")
 
     # Chữ ký (nếu ký ngay)
@@ -146,9 +146,12 @@ class HandoverCheckinCreate(BaseModel):
     fee_damage: Decimal = Field(Decimal("0"), ge=0, max_digits=12, decimal_places=2)
 
     # Quyết toán cọc & Thế chấp
-    deposit_type: Optional[str] = Field(None, description="CASH | VEHICLE_PLEDGE")
+    deposit_type: Optional[str] = Field(None, description="CASH | VEHICLE_PLEDGE | COMBINED")
     collateral_info: Optional[str] = Field(None, max_length=500)
     collateral_status: Optional[str] = Field(None, max_length=30, description="HELD | RETURNED")
+    collateral_handler_name: Optional[str] = Field(None, max_length=100)
+    collateral_handled_at: Optional[datetime] = None
+    collateral_customer_confirmed: bool = False
     deposit_original: Optional[Decimal] = Field(
         None, ge=0, max_digits=12, decimal_places=2
     )
@@ -298,6 +301,9 @@ class HandoverProtocolResponse(BaseModel):
     deposit_type: str = "CASH"
     collateral_info: Optional[str] = None
     collateral_status: Optional[str] = None
+    collateral_handler_name: Optional[str] = None
+    collateral_handled_at: Optional[datetime] = None
+    collateral_customer_confirmed: bool = False
     deposit_original: Decimal
     fee_overtime: Decimal
     fee_excess_km: Decimal

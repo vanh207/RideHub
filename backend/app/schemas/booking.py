@@ -15,7 +15,7 @@ class BookingHoldCreate(BaseModel):
     end_time: datetime
     delivery_point_id: Optional[int] = Field(None, gt=0)
     customer_note: Optional[str] = None
-    deposit_type: Literal["CASH", "VEHICLE_PLEDGE"] = "CASH"
+    deposit_type: Literal["CASH", "VEHICLE_PLEDGE", "COMBINED"] = "CASH"
     collateral_info: Optional[str] = Field(None, max_length=500)
 
     @model_validator(mode="after")

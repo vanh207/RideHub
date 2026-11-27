@@ -603,9 +603,11 @@ def get_store_orders_list(
         remain_amt = max(0.0, total_amt - deposit_amt)
 
         if deposit_type == "VEHICLE_PLEDGE":
-            collat_note = f"Thế chấp xe: {collateral_info}" if collateral_info else "Thế chấp xe + giấy tờ gốc tại trạm"
+            collat_note = f"Chỉ thế chấp xe: {collateral_info}" if collateral_info else "Chỉ thế chấp xe + giấy tờ gốc (0đ cọc)"
+        elif deposit_type == "COMBINED":
+            collat_note = f"Kết hợp cọc tiền & thế chấp: {collateral_info}" if collateral_info else "Kết hợp đặt cọc tiền + thế chấp xe tại trạm"
         else:
-            collat_note = "Đặt cọc tiền mặt / VietQR (30%)" if deposit_amt > 0 else "Miễn tiền cọc thế chấp (eKYC Hợp lệ)"
+            collat_note = "Chỉ đặt cọc tiền mặt / VietQR (30%)" if deposit_amt > 0 else "Miễn tiền cọc thế chấp (eKYC Hợp lệ)"
 
         item = StoreOrderItem(
             id=b.id,
