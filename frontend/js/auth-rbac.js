@@ -67,10 +67,12 @@
       label: 'Chủ cửa hàng',
       badgeClass: 'status-badge--transit',
       home: 'pages/store_revenue_dashboard.html',
-      menu: [{ label: 'Báo cáo doanh thu', href: 'pages/store_revenue_dashboard.html' },
-        { label: 'Đơn thuê', href: 'pages/store-orders.html' },
+      menu: [
+        { label: 'Báo cáo doanh thu', href: 'pages/store_revenue_dashboard.html' },
         { label: 'Quản lý xe', href: 'pages/vehicle_management.html' },
-        { label: 'Lịch xe', href: 'pages/vehicle_schedule.html' },
+        { label: 'Lịch trình', href: 'pages/vehicle_schedule.html' },
+        { label: 'Đổi trạng thái & Cảnh báo', href: 'pages/store_operations.html' },
+        { label: 'Đơn thuê', href: 'pages/store-orders.html' },
         { label: 'Bàn giao xe', href: 'pages/handover.html' },
         { label: 'Giao nhận', href: 'pages/delivery.html' }
       ],

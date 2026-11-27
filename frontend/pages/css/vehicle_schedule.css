@@ -28,9 +28,12 @@
   box-sizing: border-box;
 }
 
+html,
 body {
+  max-width: 100%;
+  overflow-x: hidden;
   margin: 0;
-  padding: 32px 16px;
+  padding: 0;
   background: var(--bg-page);
   color: var(--text-primary);
   font-family: var(--font-body);
@@ -39,11 +42,21 @@ body {
 }
 
 .container {
+  width: 100%;
   max-width: 1140px;
   margin: 0 auto;
+  padding-inline: 16px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.week-swipe-hint {
+  display: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
 }
 
 /* 3. NÚT BẤM (BUTTONS) */
@@ -92,6 +105,16 @@ body {
   grid-template-columns: 1.5fr 1fr;
   gap: 20px;
   align-items: start;
+}
+
+.split-layout > *,
+.panel-card,
+.rh-cal-cell {
+  min-width: 0;
+}
+
+.footer-road-edge {
+  overflow: hidden;
 }
 
 .panel-card {
@@ -322,6 +345,47 @@ body {
 /* ==========================================================================
    8. RESPONSIVE HOÀN HẢO CHO ĐIỆN THOẠI & TABLET
    ========================================================================== */
+@media (max-width: 1024px) {
+  .nav-links {
+    display: none !important;
+  }
+  .hamburger-btn {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+  .notif-bell-btn,
+  .user-avatar-trigger {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 560px) {
+  .brand-logo span {
+    font-size: 1.05rem;
+    margin-left: 4px !important;
+  }
+  .user-avatar-trigger {
+    padding: 4px 8px 4px 4px !important;
+    gap: 6px !important;
+  }
+  .user-avatar-trigger > span:not(.user-avatar-circle) {
+    max-width: 88px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12.5px;
+  }
+}
+
+@media (max-width: 400px) {
+  .user-avatar-trigger > span:not(.user-avatar-circle) {
+    display: none;
+  }
+}
+
 /* Tablet & Mobile (< 900px): Xếp chồng 1 cột dọc */
 @media (max-width: 900px) {
   .split-layout {
@@ -332,18 +396,41 @@ body {
 /* Mobile (< 640px): Tối ưu trải nghiệm chạm và hiển thị */
 @media (max-width: 640px) {
   body {
-    padding: 14px 10px;
+    padding: 0 !important;
+  }
+  .navbar {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .brand-logo {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .mobile-drawer.is-open a {
+    transition-delay: 0ms;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .toast-container {
+    bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+    left: 12px;
+    right: 12px;
+  }
+  .container {
+    padding-inline: 8px;
+    gap: 14px;
   }
   /* Nút chuyển chế độ xem Tháng / Tuần dãn đều 50% */
   .schedule-mode-toggle {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     width: 100% !important;
-    gap: 4px !important;
+    gap: 6px !important;
   }
   .schedule-mode-toggle .btn {
     width: 100% !important;
-    min-height: 38px !important;
+    min-height: 44px !important;
     font-size: 13px !important;
     text-align: center;
   }
@@ -355,11 +442,12 @@ body {
     width: 100%;
   }
   .cal-nav-btn {
-    min-height: 38px !important;
+    min-height: 44px !important;
+    min-width: 44px !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px !important;
+    font-size: 14px !important;
   }
   /* LƯỚI LỊCH THÁNG TRÊN MOBILE: Chuyển thành chấm tròn màu (Event Dots) */
   .rh-cal-weekdays {
@@ -368,11 +456,11 @@ body {
     margin-bottom: 4px;
   }
   .rh-cal-grid {
-    gap: 3px;
+    gap: 2px;
   }
   .rh-cal-cell {
-    min-height: 52px;
-    padding: 4px 2px;
+    min-height: 50px;
+    padding: 4px 1px;
     border-radius: 8px;
     align-items: center;
     justify-content: flex-start;
@@ -401,27 +489,55 @@ body {
     font-size: 0 !important; /* Ẩn chữ dài chống tràn trên mobile */
     display: inline-block !important;
   }
+  .rh-cal-more {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--text-muted);
+    line-height: 1;
+  }
   /* Giữ nguyên chữ cho phần chú thích (Legend) ở trên */
   .cal-legend-bar .rh-cal-pill {
     width: auto !important;
     height: auto !important;
-    padding: 3px 8px !important;
+    padding: 4px 10px !important;
     border-radius: 6px !important;
-    font-size: 11px !important;
+    font-size: 11.5px !important;
   }
   /* LỊCH TUẦN TRÊN MOBILE: Cuộn ngang cảm ứng mượt mà (Snap) */
+  .week-swipe-hint {
+    display: block;
+  }
   .week-view-grid {
-    grid-template-columns: repeat(7, minmax(130px, 1fr));
+    grid-template-columns: repeat(7, minmax(148px, 42vw));
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    scroll-padding-inline: 4px;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 8px;
   }
   .week-day-col {
     scroll-snap-align: start;
-    min-height: 220px;
+    min-height: 200px;
+    padding: 10px 8px;
   }
   .panel-card {
-    padding: 16px 12px;
+    padding: 14px 8px;
+  }
+  .site-footer a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 500px) {
+  .brand-logo,
+  .schedule-mode-toggle .btn,
+  .cal-nav-btn,
+  .site-footer a {
+    min-height: 44px !important;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
   }
 }

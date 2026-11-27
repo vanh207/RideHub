@@ -123,7 +123,10 @@
   function renderStats() {
     const totalVeh = fleetList.length;
     const cleaningMaint = fleetList.filter(v => v.status === 'Đang vệ sinh' || v.status === 'Bảo dưỡng').length;
-    const conflicts = fleetList.filter(v => v.conflict).length;
+    
+    const realOrders = getRealOrders();
+    const pendingReschedules = realOrders.filter(o => o.hasConflict || o.rescheduleRequest?.status === 'pending_store').length;
+    const conflicts = fleetList.filter(v => v.conflict).length + pendingReschedules;
     const elTot = document.getElementById('statTotalVeh');
     const elCl = document.getElementById('statCleaningMaint');
     const elCf = document.getElementById('statConflictCount');
@@ -146,9 +149,9 @@
             <strong>${v.name}</strong>
             ${v.conflict ? '<span class="alert-tag alert-tag--danger" style="margin-left:6px;">Xung đột</span>' : ''}
           </td>
-          <td>${isCar ? 'Ô tô' : 'Xe máy'} • ${v.transmission} • ${v.fuel}</td>
-          <td><strong>${Number(v.price).toLocaleString('vi-VN')}đ</strong></td>
-          <td>
+          <td data-label="Phân loại">${isCar ? 'Ô tô' : 'Xe máy'} • ${v.transmission} • ${v.fuel}</td>
+          <td data-label="Giá thuê/ngày"><strong>${Number(v.price).toLocaleString('vi-VN')}đ</strong></td>
+          <td data-label="Trạng thái">
             <label class="status-badge ${badgeClass}" title="Bấm để chọn trạng thái xe">
               <span class="status-dot ${hasPulse ? 'status-dot-pulse' : ''}"></span>
               <select class="status-select" data-vehicle-idx="${idx}">
@@ -157,13 +160,13 @@
               <span style="font-size:10px;margin-left:-4px;pointer-events:none;">▾</span>
             </label>
           </td>
-          <td>
+          <td data-label="Cảnh báo">
             <span style="${v.conflict ? 'color:#be123c;font-weight:700;' : v.status === 'Bảo dưỡng' ? 'color:#b45309;font-weight:600;' : 'color:var(--text-secondary);'}">
               ${v.alertText}
             </span>
           </td>
-          <td>
-            <button type="button" class="btn btn-soft" style="min-height:26px;padding:1px 8px;font-size:11.5px;" data-quick-toggle-idx="${idx}">
+          <td data-label="Thao tác">
+            <button type="button" class="btn btn-soft" data-quick-toggle-idx="${idx}">
               Đổi nhanh
             </button>
           </td>
@@ -226,6 +229,10 @@
   let currentViewMode = 'month';
 
   function pad2(n) { return String(n).padStart(2, '0'); }
+  function parseLocalDateKey(key) {
+    const [y, m, d] = String(key).split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
 
   function getCalendarEventsMap() {
     const map = {};
@@ -287,7 +294,7 @@
       const evs = evMap[key] || [];
       const hasConflict = evs.some(e => e.type === 'conflict' || e.conflict);
       const pills = evs.slice(0, 2).map(ev => `<span class="rh-cal-pill rh-cal-pill--${ev.type}">${ev.label}</span>`).join('');
-      const more = evs.length > 2 ? `<span style="font-size:9.5px;color:var(--text-muted);font-weight:700;">+${evs.length - 2} lịch khác</span>` : '';
+      const more = evs.length > 2 ? `<span class="rh-cal-more">+${evs.length - 2}</span>` : '';
       html += `
         <button type="button" class="rh-cal-cell ${key === calSelectedKey ? 'is-selected' : ''} ${key === todayKey ? 'is-today' : ''}" data-cal-date="${key}" style="${hasConflict ? 'border-color:#f43f5e;' : ''}">
           <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -313,7 +320,7 @@
     const weekGrid = document.getElementById('weekGrid');
     const titleEl = document.getElementById('calMonthTitle');
     if (!weekGrid || !titleEl) return;
-    const selDate = new Date(calSelectedKey);
+    const selDate = parseLocalDateKey(calSelectedKey);
     const dayOfWeek = selDate.getDay();
     const monDate = new Date(selDate);
     monDate.setDate(selDate.getDate() - ((dayOfWeek + 6) % 7));
@@ -373,9 +380,9 @@
       const isConflict = ev.type === 'conflict' || ev.conflict;
       return `
         <div class="event-detail-card ${isConflict ? 'has-conflict' : ''}">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
-            <strong style="font-size:12.5px;color:${isConflict ? '#9f1239' : 'var(--text-primary)'};">${ev.title}</strong>
-            <span class="rh-cal-pill rh-cal-pill--${ev.type}">${ev.status}</span>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;">
+            <strong style="font-size:12.5px;color:${isConflict ? '#9f1239' : 'var(--text-primary)'};min-width:0;overflow-wrap:anywhere;">${ev.title}</strong>
+            <span class="rh-cal-pill rh-cal-pill--${ev.type}" style="flex-shrink:0;">${ev.status}</span>
           </div>
           <div style="font-size:12px;color:var(--text-secondary);line-height:1.4;">${ev.detail}</div>
           <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:2px;">
@@ -407,7 +414,7 @@
         calMonth -= 1;
         if (calMonth < 0) { calMonth = 11; calYear -= 1; }
       } else {
-        const cur = new Date(calSelectedKey);
+        const cur = parseLocalDateKey(calSelectedKey);
         cur.setDate(cur.getDate() - 7);
         calSelectedKey = `${cur.getFullYear()}-${pad2(cur.getMonth() + 1)}-${pad2(cur.getDate())}`;
       }
@@ -419,7 +426,7 @@
         calMonth += 1;
         if (calMonth > 11) { calMonth = 0; calYear += 1; }
       } else {
-        const cur = new Date(calSelectedKey);
+        const cur = parseLocalDateKey(calSelectedKey);
         cur.setDate(cur.getDate() + 7);
         calSelectedKey = `${cur.getFullYear()}-${pad2(cur.getMonth() + 1)}-${pad2(cur.getDate())}`;
       }

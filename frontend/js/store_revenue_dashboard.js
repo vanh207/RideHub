@@ -189,6 +189,7 @@
     const start = performance.now();
 
     const step = (now) => {
+      if (el.dataset.countupStopped === '1') return;
       const p = Math.min((now - start) / dur, 1);
       const ease = 1 - Math.pow(1 - p, 3);
       const cur = target * ease;
@@ -385,37 +386,52 @@
     const tooltip = document.getElementById('revenueChartTooltip');
     if (!tooltip) return;
 
+    const showTooltipAt = (el, clientX, clientY) => {
+      const label = el.dataset.tipLabel;
+      const car = el.dataset.tipCar;
+      const scooter = el.dataset.tipScooter;
+      const total = el.dataset.tipTotal;
+      const trips = el.dataset.tipTrips;
+
+      tooltip.innerHTML = `
+        <div style="font-weight:800;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:4px;margin-bottom:4px;">
+          ${currentViewMode === 'daily' ? 'Ngày ' : 'Tháng '}${label}
+        </div>
+        <div>🚗 Ô tô: <strong>${car}</strong></div>
+        <div>🛵 Xe máy: <strong>${scooter}</strong></div>
+        <div style="margin-top:2px;color:#86efac;">💰 Tổng thu: <strong>${total}</strong></div>
+        <div style="font-size:11px;color:#cbd5e1;">📋 Hoàn tất: <strong>${trips} cuốc</strong></div>
+      `;
+      const pad = 110;
+      const clampedX = Math.min(Math.max(clientX, pad), window.innerWidth - pad);
+      const clampedY = Math.max(clientY - 16, 120);
+      tooltip.style.left = clampedX + 'px';
+      tooltip.style.top = clampedY + 'px';
+      tooltip.style.opacity = '1';
+    };
+
     const interactiveEls = document.querySelectorAll('.chart-bar-group, .chart-point');
 
     interactiveEls.forEach((el) => {
-      el.addEventListener('mouseenter', () => {
-        const label = el.dataset.tipLabel;
-        const car = el.dataset.tipCar;
-        const scooter = el.dataset.tipScooter;
-        const total = el.dataset.tipTotal;
-        const trips = el.dataset.tipTrips;
-
-        tooltip.innerHTML = `
-          <div style="font-weight:800;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:4px;margin-bottom:4px;">
-            ${currentViewMode === 'daily' ? 'Ngày ' : 'Tháng '}${label}
-          </div>
-          <div>🚗 Ô tô: <strong>${car}</strong></div>
-          <div>🛵 Xe máy: <strong>${scooter}</strong></div>
-          <div style="margin-top:2px;color:#86efac;">💰 Tổng thu: <strong>${total}</strong></div>
-          <div style="font-size:11px;color:#cbd5e1;">📋 Hoàn tất: <strong>${trips} cuốc</strong></div>
-        `;
-        tooltip.style.opacity = '1';
-      });
-
-      el.addEventListener('mousemove', (e) => {
-        tooltip.style.left = (e.clientX + 14) + 'px';
-        tooltip.style.top = (e.clientY - 20) + 'px';
-      });
-
+      el.addEventListener('mouseenter', (e) => showTooltipAt(el, e.clientX, e.clientY));
+      el.addEventListener('mousemove', (e) => showTooltipAt(el, e.clientX, e.clientY));
       el.addEventListener('mouseleave', () => {
         tooltip.style.opacity = '0';
       });
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rect = el.getBoundingClientRect();
+        showTooltipAt(el, e.clientX || (rect.left + rect.width / 2), e.clientY || rect.top);
+      });
     });
+
+    if (!global.__chartTooltipOutsideBound) {
+      global.__chartTooltipOutsideBound = true;
+      document.addEventListener('click', () => {
+        const tip = document.getElementById('revenueChartTooltip');
+        if (tip) tip.style.opacity = '0';
+      });
+    }
   }
 
   // =========================================================================
@@ -614,10 +630,11 @@
       confirmPayoutBtn.addEventListener('click', () => {
         const val = parseInt(payoutInput.value || '0', 10);
         if (val < 100000) {
-          alert('Số tiền rút tối thiểu là 100.000 VNĐ.');
+          showToast('⚠️ Số tiền rút tối thiểu là 100.000 VNĐ.');
           return;
         }
         payoutModal.classList.remove('is-open');
+        showToast(`✅ Đã gửi yêu cầu rút ${val.toLocaleString('vi-VN')}đ qua PayOS VietQR!`);
       });
     }
 
@@ -843,16 +860,25 @@
             const fee = Math.round(gross * 0.1);
 
             const grossEl = document.getElementById('statGrossRevenue');
-            if (grossEl) grossEl.textContent = gross.toLocaleString('vi-VN') + 'đ';
+            if (grossEl) {
+              grossEl.dataset.countupStopped = '1';
+              grossEl.textContent = gross.toLocaleString('vi-VN') + 'đ';
+            }
 
             const netRevEl = document.getElementById('statNetRevenue');
-            if (netRevEl) netRevEl.textContent = net.toLocaleString('vi-VN') + 'đ';
+            if (netRevEl) {
+              netRevEl.dataset.countupStopped = '1';
+              netRevEl.textContent = net.toLocaleString('vi-VN') + 'đ';
+            }
 
             const feeEl = document.getElementById('statPlatformFee');
             if (feeEl) feeEl.textContent = fee.toLocaleString('vi-VN') + 'đ';
 
             const ordersEl = document.getElementById('statCompletedTrips');
-            if (ordersEl) ordersEl.textContent = (resData.summary.completed_orders || 0) + ' cuốc';
+            if (ordersEl) {
+              ordersEl.dataset.countupStopped = '1';
+              ordersEl.textContent = (resData.summary.completed_orders || 0) + ' cuốc';
+            }
 
             const avgEl = document.getElementById('statAov');
             if (avgEl) avgEl.textContent = Number(resData.summary.avg_order_value || 0).toLocaleString('vi-VN') + 'đ';
@@ -964,16 +990,25 @@
             const net = gross - fee;
 
             const grossEl = document.getElementById('statGrossRevenue');
-            if (grossEl) grossEl.textContent = gross.toLocaleString('vi-VN') + 'đ';
+            if (grossEl) {
+              grossEl.dataset.countupStopped = '1';
+              grossEl.textContent = gross.toLocaleString('vi-VN') + 'đ';
+            }
 
             const netRevEl = document.getElementById('statNetRevenue');
-            if (netRevEl) netRevEl.textContent = net.toLocaleString('vi-VN') + 'đ';
+            if (netRevEl) {
+              netRevEl.dataset.countupStopped = '1';
+              netRevEl.textContent = net.toLocaleString('vi-VN') + 'đ';
+            }
 
             const feeEl = document.getElementById('statPlatformFee');
             if (feeEl) feeEl.textContent = fee.toLocaleString('vi-VN') + 'đ';
 
             const ordersEl = document.getElementById('statCompletedTrips');
-            if (ordersEl) ordersEl.textContent = validOrders.length + ' cuốc';
+            if (ordersEl) {
+              ordersEl.dataset.countupStopped = '1';
+              ordersEl.textContent = validOrders.length + ' cuốc';
+            }
 
             const avgEl = document.getElementById('statAov');
             const avg = validOrders.length > 0 ? Math.round(gross / validOrders.length) : 0;
@@ -1009,6 +1044,9 @@
   }
 
   global.showReceiptToast = function (orderId) {
+    const tx = TRANSACTIONS.find((item) => item.id === orderId);
+    if (!tx) return;
+    showToast(`🧾 Biên lai ${tx.id}: Thực nhận ${Number(tx.net || 0).toLocaleString('vi-VN')}đ (${tx.statusText})`);
   };
 
   // Tự động khởi chạy khi DOM sẵn sàng
