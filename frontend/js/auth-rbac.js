@@ -88,11 +88,12 @@
       menu: [
         { label: 'Trang chủ', href: 'index.html' },
         { label: 'Hàng chờ bất thường', href: 'pages/operations-anomalies.html' },
-        { label: 'Chính sách & Audit', href: 'pages/admin-policies-audit.html' }
+        { label: 'Chính sách & Audit', href: 'pages/admin-policies-audit.html' },
+        { label: 'Quản lý FAQ', href: 'pages/admin-faq.html' }
       ],
       allowedPages: [
         'index.html', 'admin-ops.html', 'operations-anomalies.html',
-        'admin-policies-audit.html', 'test-cases.html',
+        'admin-policies-audit.html', 'admin-faq.html',
         'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html'
       ]
     }

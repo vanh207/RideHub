@@ -15,6 +15,8 @@ class BookingHoldCreate(BaseModel):
     end_time: datetime
     delivery_point_id: Optional[int] = Field(None, gt=0)
     customer_note: Optional[str] = None
+    deposit_type: Literal["CASH", "VEHICLE_PLEDGE", "COMBINED"] = "CASH"
+    collateral_info: Optional[str] = Field(None, max_length=500)
 
     @model_validator(mode="after")
     def normalize_and_validate_times(self):
@@ -39,6 +41,8 @@ class BookingHoldResponse(BaseModel):
     rental_amount: float
     delivery_fee: float
     deposit_amount: float
+    deposit_type: str = "CASH"
+    collateral_info: Optional[str] = None
     total_amount: float
     reservation_id: int
 
@@ -214,6 +218,8 @@ class StoreOrderPricingInfo(BaseModel):
     rental_amount: float
     delivery_fee: float
     deposit_amount: float
+    deposit_type: str = "CASH"
+    collateral_info: Optional[str] = None
     total_amount: float
     paid_deposit: float
     remaining_amount: float

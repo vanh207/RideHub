@@ -1053,7 +1053,7 @@
       }
       if (faceScanline) faceScanline.style.display = 'none';
       if (faceMatchBox) faceMatchBox.style.display = 'block';
-      if (faceScanStatusText) faceScanStatusText.textContent = '✓ Sinh trắc học trùng khớp với CCCD (99.4%)';
+      if (faceScanStatusText) faceScanStatusText.textContent = '✓ Đối chiếu khuôn mặt (mô phỏng) — chờ hệ thống eKYC xác nhận';
       btnStartFaceScan.style.display = 'none';
       if (btnGotoStep3) btnGotoStep3.style.display = 'block';
     }, 2400);
@@ -1114,11 +1114,11 @@
       if (pText) pText.textContent = text;
     };
 
-    setTimeout(() => markCheckItem(0, 35, 'Đã xác thực tính toàn vẹn chữ ký số Chip CCCD (35%)...'), 700);
-    setTimeout(() => markCheckItem(1, 65, 'Đã đối soát dữ liệu nhân thân & GPLX quốc gia (65%)...'), 1400);
-    setTimeout(() => markCheckItem(2, 85, 'Đã xác thực Face Liveness chống giả mạo (85%)...'), 2100);
+    setTimeout(() => markCheckItem(0, 35, 'Đã kiểm tra dữ liệu CCCD (mô phỏng)...'), 700);
+    setTimeout(() => markCheckItem(1, 65, 'Đã kiểm tra thông tin nhân thân (mô phỏng)...'), 1400);
+    setTimeout(() => markCheckItem(2, 85, 'Đã kiểm tra chuyển động sống (mô phỏng)...'), 2100);
     setTimeout(() => {
-      markCheckItem(3, 100, '✓ Hoàn tất đối soát AI! Cấp hạn mức & Miễn cọc xe (100%)...');
+      markCheckItem(3, 100, '✓ Hoàn tất luồng mô phỏng eKYC. Vui lòng gửi hồ sơ thực tại trang hồ sơ...');
       setTimeout(() => {
         setEkycStep(4);
         triggerConfetti();
@@ -1134,15 +1134,15 @@
           if (autoSec <= 0) {
             clearInterval(autoTimer);
             if (typeof showRideHubToast === 'function') {
-              showRideHubToast('🎉 Chuyển hướng vào danh sách xe RideHub...');
+              showRideHubToast('Đang mở hồ sơ eKYC để gửi xác thực thực tế...');
             }
-            window.location.href = '../vehicles.html';
+            window.location.href = '../profile.html#citizen-id';
           }
         }, 1000);
 
         document.getElementById('btnFinishAuth')?.addEventListener('click', () => {
           clearInterval(autoTimer);
-          window.location.href = '../vehicles.html';
+          window.location.href = '../profile.html#citizen-id';
         }, { once: true });
 
       }, 800);
@@ -1154,10 +1154,10 @@
   // --- BƯỚC 4: HOÀN TẤT & KÍCH HOẠT TÀI KHOẢN ---
   document.getElementById('btnFinishAuth')?.addEventListener('click', () => {
     if (typeof showRideHubToast === 'function') {
-      showRideHubToast('🎉 Kích hoạt tài khoản thành công! Đang chuyển đến trang xe...');
+      showRideHubToast('Mô phỏng hoàn tất. Vui lòng gửi hồ sơ eKYC thực tại trang hồ sơ.');
     }
     setTimeout(() => {
-      window.location.href = '../vehicles.html';
+      window.location.href = '../profile.html#citizen-id';
     }, 500);
   });
 

@@ -14,6 +14,7 @@ from .user import User
 from .role import Role, UserRole
 from .identity_document import IdentityDocument
 from .driver_license import DriverLicense
+from .kyc_session import KycSession
 from .store import Store, StoreStaff
 from app.models.chat import ChatConversation, ChatMessage  
 from app.models.faq import FAQ  
