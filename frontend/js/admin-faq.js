@@ -59,7 +59,19 @@
 
   const toastEl = document.getElementById('faqToast');
 
+  // Pagination elements
+  const faqPaginationBar = document.getElementById('faqPaginationBar');
+  const faqPageStart = document.getElementById('faqPageStart');
+  const faqPageEnd = document.getElementById('faqPageEnd');
+  const faqPageTotal = document.getElementById('faqPageTotal');
+  const faqPageSizeSelect = document.getElementById('faqPageSizeSelect');
+  const faqPrevPageBtn = document.getElementById('faqPrevPageBtn');
+  const faqNextPageBtn = document.getElementById('faqNextPageBtn');
+  const faqPageNumbers = document.getElementById('faqPageNumbers');
+
   let allFaqs = [];
+  let currentPage = 1;
+  let pageSize = 10;
   let editingFaqId = null;
   let deletingFaqId = null;
   let toastTimer = null;
@@ -195,6 +207,71 @@
     return 'cat-badge';
   }
 
+  function renderPagination(total) {
+    if (!faqPaginationBar) return;
+    if (total === 0) {
+      faqPaginationBar.hidden = true;
+      return;
+    }
+    faqPaginationBar.hidden = false;
+
+    const effectivePageSize = pageSize === 'all' ? total : pageSize;
+    const totalPages = Math.max(1, Math.ceil(total / effectivePageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * effectivePageSize;
+    const endIndex = Math.min(startIndex + effectivePageSize, total);
+
+    if (faqPageStart) faqPageStart.textContent = total > 0 ? String(startIndex + 1) : '0';
+    if (faqPageEnd) faqPageEnd.textContent = String(endIndex);
+    if (faqPageTotal) faqPageTotal.textContent = String(total);
+
+    if (faqPrevPageBtn) faqPrevPageBtn.disabled = currentPage <= 1;
+    if (faqNextPageBtn) faqNextPageBtn.disabled = currentPage >= totalPages;
+
+    if (!faqPageNumbers) return;
+    faqPageNumbers.innerHTML = '';
+
+    if (pageSize === 'all' || totalPages <= 1) {
+      return;
+    }
+
+    // Build page numbers list with smart ellipsis
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push('...');
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) {
+        if (!pages.includes(i)) pages.push(i);
+      }
+      if (currentPage < totalPages - 2) pages.push('...');
+      if (!pages.includes(totalPages)) pages.push(totalPages);
+    }
+
+    pages.forEach((p) => {
+      if (p === '...') {
+        const span = document.createElement('span');
+        span.className = 'faq-page-ellipsis';
+        span.textContent = '…';
+        faqPageNumbers.appendChild(span);
+      } else {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `faq-page-btn ${p === currentPage ? 'is-active' : ''}`;
+        btn.dataset.page = String(p);
+        btn.textContent = String(p);
+        btn.setAttribute('aria-label', `Trang ${p}`);
+        if (p === currentPage) btn.setAttribute('aria-current', 'page');
+        faqPageNumbers.appendChild(btn);
+      }
+    });
+  }
+
   function renderFilteredTable() {
     const q = (searchInput?.value || '').trim().toLowerCase();
     const cat = categoryFilter?.value || 'all';
@@ -211,15 +288,23 @@
       return true;
     });
 
+    const total = filtered.length;
+    renderPagination(total);
+
     if (!faqTableBody) return;
-    if (filtered.length === 0) {
+    if (total === 0) {
       faqTableBody.innerHTML = '';
       if (faqEmptyState) faqEmptyState.hidden = false;
       return;
     }
     if (faqEmptyState) faqEmptyState.hidden = true;
 
-    faqTableBody.innerHTML = filtered.map((item) => `
+    const effectivePageSize = pageSize === 'all' ? total : pageSize;
+    const startIndex = (currentPage - 1) * effectivePageSize;
+    const endIndex = Math.min(startIndex + effectivePageSize, total);
+    const pagedItems = filtered.slice(startIndex, endIndex);
+
+    faqTableBody.innerHTML = pagedItems.map((item) => `
       <tr data-faq-id="${item.id}">
         <td>
           <strong>#${item.id}</strong>
@@ -453,11 +538,57 @@
   }
 
   // Event listeners
-  if (searchInput) searchInput.addEventListener('input', renderFilteredTable);
-  if (categoryFilter) categoryFilter.addEventListener('change', renderFilteredTable);
-  if (statusFilter) statusFilter.addEventListener('change', renderFilteredTable);
+  function onFilterChange() {
+    currentPage = 1;
+    renderFilteredTable();
+  }
+
+  if (searchInput) searchInput.addEventListener('input', onFilterChange);
+  if (categoryFilter) categoryFilter.addEventListener('change', onFilterChange);
+  if (statusFilter) statusFilter.addEventListener('change', onFilterChange);
   if (refreshFaqBtn) refreshFaqBtn.addEventListener('click', loadFaqs);
   if (openCreateFaqBtn) openCreateFaqBtn.addEventListener('click', openCreateModal);
+
+  // Pagination event listeners
+  if (faqPageSizeSelect) {
+    faqPageSizeSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      pageSize = val === 'all' ? 'all' : parseInt(val, 10) || 10;
+      currentPage = 1;
+      renderFilteredTable();
+    });
+  }
+
+  if (faqPrevPageBtn) {
+    faqPrevPageBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderFilteredTable();
+        const tableCard = document.querySelector('.faq-card');
+        if (tableCard) tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+
+  if (faqNextPageBtn) {
+    faqNextPageBtn.addEventListener('click', () => {
+      currentPage++;
+      renderFilteredTable();
+      const tableCard = document.querySelector('.faq-card');
+      if (tableCard) tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  if (faqPageNumbers) {
+    faqPageNumbers.addEventListener('click', (e) => {
+      const btn = e.target.closest('.faq-page-btn');
+      if (!btn || !btn.dataset.page) return;
+      currentPage = parseInt(btn.dataset.page, 10);
+      renderFilteredTable();
+      const tableCard = document.querySelector('.faq-card');
+      if (tableCard) tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
 
   if (faqCategoryPreset) faqCategoryPreset.addEventListener('change', toggleCustomCategoryFields);
   if (faqQuestion) faqQuestion.addEventListener('input', updateCharCounts);
