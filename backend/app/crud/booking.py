@@ -30,6 +30,8 @@ from sqlalchemy.orm import Session
 
 from app.core.booking_status import CANCEL_ACTOR_CUSTOMER
 from app.core.config import settings
+from app.core.kyc_errors import KycBusinessError, KycErrorCode
+from app.core.kyc_status import APPROVED, normalize_status
 from app.crud.booking_status_history import record_booking_status_change
 from app.crud.vehicle import (
     MAX_RENTAL_DURATION,
@@ -44,6 +46,7 @@ from app.models.vehicle import Vehicle
 from app.models.vehicle_reservation import VehicleReservation
 from app.models.vehicle_schedule import VehicleSchedule
 from app.schemas.booking import BookingHoldCreate, BookingHoldResponse
+from app.services.kyc_service import resolve_current_status
 
 MONEY_QUANT = Decimal("0.01")
 HOLD_BOOKING_STATUS = "PENDING_PAYMENT"
@@ -160,13 +163,20 @@ def _ensure_customer_exists(db: Session, customer_id: int) -> None:
 
 
 def ensure_customer_verified(db: Session, customer_id: int) -> None:
-    """Điểm móc kiểm tra hồ sơ khách theo SRS BR-13.
-
-    TODO: Khi luồng duyệt CCCD/GPLX được nối vào đặt xe, kiểm tra tại đây và
-    raise BookingValidationError nếu hồ sơ chưa APPROVED. Hiện chưa chặn để
-    không phá luồng đặt xe khi dữ liệu hồ sơ chưa sẵn sàng.
-    """
-    return None
+    """Chặn đặt xe khi eKYC được yêu cầu nhưng hồ sơ khách chưa được duyệt."""
+    if not settings.KYC_ENABLED or not settings.KYC_REQUIRED_FOR_BOOKING:
+        return
+    user = db.scalar(select(User).where(User.id == customer_id))
+    role = (getattr(user, "role", "customer") or "customer").lower()
+    if role != "customer":
+        return
+    status, _, _ = resolve_current_status(db, customer_id)
+    current_status = normalize_status(status)
+    if current_status != APPROVED:
+        raise KycBusinessError(
+            KycErrorCode.KYC_NOT_APPROVED,
+            details={"status": current_status or "NOT_STARTED"},
+        )
 
 
 def _lock_vehicle(db: Session, vehicle_id: int) -> Vehicle:

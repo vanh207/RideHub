@@ -25,6 +25,7 @@ from app.db.seed_data import seed_default_accounts
 from app.db.session import Base, engine
 from app.middleware.audit_log import AuditLogMiddleware
 from app.jobs.booking_expiry_job import start_expiry_job, stop_expiry_job
+from app.jobs.kyc_cleanup_job import start_cleanup_job, stop_cleanup_job
 from app.routers import (
     admin_reviews,
     audit_logs,
@@ -80,9 +81,11 @@ async def lifespan(app: FastAPI):
         logger.error("[DB] Connection detail: %s", error.orig)
 
     await start_expiry_job()
+    await start_cleanup_job()
     try:
         yield
     finally:
+        await stop_cleanup_job()
         await stop_expiry_job()
 
 

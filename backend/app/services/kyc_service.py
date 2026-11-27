@@ -310,7 +310,10 @@ def submit_session(
     )
 
 
-def get_me(db: Session, user_id: int) -> KycMeResponse:
+def resolve_current_status(
+    db: Session, user_id: int
+) -> tuple[str, Optional[KycSession], Optional[IdentityDocument]]:
+    """Trả trạng thái eKYC hiện hiệu lực kèm bản ghi mới nhất liên quan."""
     latest_session = (
         db.query(KycSession)
         .filter(KycSession.user_id == user_id)
@@ -325,14 +328,20 @@ def get_me(db: Session, user_id: int) -> KycMeResponse:
     )
 
     document_status = (latest_document.status or "").upper() if latest_document else ""
-    if latest_session and latest_session.status in {APPROVED, REJECTED}:
-        status = latest_session.status
+    session_status = (latest_session.status or "").upper() if latest_session else ""
+    if session_status in {APPROVED, REJECTED}:
+        status = session_status
     elif document_status in {APPROVED, REJECTED}:
         status = document_status
-    elif latest_session:
-        status = latest_session.status
+    elif session_status:
+        status = session_status
     else:
         status = NOT_STARTED
+    return status, latest_session, latest_document
+
+
+def get_me(db: Session, user_id: int) -> KycMeResponse:
+    status, latest_session, latest_document = resolve_current_status(db, user_id)
 
     flags = list(
         getattr(latest_document, "kyc_flags", None)
