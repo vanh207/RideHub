@@ -101,18 +101,18 @@
               </div>
             </div>
           </td>
-          <td>${catLabel} • ${v.transmission} • ${v.fuel}</td>
-          <td><strong style="color:var(--green-700);">${Number(v.price).toLocaleString('vi-VN')}đ</strong></td>
-          <td>
+          <td data-label="Phân loại">${catLabel} • ${v.transmission} • ${v.fuel}</td>
+          <td data-label="Giá/ngày"><strong style="color:var(--green-700);">${Number(v.price).toLocaleString('vi-VN')}đ</strong></td>
+          <td data-label="Trạng thái">
             <label class="status-badge ${STATUS_BADGE_MAP[st] || 'status-badge--available'}" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
               <select data-pick-status="${idx}" style="background:transparent;border:0;color:inherit;font-weight:700;font-size:12px;cursor:pointer;outline:none;">
                 ${STATUS_CYCLE.map(opt => `<option value="${opt}" ${opt === st ? 'selected' : ''}>${opt}</option>`).join('')}
               </select>
             </label>
           </td>
-          <td style="${st === 'Đang vệ sinh' ? 'color:#c2410c;font-weight:700;' : ''}">${v.alertText || 'Sẵn sàng'}</td>
-          <td>
-            <div style="display:flex;gap:6px;">
+          <td data-label="Cảnh báo" style="${st === 'Đang vệ sinh' ? 'color:#c2410c;font-weight:700;' : ''}">${v.alertText || 'Sẵn sàng'}</td>
+          <td data-label="Thao tác">
+            <div class="fleet-row-actions" style="display:flex;gap:6px;">
               <button class="btn btn-soft" style="min-height:28px;padding:2px 8px;font-size:12px;" type="button" data-view-veh="${idx}">Chi tiết</button>
               <button class="btn btn-soft" style="min-height:28px;padding:2px 8px;font-size:12px;" type="button" data-edit-veh="${idx}">Sửa</button>
               <button class="btn btn-soft" style="min-height:28px;padding:2px 8px;font-size:12px;color:#e11d48;" type="button" data-del-veh="${idx}">Xóa</button>
@@ -141,10 +141,20 @@
     });
 
     tbody.querySelectorAll('[data-del-veh]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const idx = Number(btn.dataset.delVeh);
         const cur = fleetList[idx];
-        if (confirm(`Bạn có chắc muốn xóa xe "${cur.name}" khỏi kho?`)) {
+        if (!cur) return;
+        const ok = window.AuthRBAC?.confirmAction
+          ? await window.AuthRBAC.confirmAction({
+              title: 'Xác nhận xóa phương tiện',
+              message: `Bạn có chắc muốn xóa xe "${cur.name}" khỏi kho?`,
+              confirmText: 'Xóa xe',
+              cancelText: 'Hủy',
+              danger: true,
+            })
+          : confirm(`Bạn có chắc muốn xóa xe "${cur.name}" khỏi kho?`);
+        if (ok) {
           fleetList.splice(idx, 1);
           localStorage.setItem(FLEET_KEY, JSON.stringify(fleetList));
           renderFleet();

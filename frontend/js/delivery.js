@@ -72,9 +72,34 @@
     updateCalculation();
   });
 
+  // Khôi phục cấu hình biểu phí đã lưu trước đó (nếu có)
+  try {
+    const saved = JSON.parse(localStorage.getItem('ridehub_delivery_fee_cfg') || 'null');
+    if (saved) {
+      if (saved.baseFee !== undefined) cfgBaseFee.value = saved.baseFee;
+      if (saved.nightFee !== undefined) cfgNightFee.value = saved.nightFee;
+      if (saved.defaultHub) {
+        cfgDefaultHub.value = saved.defaultHub;
+        noteSelf.textContent = `📍 Bãi xe nhận miễn phí: ${saved.defaultHub}`;
+      }
+    }
+  } catch (_) {}
+
   // Hàm lưu cấu hình tham số
   window.handleSaveConfig = function () {
-    alert('✅ Đã lưu cấu hình tham số biểu phí thành công vào hệ thống!');
+    const payload = {
+      baseFee: Number(cfgBaseFee.value) || 0,
+      nightFee: Number(cfgNightFee.value) || 0,
+      defaultHub: cfgDefaultHub.value.trim(),
+    };
+    try {
+      localStorage.setItem('ridehub_delivery_fee_cfg', JSON.stringify(payload));
+    } catch (_) {}
+    if (window.RideHubUI && window.RideHubUI.Toast) {
+      window.RideHubUI.Toast.show('Đã lưu cấu hình tham số biểu phí thành công!', 'success');
+    } else if (window.showRideHubToast) {
+      window.showRideHubToast('Đã lưu cấu hình tham số biểu phí thành công!');
+    }
   };
 
   // Khởi chạy tính toán ngay khi tải trang

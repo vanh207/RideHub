@@ -241,6 +241,32 @@
       isLoading = false;
       updateMetricsAndBadges();
       renderOrders();
+      checkUrlParams();
+    }
+  }
+
+  function checkUrlParams() {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const filterParam = urlParams.get('filter');
+      const orderIdParam = urlParams.get('orderId');
+      if (filterParam) {
+        currentFilter = filterParam;
+        document.querySelectorAll('#orderFilterBar [data-filter]').forEach(b => {
+          b.classList.toggle('btn-primary', b.dataset.filter === filterParam);
+          b.classList.toggle('btn-soft', b.dataset.filter !== filterParam);
+        });
+        renderOrders();
+      }
+      if (orderIdParam) {
+        setTimeout(() => {
+          if (typeof window.openRescheduleModal === 'function') {
+            window.openRescheduleModal(orderIdParam);
+          }
+        }, 300);
+      }
+    } catch (err) {
+      console.warn('Lỗi đọc tham số URL:', err);
     }
   }
 

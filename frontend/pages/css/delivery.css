@@ -127,82 +127,166 @@
   line-height: 1.9;
 }
 
-@media (max-width: 768px) {
-  .delivery-main {
-    padding-top: 70px;
-    gap: 16px;
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.delivery-main {
+  padding-top: 84px;
+}
+
+.delivery-config-box {
+  background: var(--bg-surface-soft);
+  padding: 18px;
+  border-radius: var(--radius-md);
+}
+
+/* Cho phép tiêu đề + badge và các dòng tổng kết tự xuống dòng khi hẹp */
+.delivery-card-header,
+.delivery-night-box,
+.delivery-summary-row {
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.delivery-summary-row > *:last-child,
+#storeViewDelivery {
+  overflow-wrap: anywhere;
+}
+
+/* Đồng bộ ẩn menu & thu gọn avatar trên navbar ở tablet/mobile */
+@media (max-width: 1024px) {
+  .nav-links {
+    display: none !important;
   }
-  /* Thẻ thống kê KPI: Tự động chuyển từ 4 cột sang lưới 2 cột */
-  .delivery-kpi-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px;
+  .hamburger-btn {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    flex-shrink: 0;
   }
-  .kpi-card {
-    padding: 10px 12px;
-  }
-  .kpi-val {
-    font-size: 1.2rem;
-  }
-  /* Nút thêm điểm chiếm 100% chiều rộng */
-  .delivery-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-  .delivery-tabs {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-  .tab-btn {
-    text-align: center;
-    padding: 8px 6px;
-    font-size: 12.5px;
-  }
-  .add-point-btn {
-    width: 100%;
-    min-height: 40px;
-    justify-content: center;
-  }
-  /* Bộ lọc khu vực & tìm kiếm xếp 2 cột */
-  .delivery-filter-bar {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  /* Tab Bảng phí & Bán kính: Bố cục 2 cột tự chuyển thành 1 cột dọc */
-  .fee-matrix-layout {
-    grid-template-columns: 1fr;
-    gap: 16px;
+  .notif-bell-btn,
+  .user-avatar-trigger {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
-/* Mobile nhỏ (< 640px) */
-@media (max-width: 640px) {
-  /* Lưới thẻ Điểm giao nhận: Chuyển sang 1fr toàn màn hình */
-  .delivery-grid {
-    grid-template-columns: 1fr;
+
+.footer-road-edge {
+  overflow: hidden;
+}
+
+@media (max-width: 560px) {
+  .brand-logo span {
+    font-size: 1.05rem;
+    margin-left: 4px !important;
   }
-  .delivery-filter-bar {
-    grid-template-columns: 1fr;
+  .user-avatar-trigger {
+    padding: 4px 8px 4px 4px !important;
+    gap: 6px !important;
+  }
+  .user-avatar-trigger > span:not(.user-avatar-circle) {
+    max-width: 88px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12.5px;
+  }
+}
+
+@media (max-width: 400px) {
+  .user-avatar-trigger > span:not(.user-avatar-circle) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .navbar {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .brand-logo {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .mobile-drawer.is-open a {
+    transition-delay: 0ms;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .toast-container {
+    bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+    left: 12px;
+    right: 12px;
+  }
+  .delivery-main {
+    padding-top: 76px;
+    gap: 14px;
   }
   .delivery-title {
     font-size: 1.35rem;
+    line-height: 1.28;
+  }
+  .delivery-subtitle {
+    font-size: 13.5px;
+  }
+  .delivery-card {
+    padding: 14px 12px;
+  }
+  .delivery-config-box {
+    padding: 12px;
+  }
+  .delivery-form-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
   .delivery-btn-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  /* Đảm bảo vùng chạm >= 44px và font-size >= 16px tránh iOS tự zoom */
+  .delivery-btn-grid .btn,
+  .delivery-save-btn,
+  .delivery-field-box .form-input,
+  #deliveryAddressInput {
+    width: 100%;
+    min-height: 44px !important;
+    font-size: 16px;
+    white-space: normal;
+  }
+  .delivery-night-box {
+    padding: 12px;
+  }
+  .delivery-night-box .pill-check {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
   }
-}
-/* Mobile hẹp (< 520px) cho Modal Thêm/Sửa điểm */
-@media (max-width: 520px) {
-  .point-modal-dialog {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    padding: 18px 14px !important;
-    margin: 10px auto;
+  .delivery-summary-row > *:last-child {
+    width: 100%;
+    text-align: left;
   }
-  /* Cụm nhập liệu 2 cột tự động dàn thành 1 cột */
-  .point-form-split {
-    grid-template-columns: 1fr !important;
-    gap: 10px;
+  .site-footer a,
+  .rh-gmap-ext {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 500px) {
+  .brand-logo,
+  .btn,
+  .form-input,
+  .rh-gmap-ext,
+  .site-footer a,
+  .pill-check {
+    min-height: 44px !important;
+    display: inline-flex;
+    align-items: center;
   }
 }

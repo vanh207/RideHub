@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Quản lý Điểm Giao Nhận &amp; Phí — RideHub</title>
   <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,19 +35,36 @@
         <img src="../assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;" />
         <span style="font-weight: 800; font-size: 1.25rem; color: var(--green-800); margin-left: 8px;">RideHub</span>
       </a>
-            <nav class="nav-links">
-        <a href="../index.html" class="nav-link">Trang chủ</a>
-        <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
-        <a href="vehicle_management.html" class="nav-link">Quản lý kho xe</a>
+      <nav class="nav-links">
+        <a href="store_revenue_dashboard.html" class="nav-link">Báo cáo doanh thu</a>
+        <a href="vehicle_management.html" class="nav-link">Quản lý xe</a>
+        <a href="vehicle_schedule.html" class="nav-link">Lịch trình</a>
+        <a href="store_operations.html" class="nav-link">Đổi trạng thái &amp; Cảnh báo</a>
         <a href="delivery.html" class="nav-link is-active" style="color: var(--green-700); font-weight: 700;">Điểm giao nhận &amp; Phí</a>
       </nav>
 
-      <div class="nav-actions"></div>
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <line x1="4" y1="7" x2="20" y2="7"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="17" x2="20" y2="17"></line>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
+  <aside id="mobileDrawer" class="mobile-drawer" aria-label="Menu di động">
+    <a href="store_revenue_dashboard.html">Báo cáo doanh thu</a>
+    <a href="vehicle_management.html">Quản lý xe</a>
+    <a href="vehicle_schedule.html">Lịch trình</a>
+    <a href="store_operations.html">Đổi trạng thái &amp; Cảnh báo</a>
+    <a href="delivery.html">Điểm giao nhận &amp; Phí</a>
+  </aside>
+
   <!-- Nội dung trang -->
-  <main class="container delivery-main" style="padding-top: 80px;">
+  <main class="container delivery-main" >
 
     <!-- Tiêu đề trang -->
     <div class="delivery-header">
@@ -62,7 +79,7 @@
         <span class="status-badge status-badge--transit delivery-badge">Quản trị biểu phí</span>
       </div>
 
-      <div style="background: var(--bg-surface-soft); padding: 18px; border-radius: var(--radius-md);">
+      <div class="delivery-config-box">
         <div style="font-size: 13.5px; font-weight: 700; color: var(--green-800); margin-bottom: 12px;">Tham số biểu phí áp dụng cho đơn thuê:</div>
         <div class="delivery-form-grid">
           <div class="delivery-field-box">
@@ -80,7 +97,7 @@
             <input id="cfgDefaultHub" class="form-input" type="text" value="45 Lê Duẩn, Phường Bến Nghé, Quận 1, TP.HCM" />
           </div>
         </div>
-        <button type="button" class="btn btn-primary btn-premium btn-shine" style="margin-top: 16px; padding: 10px 24px; font-weight: 700;" onclick="handleSaveConfig()">
+        <button type="button" class="btn btn-primary btn-premium btn-shine delivery-save-btn" style="margin-top: 16px; padding: 10px 24px; font-weight: 700;" onclick="handleSaveConfig()">
           💾 Lưu cấu hình biểu phí
         </button>
       </div>
@@ -151,7 +168,7 @@
           <div style="background: var(--bg-surface-soft); padding: 10px 14px; border-radius: 8px; margin: 10px 0;">
             <strong>Địa điểm bàn giao:</strong> <span id="storeViewDelivery">Tôi tự đến lấy xe • 45 Lê Duẩn, Quận 1</span>
           </div>
-          <div style="display: flex; justify-content: space-between; border-top: 1px dashed #e2e8f0; padding-top: 8px;">
+          <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; border-top: 1px dashed #e2e8f0; padding-top: 8px;">
             <span>Phí giao nhận thu của khách:</span>
             <strong id="storeViewFee" style="color: var(--green-700); font-size: 15px;">0đ (Khách nhận tại bãi)</strong>
           </div>
