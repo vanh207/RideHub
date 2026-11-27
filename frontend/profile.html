@@ -547,12 +547,55 @@
               hidden
             ></div>
 
+            <div
+              id="cccdConsentBox"
+              style="
+                border: 1px solid #bbf7d0;
+                background: #f0fdf4;
+                border-radius: 12px;
+                padding: 12px 16px;
+                margin-bottom: 18px;
+              "
+            >
+              <label
+                style="
+                  display: flex;
+                  align-items: flex-start;
+                  gap: 10px;
+                  font-size: 13.5px;
+                  line-height: 1.5;
+                  color: #166534;
+                  cursor: pointer;
+                "
+              >
+                <input type="checkbox" id="cccdConsentCheck" style="margin-top: 3px" />
+                <span>
+                  Tôi đồng ý để RideHub xử lý dữ liệu CCCD và khuôn mặt nhằm
+                  xác thực danh tính theo
+                  <a href="privacy-policy.html" style="color: #15803d"
+                    >Chính sách bảo mật eKYC</a
+                  >. Tôi hiểu hệ thống chỉ hỗ trợ đối chiếu và admin vẫn là
+                  người quyết định cuối cùng.
+                </span>
+              </label>
+              <p
+                style="
+                  margin: 8px 0 0 28px;
+                  font-size: 12px;
+                  color: #64748b;
+                "
+              >
+                CHƯA ĐƯỢC REVIEW PHÁP LÝ • Phiên bản đồng ý 2026-11-v1.
+              </p>
+            </div>
+
             <div class="kyc-tips-banner">
               <div class="kyc-tips-icon">💡</div>
               <div class="kyc-tips-content">
                 <strong>Yêu cầu chất lượng hình ảnh:</strong>
                 Chụp ảnh rõ nét 4 góc, đủ ánh sáng, không bị lóa đèn flash hay
-                che khuất thông tin. Ảnh giấy tờ JPG/PNG tối đa 5MB.
+                che khuất thông tin. Ảnh giấy tờ JPG/PNG tối đa 5MB. Hệ thống
+                sẽ tự đọc QR và đưa ra cờ kiểm tra, không tự động duyệt hồ sơ.
               </div>
             </div>
 
@@ -609,6 +652,18 @@
                     <option value="Nữ">Nữ</option>
                     <option value="Khác">Khác</option>
                   </select>
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="profCccdIssued"
+                    >NGÀY CẤP <strong style="color: #ef4444">*</strong></label
+                  >
+                  <input id="profCccdIssued" class="form-input" type="date" />
+                </div>
+                <div class="filter-group">
+                  <label class="filter-label" for="profCccdExpiry"
+                    >NGÀY HẾT HẠN <strong style="color: #ef4444">*</strong></label
+                  >
+                  <input id="profCccdExpiry" class="form-input" type="date" />
                 </div>
                 <div class="filter-group">
                   <label class="filter-label" for="profCccdNationality"
@@ -722,11 +777,13 @@
                 </div>
               </div>
               <div class="kyc-tips-banner">
-                <div class="kyc-tips-icon">🔒</div>
-                <div class="kyc-tips-content">
-                  Ảnh khuôn mặt được lưu cùng hồ sơ để đối chiếu thủ công. Tính
-                  năng này không tự nhận diện hoặc xác thực sinh trắc học.
-                </div>
+              <div class="kyc-tips-icon">🔒</div>
+              <div class="kyc-tips-content">
+                Ảnh khuôn mặt được gửi kèm thử thách của phiên eKYC để đối chiếu
+                thủ công. Hệ thống không tự nhận diện hoặc xác thực sinh trắc
+                học.
+              </div>
+
               </div>
               <video
                 id="cccdFaceCamera"
@@ -779,7 +836,7 @@
                   class="btn btn-primary btn-premium btn-shine"
                   type="submit"
                 >
-                  Gửi hồ sơ CCCD
+                  Gửi xác thực eKYC
                 </button>
               </div>
             </form>
@@ -1436,6 +1493,82 @@
       };
       window.addEventListener("hashchange", syncFromHash);
       syncFromHash();
+
+      const kycConsentVersion = "2026-11-v1";
+      const kycConsentText =
+        "Tôi đồng ý để RideHub xử lý dữ liệu CCCD và khuôn mặt nhằm xác thực danh tính.";
+      const kycApiBase = CONFIG.API_BASE_URL.replace(/\/$/, "");
+      const getProfileToken = () => {
+        const fromCookie = document.cookie
+          .split("; ")
+          .find((cookie) =>
+            ["ridehub_token", "access_token", "token", "ridehub_auth_token"].some(
+              (name) => cookie.startsWith(`${name}=`),
+            ),
+          );
+        if (fromCookie) return decodeURIComponent(fromCookie.split("=").slice(1).join("="));
+        return (
+          localStorage.getItem("ridehub_auth_token") ||
+          localStorage.getItem("ridehub_token") ||
+          ""
+        );
+      };
+      const kycRequest = async (path, options = {}) => {
+        const { json, ...fetchOptions } = options;
+        const token = getProfileToken();
+        const response = await fetch(`${kycApiBase}${path}`, {
+          ...fetchOptions,
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+            ...(json ? { "Content-Type": "application/json" } : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...options.headers,
+          },
+          body: json ? JSON.stringify(json) : options.body,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(
+            data.message ||
+              data.detail ||
+              data.code ||
+              `Không thể xử lý yêu cầu (${response.status}).`,
+          );
+          error.code = data.code;
+          error.details = data.details;
+          error.status = response.status;
+          throw error;
+        }
+        return data;
+      };
+      const kycStatusToUi = {
+        APPROVED: "approved",
+        REJECTED: "rejected",
+        NOT_STARTED: "not_submitted",
+      };
+      const loadKycMe = async () => {
+        const current = AuthRBAC.getCurrentUser();
+        if (!current || current.role === "admin") return;
+        try {
+          const data = await kycRequest("/kyc/me");
+          const result = AuthRBAC.updateProfile({
+            cccdNumber: "",
+            cccdFrontPhotoUrl: "",
+            cccdBackPhotoUrl: "",
+            cccdFacePhotoUrl: "",
+            cccdStatus: kycStatusToUi[data.status] || "pending",
+            cccdStatusReason:
+              data.status === "REJECTED" ? data.reject_reason || "" : "",
+            cccdNumberMasked: data.document_number_masked || "",
+            kycFlags: data.flags || [],
+          });
+          if (result.ok) renderUser();
+        } catch (error) {
+          if (error.status !== 401) return;
+        }
+      };
+
       const kycImageFields = [
         {
           inputId: "profCccdFront",
@@ -1464,6 +1597,31 @@
         },
       ];
       const kycImages = {};
+      const kycCccdFiles = { front: null, back: null, selfie: null };
+      const kycPreviewUrls = {};
+      const releaseKycPreview = (key) => {
+        const url = kycPreviewUrls[key];
+        if (url && url.startsWith("blob:")) URL.revokeObjectURL(url);
+        delete kycPreviewUrls[key];
+      };
+      const clearKycPreviews = () => {
+        Object.keys(kycPreviewUrls).forEach(releaseKycPreview);
+        Object.keys(kycImages)
+          .filter((key) => key.startsWith("cccd"))
+          .forEach((key) => {
+            delete kycImages[key];
+          });
+        [
+          ["profCccdFrontPreview", "stateCccdFront"],
+          ["profCccdBackPreview", "stateCccdBack"],
+        ].forEach(([previewId, stateId]) => renderKycImage(previewId, "", stateId));
+        const facePreview = document.getElementById("cccdFacePreview");
+        if (facePreview) {
+          facePreview.removeAttribute("src");
+          facePreview.hidden = true;
+        }
+        document.getElementById("btnRetakeFace").hidden = true;
+      };
       const renderKycImage = (previewId, url, stateId) => {
         const preview = document.getElementById(previewId);
         if (!preview) return;
@@ -1659,6 +1817,10 @@
         document.getElementById("profCccdName").value =
           u.cccdName || u.name || "";
         document.getElementById("profCccdDob").value = u.cccdDob || u.dob || "";
+        document.getElementById("profCccdIssued").value =
+          u.cccdIssuedDate || "";
+        document.getElementById("profCccdExpiry").value =
+          u.cccdExpiryDate || "";
         document.getElementById("profCccdGender").value = u.cccdGender || "";
         document.getElementById("profCccdNationality").value =
           u.cccdNationality || "Việt Nam";
@@ -1698,30 +1860,21 @@
           "Nhập thông tin GPLX và tải đủ ảnh hai mặt để gửi xác minh.",
         );
         renderStoreStatus(u);
-        cccdFacePhotoUrl = u.cccdFacePhotoUrl || "";
-        const facePreview = document.getElementById("cccdFacePreview");
-        facePreview.src = cccdFacePhotoUrl;
-        facePreview.hidden = !cccdFacePhotoUrl;
-        document.getElementById("btnRetakeFace").hidden = !cccdFacePhotoUrl;
+        document.getElementById("cccdFacePreview").hidden = true;
+        document.getElementById("btnRetakeFace").hidden = true;
         kycImageFields.forEach(({ previewId, stateId, userKey, legacyKey }) => {
           const url = u[userKey] || (legacyKey ? u[legacyKey] : "") || "";
           kycImages[userKey] = url;
           renderKycImage(previewId, url, stateId);
         });
       };
-      document.addEventListener("DOMContentLoaded", renderUser);
+      document.addEventListener("DOMContentLoaded", () => {
+        renderUser();
+        loadKycMe();
+      });
 
       const reviewApiBase = CONFIG.API_BASE_URL.replace(/\/$/, "");
-      const getReviewToken = () => {
-        const fromStorage = localStorage.getItem("ridehub_auth_token");
-        if (fromStorage) return fromStorage;
-        const tokenCookie = document.cookie
-          .split("; ")
-          .find((cookie) => cookie.startsWith("ridehub_token="));
-        return tokenCookie
-          ? decodeURIComponent(tokenCookie.slice("ridehub_token=".length))
-          : "";
-      };
+      const getReviewToken = () => getProfileToken();
       const reviewRequest = async (path, options = {}) => {
         const token = getReviewToken();
         const response = await fetch(`${reviewApiBase}${path}`, {
@@ -1984,6 +2137,7 @@
         });
 
       kycImageFields.forEach(({ inputId, previewId, stateId, userKey }) => {
+        const isCccd = userKey.startsWith("cccd");
         document
           .getElementById(inputId)
           ?.addEventListener("change", async (event) => {
@@ -2002,12 +2156,22 @@
               return;
             }
             try {
-              const dataUrl = await imageToDataUrl(file);
-              kycImages[userKey] = dataUrl;
+              let previewUrl;
+              if (isCccd) {
+                releaseKycPreview(userKey);
+                previewUrl = URL.createObjectURL(file);
+                kycPreviewUrls[userKey] = previewUrl;
+                kycCccdFiles[
+                  userKey === "cccdFrontPhotoUrl" ? "front" : "back"
+                ] = file;
+              } else {
+                previewUrl = await imageToDataUrl(file);
+              }
+              kycImages[userKey] = previewUrl;
               input
                 .closest(".kyc-upload-box")
                 ?.classList.remove("is-input-error");
-              renderKycImage(previewId, dataUrl, stateId);
+              renderKycImage(previewId, previewUrl, stateId);
             } catch (error) {
               input.value = "";
               showRideHubToast(
@@ -2018,7 +2182,6 @@
           });
       });
 
-      let cccdFacePhotoUrl = "";
       let faceCameraStream = null;
       const faceCamera = document.getElementById("cccdFaceCamera");
       const stopFaceCamera = () => {
@@ -2089,19 +2252,37 @@
             return;
           }
           context.drawImage(faceCamera, 0, 0, canvas.width, canvas.height);
-          cccdFacePhotoUrl = canvas.toDataURL("image/jpeg", 0.85);
-          const preview = document.getElementById("cccdFacePreview");
-          preview.src = cccdFacePhotoUrl;
-          preview.hidden = false;
-          document.getElementById("btnRetakeFace").hidden = false;
-          stopFaceCamera();
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                showRideHubToast("Không thể tạo ảnh khuôn mặt. Vui lòng thử lại.", true);
+                return;
+              }
+              releaseKycPreview("cccdFacePhotoUrl");
+              kycCccdFiles.selfie = new File([blob], "selfie.jpg", {
+                type: "image/jpeg",
+              });
+              const previewUrl = URL.createObjectURL(kycCccdFiles.selfie);
+              kycPreviewUrls.cccdFacePhotoUrl = previewUrl;
+              const preview = document.getElementById("cccdFacePreview");
+              preview.src = previewUrl;
+              preview.hidden = false;
+              document.getElementById("btnRetakeFace").hidden = false;
+              stopFaceCamera();
+            },
+            "image/jpeg",
+            0.85,
+          );
         });
 
       document
         .getElementById("btnRetakeFace")
         ?.addEventListener("click", () => {
-          cccdFacePhotoUrl = "";
-          document.getElementById("cccdFacePreview").hidden = true;
+          kycCccdFiles.selfie = null;
+          releaseKycPreview("cccdFacePhotoUrl");
+          const preview = document.getElementById("cccdFacePreview");
+          preview.removeAttribute("src");
+          preview.hidden = true;
           document.getElementById("btnRetakeFace").hidden = true;
           document.getElementById("btnStartFaceScan").click();
         });
@@ -2117,33 +2298,58 @@
         return invalid;
       };
 
-      document.getElementById("cccdForm")?.addEventListener("submit", (e) => {
+      document.getElementById("cccdForm")?.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const form = e.currentTarget;
+        const submitButton = form.querySelector('button[type="submit"]');
+        const setLoading = (loading) =>
+          window.RideHubUI?.Form?.setLoading?.(
+            submitButton,
+            loading,
+            "Đang gửi xác thực...",
+          );
         const cccdEl = document.getElementById("profCccdNum");
         const cccdNameEl = document.getElementById("profCccdName");
         const cccdDobEl = document.getElementById("profCccdDob");
+        const issuedEl = document.getElementById("profCccdIssued");
+        const expiryEl = document.getElementById("profCccdExpiry");
+        const consentEl = document.getElementById("cccdConsentCheck");
         const invalid =
-          validateRequiredFields([cccdEl, cccdNameEl, cccdDobEl]) ||
-          !/^\d{12}$/.test(cccdEl.value.trim());
+          validateRequiredFields([
+            cccdEl,
+            cccdNameEl,
+            cccdDobEl,
+            issuedEl,
+            expiryEl,
+          ]) ||
+          !/^\d{12}$/.test(cccdEl.value.trim()) ||
+          (expiryEl.value && issuedEl.value && expiryEl.value < issuedEl.value);
         cccdEl.classList.toggle(
           "is-input-error",
           !/^\d{12}$/.test(cccdEl.value.trim()),
         );
         let missingImages = false;
-        kycImageFields
-          .filter(({ userKey }) => userKey.startsWith("cccd"))
-          .forEach(({ inputId, userKey }) => {
-            const box = document
-              .getElementById(inputId)
-              ?.closest(".kyc-upload-box");
-            const missing = !kycImages[userKey];
-            box?.classList.toggle("is-input-error", missing);
-            missingImages = missingImages || missing;
-          });
-        if (invalid || missingImages || !cccdFacePhotoUrl) {
+        [
+          ["profCccdFront", "front"],
+          ["profCccdBack", "back"],
+        ].forEach(([inputId, key]) => {
+          const box = document.getElementById(inputId)?.closest(".kyc-upload-box");
+          const missing = !kycCccdFiles[key];
+          box?.classList.toggle("is-input-error", missing);
+          missingImages = missingImages || missing;
+        });
+        if (!consentEl?.checked) {
+          consentEl?.classList.add("is-input-error");
+          showRideHubToast(
+            "Vui lòng đọc và đồng ý xử lý dữ liệu eKYC trước khi gửi.",
+            true,
+          );
+          return;
+        }
+        if (invalid || missingImages || !kycCccdFiles.selfie) {
           showRideHubToast(
             invalid
-              ? "Vui lòng nhập họ tên, ngày sinh và số CCCD gồm đúng 12 chữ số."
+              ? "Vui lòng nhập đủ thông tin, số CCCD 12 chữ số và ngày cấp/hết hạn hợp lệ."
               : missingImages
                 ? "Vui lòng tải ảnh hai mặt CCCD."
                 : "Vui lòng quét và chụp khuôn mặt.",
@@ -2151,39 +2357,85 @@
           );
           return;
         }
+        setLoading(true);
         try {
+          const consentPayload = {
+            consent_text: kycConsentText,
+            consent_version: kycConsentVersion,
+            document_number: cccdEl.value.trim(),
+            full_name: cccdNameEl.value.trim(),
+            date_of_birth: cccdDobEl.value,
+            issued_date: issuedEl.value,
+            expiry_date: expiryEl.value,
+            gender: document.getElementById("profCccdGender").value || null,
+            address: document.getElementById("profCccdAddress").value.trim() || null,
+          };
+          const session = await kycRequest("/kyc/sessions", {
+            method: "POST",
+            json: consentPayload,
+          });
+          const sessionId = session.session_id;
+          if (!sessionId) throw new Error("Phiên xác thực không hợp lệ.");
+          const uploads = [
+            ["front", kycCccdFiles.front],
+            ["back", kycCccdFiles.back],
+            ["selfie", kycCccdFiles.selfie],
+          ];
+          for (const [kind, file] of uploads) {
+            const formData = new FormData();
+            formData.append("file", file, file.name);
+            if (kind === "selfie") {
+              formData.append("challenge", session.challenge || "");
+            }
+            await kycRequest(
+              `/kyc/sessions/${encodeURIComponent(sessionId)}/images/${kind}`,
+              { method: "POST", body: formData },
+            );
+          }
+          await kycRequest(
+            `/kyc/sessions/${encodeURIComponent(sessionId)}/submit`,
+            { method: "POST", json: {} },
+          );
+          const masked = `${"•".repeat(8)}${consentPayload.document_number.slice(-4)}`;
           const result = AuthRBAC.updateProfile({
-            cccdNumber: cccdEl.value.trim(),
-            cccdName: cccdNameEl.value.trim(),
-            cccdDob: cccdDobEl.value,
-            cccdGender: document.getElementById("profCccdGender").value,
-            cccdNationality: document
-              .getElementById("profCccdNationality")
-              .value.trim(),
-            cccdOrigin: document.getElementById("profCccdOrigin").value.trim(),
-            cccdAddress: document
-              .getElementById("profCccdAddress")
-              .value.trim(),
+            cccdNumber: "",
+            cccdNumberMasked: masked,
+            cccdName: consentPayload.full_name,
+            cccdDob: consentPayload.date_of_birth,
+            cccdIssuedDate: consentPayload.issued_date,
+            cccdExpiryDate: consentPayload.expiry_date,
+            cccdGender: consentPayload.gender || "",
+            cccdAddress: consentPayload.address || "",
             cccdStatus: "pending",
             cccdStatusReason: "",
-            cccdFrontPhotoUrl: kycImages.cccdFrontPhotoUrl,
-            cccdBackPhotoUrl: kycImages.cccdBackPhotoUrl,
-            cccdFacePhotoUrl,
+            cccdFrontPhotoUrl: "",
+            cccdBackPhotoUrl: "",
+            cccdFacePhotoUrl: "",
           });
           if (!result.ok) {
             showRideHubToast(
-              result.message || "Không thể lưu hồ sơ CCCD.",
+              result.message || "Không thể cập nhật trạng thái hồ sơ eKYC.",
               true,
             );
             return;
           }
+          kycCccdFiles.front = null;
+          kycCccdFiles.back = null;
+          kycCccdFiles.selfie = null;
+          clearKycPreviews();
+          cccdEl.value = "";
+          await loadKycMe();
           renderUser();
-          showRideHubToast("Đã gửi hồ sơ CCCD. Trạng thái: Đang chờ duyệt.");
-        } catch {
           showRideHubToast(
-            "Không thể lưu hồ sơ CCCD. Dung lượng lưu trữ có thể đã đầy.",
+            "Đã gửi xác thực eKYC. Hệ thống chỉ sinh cờ đối chiếu; admin sẽ duyệt hồ sơ.",
+          );
+        } catch (error) {
+          showRideHubToast(
+            error.message || "Không thể gửi hồ sơ eKYC. Vui lòng thử lại.",
             true,
           );
+        } finally {
+          setLoading(false);
         }
       });
 
