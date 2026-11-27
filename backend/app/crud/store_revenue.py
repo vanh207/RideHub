@@ -18,7 +18,7 @@ from app.schemas.store_revenue import (
     TopRentedVehicleItem,
 )
 
-VALID_STATUSES = ("COMPLETED", "PAID", "CONFIRMED")
+VALID_STATUSES = ("COMPLETED", "PAID", "CONFIRMED", "completed", "paid", "confirmed")
 
 
 def get_store_revenue_report(
@@ -58,11 +58,11 @@ def get_store_revenue_report(
     ]
 
     # 5. Truy vấn tổng quan (Summary)
-    completed_case = case((Booking.status.in_(VALID_STATUSES), 1), else_=0)
-    cancelled_case = case((Booking.status == "CANCELLED", 1), else_=0)
-    rental_case = case((Booking.status.in_(VALID_STATUSES), Booking.rental_amount), else_=Decimal("0"))
-    delivery_case = case((Booking.status.in_(VALID_STATUSES), Booking.delivery_fee), else_=Decimal("0"))
-
+    completed_case = case((func.upper(Booking.status).in_(("COMPLETED", "PAID", "CONFIRMED")), 1), else_=0)
+    cancelled_case = case((func.upper(Booking.status) == "CANCELLED", 1), else_=0)
+    rental_case = case((func.upper(Booking.status).in_(("COMPLETED", "PAID", "CONFIRMED")), Booking.rental_amount), else_=Decimal("0"))
+    delivery_case = case((func.upper(Booking.status).in_(("COMPLETED", "PAID", "CONFIRMED")), Booking.delivery_fee), else_=Decimal("0"))
+    
     summary_stmt = select(
         func.count(Booking.id).label("total_orders"),
         func.sum(completed_case).label("completed_orders"),

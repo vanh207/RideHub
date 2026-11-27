@@ -51,6 +51,28 @@
     }
   ];
 
+    function getRealOrders() {
+    // 1. Thử lấy từ Quản lý đơn hàng (store-orders.html)
+    try {
+      const raw = localStorage.getItem('ridehub_store_orders_v1');
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list) && list.length > 0) return list;
+      }
+    } catch (_) {}
+
+    // 2. Thử lấy từ Đặt xe hệ thống
+    try {
+      const raw2 = localStorage.getItem('ridehub_bookings_db');
+      if (raw2) {
+        const list2 = JSON.parse(raw2);
+        if (Array.isArray(list2) && list2.length > 0) return list2;
+      }
+    } catch (_) {}
+
+    return mockOrders;
+  }
+
   // 2. BẢN ĐỒ TỔNG HỢP SỰ KIỆN THEO NGÀY (Giao xe, Trả xe, Bảo dưỡng)
   function getCalendarEventsMap() {
     const map = {};
@@ -60,7 +82,8 @@
     };
 
     // Bóc tách ngày giao & trả từ chuỗi schedule (dd/mm/yyyy)
-    mockOrders.forEach((o) => {
+    const activeOrders = getRealOrders();
+    activeOrders.forEach((o) => {
       const matches = (o.schedule || '').match(/(\d{2})\/(\d{2})\/(\d{4})/g) || [];
       if (matches[0]) {
         const [d, m, y] = matches[0].split('/');

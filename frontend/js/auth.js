@@ -384,8 +384,9 @@
         setTimeout(() => {
           const roleHomes = {
             customer: '../vehicles.html',
-            store_owner: 'store-portal.html',
-            store_staff: 'store-portal.html',
+            store_owner: 'store_revenue_dashboard.html',
+            store_staff: 'store_revenue_dashboard.html',
+            owner: 'store_revenue_dashboard.html',
             operator: 'operations-anomalies.html',
             admin: 'operations-anomalies.html',
           };

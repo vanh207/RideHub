@@ -37,7 +37,35 @@
     'Bảo dưỡng': 'status-badge--maintenance'
   };
 
-  let fleetList = JSON.parse(JSON.stringify(DEFAULT_FLEET));
+  const FLEET_STORAGE_KEY = 'ridehub_store_fleet_v2';
+
+  // Tự động tải từ kho xe thực tế (do trang vehicle_management.html quản lý)
+  function getRealFleetList() {
+    try {
+      const raw = localStorage.getItem(FLEET_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((v) => ({
+            id: v.id,
+            name: `${v.brand || ''} ${v.name || v.model || ''}`.trim(),
+            category: v.type === 'car' ? 'car' : 'motorcycle',
+            transmission: v.transmission || 'Tự động',
+            fuel: v.fuel || (v.type === 'moto' ? 'Điện' : 'Xăng/Điện'),
+            price: Number(v.price || 0),
+            status: v.status || 'Sẵn sàng',
+            alertText: v.status === 'Bảo dưỡng' ? '🔧 Đang bảo dưỡng' : (v.status === 'Đang thuê' ? 'Đang trong lịch thuê' : 'Trống lịch'),
+            conflict: false
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn('Lỗi đọc kho xe thật:', e);
+    }
+    return JSON.parse(JSON.stringify(DEFAULT_FLEET));
+  }
+
+  let fleetList = getRealFleetList();
 
   // 2. DỮ LIỆU ĐƠN THUÊ MẪU
   const mockOrders = [
@@ -63,6 +91,17 @@
       delivery: 'Nhận tại cửa hàng • GreenRide Q.1', status: 'approved'
     }
   ];
+
+  function getRealOrders() {
+    try {
+      const raw = localStorage.getItem('ridehub_store_orders_v1');
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list) && list.length > 0) return list;
+      }
+    } catch (_) {}
+    return mockOrders;
+  }
 
   // 3. TOAST THÔNG BÁO
   function showRideHubToast(msg, isWarning = false) {
@@ -151,6 +190,18 @@
     const cur = fleetList[idx];
     if (!cur) return;
     cur.status = newStatus;
+        // Đồng bộ trạng thái mới ngược về kho xe thật (FLEET_STORAGE_KEY)
+    try {
+      const raw = localStorage.getItem(FLEET_STORAGE_KEY);
+      if (raw) {
+        const list = JSON.parse(raw);
+        const target = list.find((item) => item.id === cur.id);
+        if (target) {
+          target.status = newStatus;
+          localStorage.setItem(FLEET_STORAGE_KEY, JSON.stringify(list));
+        }
+      }
+    } catch (_) {}
     if (newStatus === 'Bảo dưỡng') {
       cur.alertText = '🔧 Đang bảo dưỡng • Đã ẩn khỏi tìm kiếm (FR-60)';
       showRideHubToast(`Xe "${cur.name}" chuyển sang BẢO DƯỠNG (đã ẩn xe khỏi tìm kiếm)`, true);
@@ -182,7 +233,7 @@
       if (!map[dateKey]) map[dateKey] = [];
       map[dateKey].push(ev);
     };
-    mockOrders.forEach(o => {
+    getRealOrders().forEach(o => {
       const matches = (o.schedule || '').match(/(\d{2})\/(\d{2})\/(\d{4})/g) || [];
       if (matches[0]) {
         const [d, m, y] = matches[0].split('/');
