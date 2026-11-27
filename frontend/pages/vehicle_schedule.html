@@ -22,7 +22,7 @@
   <!-- File CSS bóc tách riêng (đầy đủ màu sắc, components và layout) -->
   <link rel="stylesheet" href="css/vehicle_schedule.css" />
 </head>
-<body style="margin: 0; padding: 0 0 48px 0; background: var(--bg-page);">
+<body style="margin: 0; padding: 0; background: var(--bg-page);">
   <!-- Hiệu ứng nền & Toast -->
   <div class="noise-overlay" aria-hidden="true"></div>
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
@@ -129,8 +129,8 @@
     </div>
   </div>
 
-    <!-- FOOTER HỆ THỐNG VỚI HIỆU ỨNG XE Ô TÔ CHẠY -->
-  <footer class="site-footer">
+  <!-- FOOTER GỌN ĐẸP BÁM SÁT ĐÁY TRANG -->
+  <footer class="site-footer site-footer--compact">
     <div class="footer-road-edge">
       <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Nền tảng thuê xe thông minh">
         <svg viewBox="0 0 110 64" width="76" height="32">
@@ -148,53 +148,40 @@
             <span class="footer-brand-name">RideHub</span>
           </div>
           <p class="footer-brand-desc">
-            Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+            Cổng quản trị đối tác &amp; thuê xe xanh thông minh. Tự động hóa lịch đặt xe, eKYC CCCD gắn chip và thanh toán VietQR an toàn 24/7.
           </p>
           <div class="footer-contact">
-            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn">support@ridehub.vn</a></div>
-            <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+            <div><strong>Hotline:</strong> <a href="tel:19006868">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn">support@ridehub.vn</a></div>
+            <div><strong>Trạm chính:</strong> 120 Nguyễn Huệ, P. Bến Nghé, Q.1, TP.HCM</div>
           </div>
         </div>
         <div>
-          <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
+          <div class="footer-col-title">Quản lý Cửa hàng</div>
           <ul class="footer-links-list">
-            <li class="footer-link-item"><a href="../index.html">Trang chủ</a></li>
-            <li class="footer-link-item"><a href="../vehicles.html">Tìm &amp; Thuê xe máy, Ô tô</a></li>
-            <li class="footer-link-item"><a href="../trips.html">Hành trình &amp; Chuyến đi của tôi</a></li>
-            <li class="footer-link-item"><a href="../booking.html">Đơn thuê &amp; Thanh toán cọc</a></li>
-            <li class="footer-link-item"><a href="../index.html#storySection">Quy trình bàn giao 4 bước</a></li>
-          </ul>
-        </div>
-        <div>
-          <div class="footer-col-title">Dành cho Đối tác</div>
-          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="store_revenue_dashboard.html">Báo cáo doanh thu</a></li>
             <li class="footer-link-item"><a href="store-orders.html">Duyệt &amp; Quản lý đơn thuê</a></li>
-            <li class="footer-link-item"><a href="../admin-ops.html">Trung tâm Quản trị Admin</a></li>
             <li class="footer-link-item"><a href="vehicle_management.html">Kho xe &amp; Thêm/Sửa xe</a></li>
             <li class="footer-link-item"><a href="vehicle_schedule.html">Lịch xe ngày &amp; tuần</a></li>
-            <li class="footer-link-item"><a href="delivery.html">Điểm giao nhận &amp; Biểu phí</a></li>
-            <li class="footer-link-item"><a href="store_revenue_dashboard.html">Doanh thu &amp; Báo cáo</a></li>
           </ul>
         </div>
         <div>
-          <div class="footer-col-title">Cam kết &amp; An toàn</div>
-          <div class="footer-commitments">
-            <div class="footer-commitment"><span>✓</span><span><strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt Face Match.</span></div>
-            <div class="footer-commitment"><span>✓</span><span><strong>Minh bạch bàn giao:</strong> Quay video toàn cảnh 360°, ảnh biên bản &amp; ảnh ODO thực tế.</span></div>
-            <div class="footer-commitment"><span>✓</span><span><strong>Hoàn tiền cọc tự động:</strong> Hoàn 100% trước 24h khi khách hủy theo chính sách.</span></div>
-          </div>
+          <div class="footer-col-title">Vận hành &amp; Hỗ trợ</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="handover.html">Biên bản giao/nhận xe</a></li>
+            <li class="footer-link-item"><a href="delivery.html">Điểm giao nhận &amp; Biểu phí</a></li>
+            <li class="footer-link-item"><a href="../index.html">Trang chủ RideHub</a></li>
+            <li class="footer-link-item"><a href="privacy-policy.html">Chính sách bảo mật</a></li>
+          </ul>
         </div>
       </div>
       <div class="footer-divider"></div>
       <div class="footer-bottom-row">
-        <div>
-          © 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.
-        </div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
-          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Bảo mật PayOS VietQR</span>
-          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Chuẩn an toàn eKYC Chip</span>
-          <a href="../index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Điều khoản sử dụng</a>
-          <a href="privacy-policy.html" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+        <div>© 2026 <strong>RideHub Technology JSC</strong>. Cổng Đối tác Trạm GreenRide Q.1.</div>
+        <div class="footer-bottom-links">
+          <span class="footer-badge">Bảo mật PayOS VietQR</span>
+          <span class="footer-badge">Chuẩn eKYC Chip</span>
+          <a href="../index.html#storySection">Điều khoản</a>
+          <a href="privacy-policy.html">Bảo mật</a>
         </div>
       </div>
     </div>

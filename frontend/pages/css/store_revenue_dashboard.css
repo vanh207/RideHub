@@ -46,9 +46,15 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
-  padding: 24px 16px 48px;
+  padding: 0;
   background: var(--bg-page);
   color: var(--text-primary);
   font-family: var(--font-body);
@@ -56,12 +62,132 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.container {
+.dashboard-main-container {
   max-width: 1180px;
   margin: 0 auto;
+  padding: 0 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* Navbar đồng bộ & responsive */
+.navbar-inner {
+  gap: 14px;
+}
+
+.nav-links {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.nav-link {
+  white-space: nowrap;
+}
+
+@media (max-width: 1160px) {
+  .navbar-inner {
+    gap: 10px;
+  }
+
+  .nav-links {
+    gap: 2px;
+  }
+
+  .nav-link {
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .nav-links {
+    display: none;
+  }
+
+  .hamburger-btn {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 560px) {
+  .brand-logo span {
+    font-size: 1.05rem;
+  }
+
+  .user-avatar-trigger {
+    padding: 4px 8px 4px 4px !important;
+    gap: 6px !important;
+  }
+
+  .user-avatar-trigger > span:not(.user-avatar-circle) {
+    max-width: 96px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12.5px;
+  }
+}
+
+@media (max-width: 400px) {
+  .user-avatar-trigger > span:not(.user-avatar-circle) {
+    display: none;
+  }
+}
+
+/* Hero Banner đồng bộ với trang store-orders */
+.store-hero-banner {
+  background: linear-gradient(135deg, #064e3b 0%, #14532d 50%, #15803d 100%);
+  color: #ffffff;
+  padding: 96px 0 46px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -10px rgba(20, 83, 45, 0.35);
+}
+
+.store-hero-banner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -10%;
+  width: 50%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(74, 222, 128, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.store-hero-actions-box {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 14px 16px;
+  border-radius: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.stat-grid--overlap {
+  margin-top: -26px;
+  position: relative;
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .store-hero-banner {
+    padding: 84px 0 40px;
+  }
+
+  .store-hero-banner h1 {
+    font-size: 1.45rem !important;
+    line-height: 1.25;
+  }
+
+  .store-hero-actions-box {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 /* ==========================================================================
