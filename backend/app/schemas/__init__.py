@@ -27,6 +27,16 @@ from app.schemas.payment import (
 from .user import UserBase, UserCreate, UserResponse
 from .identity_document import IdentityDocumentBase, IdentityDocumentCreate, IdentityDocumentResponse
 from .driver_license import DriverLicenseBase, DriverLicenseCreate, DriverLicenseResponse
+from .kyc import (
+    KycConsentRequest,
+    KycConsentResponse,
+    KycErrorResponse,
+    KycImageKind,
+    KycMeResponse,
+    KycSessionCreateResponse,
+    KycSubmitResponse,
+    KycUploadResponse,
+)
 from .store import StoreBase, StoreCreate, StoreResponse
 from .vehicle_reservation import (
     VehicleReservationBase,
