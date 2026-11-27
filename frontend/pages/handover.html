@@ -190,19 +190,18 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><polyline points="12 6 12 12 16 14"/></svg>
         Đồng hồ ODO (Số km)
       </h2>
-      <div class="ho-odo-wrap">
+      <div class="ho-odo-checkout-wrap">
         <div class="ho-field">
           <label class="ho-label" for="coOdo">ODO lúc giao (km) <span class="req" aria-hidden="true">*</span></label>
           <input id="coOdo" class="ho-input" type="number" min="0" placeholder="Ví dụ: 12450" required aria-required="true" />
           <span id="coOdoErr" class="ho-field-error" role="alert"></span>
         </div>
-        <div class="ho-odo-arrow" aria-hidden="true">→</div>
-        <div class="ho-field">
-          <label class="ho-label" for="coOdoRef">ODO dự kiến trả</label>
-          <input id="coOdoRef" class="ho-input" type="number" min="0" placeholder="Tự động tính" readonly aria-readonly="true" tabindex="-1" />
+        <div class="ho-odo-info-box">
+          <span class="ho-odo-info-title">Định mức quãng đường hợp đồng</span>
+          <strong class="ho-odo-info-val" id="coKmLimitPreview">—</strong>
+          <span class="ho-hint" style="margin:0;">ODO lúc trả sẽ được nhập &amp; đối chiếu tự động ở tab Check-in.</span>
         </div>
       </div>
-      <p class="ho-hint" style="margin-top:8px;">ODO lúc trả sẽ nhập ở tab Check-in; quãng đường &amp; phí vượt sẽ tự tính.</p>
     </section>
 
     <!-- 4. Nhiên liệu -->
@@ -241,7 +240,7 @@
       <div id="coRequiredPhotos" aria-label="Ảnh bắt buộc lúc giao">
         <p class="ho-photo-group-title">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Ảnh bắt buộc (6 góc) — Nhấn ô để chọn / chụp ảnh
+          Ảnh bắt buộc (5 góc) — Nhấn ô để chọn / chụp ảnh
         </p>
         <div class="ho-photo-grid">
           <div id="coPhoto_req-front"  class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh đầu xe"></div>
@@ -249,7 +248,6 @@
           <div id="coPhoto_req-left"   class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh bên trái"></div>
           <div id="coPhoto_req-right"  class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh bên phải"></div>
           <div id="coPhoto_req-odo"    class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh đồng hồ ODO"></div>
-          <div id="coPhoto_req-interior" class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh nội thất"></div>
         </div>
       </div>
 
@@ -294,26 +292,22 @@
       </div>
     </section>
 
-    <!-- 9. Chữ ký Check-out -->
-    <section class="ho-card" aria-labelledby="coSigTitle">
-      <h2 class="ho-section-title" id="coSigTitle">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-        Chữ ký xác nhận — Check-out
+    <!-- 9. Ảnh biên bản giấy Check-out -->
+    <section class="ho-card" aria-labelledby="coDocTitle">
+      <h2 class="ho-section-title" id="coDocTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Ảnh biên bản giấy đã ký xác nhận — Check-out <span class="req" aria-hidden="true">*</span>
       </h2>
-      <div class="ho-sig-wrap">
-        <div class="ho-sig-box">
-          <label class="ho-sig-label" for="coSigCustomer">Chữ ký khách thuê <span class="req" aria-hidden="true">*</span></label>
-          <canvas id="coSigCustomer" class="ho-sig-canvas" width="400" height="160" aria-label="Vùng ký tên khách thuê — dùng chuột hoặc ngón tay để ký"></canvas>
-          <p class="ho-sig-name" id="coSigCustName" aria-live="polite">—</p>
-          <button class="ho-sig-redo" id="coSigCustomerRedo" type="button" aria-label="Ký lại chữ ký khách thuê">↺ Ký lại</button>
-        </div>
-        <div class="ho-sig-box">
-          <label class="ho-sig-label" for="coSigStaff">Chữ ký nhân viên <span class="req" aria-hidden="true">*</span></label>
-          <canvas id="coSigStaff" class="ho-sig-canvas" width="400" height="160" aria-label="Vùng ký tên nhân viên — dùng chuột hoặc ngón tay để ký"></canvas>
-          <p class="ho-sig-name" id="coSigStaffName" aria-live="polite">—</p>
-          <button class="ho-sig-redo" id="coSigStaffRedo" type="button" aria-label="Ký lại chữ ký nhân viên">↺ Ký lại</button>
+      <p class="ho-hint" style="margin:0 0 12px;">Khách thuê và nhân viên ký trực tiếp trên biên bản giấy, sau đó chụp hoặc tải ảnh biên bản lên hệ thống để lưu trữ.</p>
+      <div id="coSignedDocZone" class="ho-doc-upload-zone" role="button" tabindex="0" aria-label="Chụp hoặc chọn ảnh biên bản giấy đã ký lúc giao xe">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/></svg>
+        <div class="ho-doc-upload-text">
+          <strong>Nhấn để chụp / tải ảnh biên bản giấy đã ký</strong>
+          <span>Hỗ trợ JPG, PNG, WebP · Tối đa 5MB/ảnh · Có thể tải nhiều trang</span>
         </div>
       </div>
+      <div id="coSignedDocGrid" class="ho-doc-grid" aria-live="polite"></div>
+      <span id="coSignedDocErr" class="ho-field-error" role="alert"></span>
     </section>
 
   </div><!-- /panel-checkout -->
@@ -354,17 +348,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><polyline points="12 6 12 12 16 14"/></svg>
         Đồng hồ ODO (Nhận lại)
       </h2>
-      <div class="ho-odo-wrap">
-        <div class="ho-field">
-          <label class="ho-label" for="ciOdo">ODO lúc trả (km) <span class="req" aria-hidden="true">*</span></label>
-          <input id="ciOdo" class="ho-input" type="number" min="0" placeholder="Ví dụ: 12850" required aria-required="true" />
-          <span id="ciOdoErr" class="ho-field-error" role="alert"></span>
-        </div>
-        <div class="ho-odo-arrow" aria-hidden="true">−</div>
-        <div class="ho-field">
-          <label class="ho-label" for="ciOdoOut">ODO lúc giao</label>
-          <input id="ciOdoOut" class="ho-input" type="number" readonly aria-readonly="true" tabindex="-1" placeholder="Từ tab Check-out" />
-        </div>
+      <div class="ho-field">
+        <label class="ho-label" for="ciOdo">ODO lúc trả (km) <span class="req" aria-hidden="true">*</span></label>
+        <input id="ciOdo" class="ho-input" type="number" min="0" placeholder="Ví dụ: 12850" required aria-required="true" />
+        <span id="ciOdoErr" class="ho-field-error" role="alert"></span>
       </div>
       <div class="ho-odo-result" aria-live="polite">
         <div class="ho-odo-stat">
@@ -389,27 +376,39 @@
         Nhiên liệu khi trả xe
       </h2>
       <div class="ho-fuel-row">
-        <div>
-          <p style="font-size:12px;font-weight:700;color:#6b8a76;margin:0 0 8px;">Lúc giao</p>
-          <div class="ho-fuel-gauge" role="img" aria-label="Mức xăng lúc giao (tham khảo)">
-            <div class="ho-fuel-seg" data-tab="checkout"></div>
-            <div class="ho-fuel-seg" data-tab="checkout"></div>
-            <div class="ho-fuel-seg" data-tab="checkout"></div>
-            <div class="ho-fuel-seg" data-tab="checkout"></div>
-          </div>
-          <div class="ho-fuel-label"><span>E</span><span>1/4</span><span>2/4</span><span>3/4</span><span>FULL</span></div>
-        </div>
-        <div>
-          <p style="font-size:12px;font-weight:700;color:#6b8a76;margin:0 0 8px;">Lúc trả <span class="req" aria-hidden="true">*</span></p>
-          <fieldset style="border:none;padding:0;margin:0;">
-            <legend class="visually-hidden">Chọn mức xăng lúc trả</legend>
-            <div class="ho-fuel-btns" role="group" aria-label="Mức xăng lúc trả">
-              <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="E" aria-pressed="false">E (Hết)</button>
-              <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="1/4" aria-pressed="false">1/4</button>
-              <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="2/4" aria-pressed="false">2/4</button>
-              <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="3/4" aria-pressed="false">3/4</button>
-              <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="FULL" aria-pressed="true">FULL</button>
+        <div class="ho-fuel-card">
+          <div class="ho-fuel-card-head">
+            <p class="ho-fuel-card-title">Lúc giao</p>
+            <div class="ho-fuel-ref-badge-wrap">
+              <span class="ho-fuel-ref-label">Mức đã giao:</span>
+              <span id="ciFuelOutBadge" class="ho-fuel-ref-pill">FULL</span>
             </div>
+          </div>
+          <div class="ho-fuel-gauge-wrap">
+            <div class="ho-fuel-gauge" role="img" aria-label="Mức xăng lúc giao (tham khảo)">
+              <div class="ho-fuel-seg" data-tab="checkout"></div>
+              <div class="ho-fuel-seg" data-tab="checkout"></div>
+              <div class="ho-fuel-seg" data-tab="checkout"></div>
+              <div class="ho-fuel-seg" data-tab="checkout"></div>
+            </div>
+            <div class="ho-fuel-label"><span>E</span><span>1/4</span><span>2/4</span><span>3/4</span><span>FULL</span></div>
+          </div>
+        </div>
+        <div class="ho-fuel-card">
+          <div class="ho-fuel-card-head">
+            <p class="ho-fuel-card-title">Lúc trả <span class="req" aria-hidden="true">*</span></p>
+            <fieldset style="border:none;padding:0;margin:0;">
+              <legend class="visually-hidden">Chọn mức xăng lúc trả</legend>
+              <div class="ho-fuel-btns" role="group" aria-label="Mức xăng lúc trả">
+                <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="E" aria-pressed="false">E (Hết)</button>
+                <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="1/4" aria-pressed="false">1/4</button>
+                <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="2/4" aria-pressed="false">2/4</button>
+                <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="3/4" aria-pressed="false">3/4</button>
+                <button class="ho-fuel-btn" type="button" data-tab="checkin" data-level="FULL" aria-pressed="true">FULL</button>
+              </div>
+            </fieldset>
+          </div>
+          <div class="ho-fuel-gauge-wrap">
             <div class="ho-fuel-gauge" role="img" aria-label="Thanh đồng hồ xăng lúc trả">
               <div class="ho-fuel-seg" data-tab="checkin"></div>
               <div class="ho-fuel-seg" data-tab="checkin"></div>
@@ -417,11 +416,11 @@
               <div class="ho-fuel-seg" data-tab="checkin"></div>
             </div>
             <div class="ho-fuel-label"><span>E</span><span>1/4</span><span>2/4</span><span>3/4</span><span>FULL</span></div>
-          </fieldset>
-          <div id="ciFuelWarning" class="ho-fuel-warning" role="alert">
-            ⚠️ Mức xăng thấp hơn lúc giao. <span id="ciFuelWarningFee"></span>
           </div>
         </div>
+      </div>
+      <div id="ciFuelWarning" class="ho-fuel-warning" role="alert">
+        ⚠️ Mức xăng thấp hơn lúc giao. <span id="ciFuelWarningFee"></span>
       </div>
     </section>
 
@@ -434,14 +433,13 @@
 
       <!-- Required -->
       <div id="ciRequiredPhotos" aria-label="Ảnh bắt buộc lúc nhận">
-        <p class="ho-photo-group-title">Ảnh bắt buộc (6 góc) — Đối chiếu với lúc giao</p>
+        <p class="ho-photo-group-title">Ảnh bắt buộc (5 góc) — Đối chiếu với lúc giao</p>
         <div class="ho-photo-grid">
           <div id="ciPhoto_req-front"  class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh đầu xe lúc nhận"></div>
           <div id="ciPhoto_req-rear"   class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh đuôi xe lúc nhận"></div>
           <div id="ciPhoto_req-left"   class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh bên trái lúc nhận"></div>
           <div id="ciPhoto_req-right"  class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh bên phải lúc nhận"></div>
           <div id="ciPhoto_req-odo"    class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh đồng hồ ODO lúc nhận"></div>
-          <div id="ciPhoto_req-interior" class="ho-photo-slot is-required" role="button" tabindex="0" aria-label="Tải ảnh nội thất lúc nhận"></div>
         </div>
       </div>
 
@@ -554,26 +552,22 @@
       </div>
     </section>
 
-    <!-- 9. Chữ ký Check-in -->
-    <section class="ho-card" aria-labelledby="ciSigTitle">
-      <h2 class="ho-section-title" id="ciSigTitle">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-        Chữ ký xác nhận — Check-in
+    <!-- 9. Ảnh biên bản giấy Check-in -->
+    <section class="ho-card" aria-labelledby="ciDocTitle">
+      <h2 class="ho-section-title" id="ciDocTitle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Ảnh biên bản giấy đã ký xác nhận — Check-in <span class="req" aria-hidden="true">*</span>
       </h2>
-      <div class="ho-sig-wrap">
-        <div class="ho-sig-box">
-          <label class="ho-sig-label" for="ciSigCustomer">Chữ ký khách thuê <span class="req" aria-hidden="true">*</span></label>
-          <canvas id="ciSigCustomer" class="ho-sig-canvas" width="400" height="160" aria-label="Vùng ký tên khách — dùng chuột hoặc ngón tay"></canvas>
-          <p class="ho-sig-name" id="ciSigCustName" aria-live="polite">—</p>
-          <button class="ho-sig-redo" id="ciSigCustomerRedo" type="button" aria-label="Ký lại chữ ký khách">↺ Ký lại</button>
-        </div>
-        <div class="ho-sig-box">
-          <label class="ho-sig-label" for="ciSigStaff">Chữ ký nhân viên <span class="req" aria-hidden="true">*</span></label>
-          <canvas id="ciSigStaff" class="ho-sig-canvas" width="400" height="160" aria-label="Vùng ký tên nhân viên — dùng chuột hoặc ngón tay"></canvas>
-          <p class="ho-sig-name" id="ciSigStaffName" aria-live="polite">—</p>
-          <button class="ho-sig-redo" id="ciSigStaffRedo" type="button" aria-label="Ký lại chữ ký nhân viên">↺ Ký lại</button>
+      <p class="ho-hint" style="margin:0 0 12px;">Khách thuê và nhân viên ký xác nhận trả xe &amp; quyết toán trên biên bản giấy, sau đó chụp hoặc tải ảnh biên bản lên hệ thống.</p>
+      <div id="ciSignedDocZone" class="ho-doc-upload-zone" role="button" tabindex="0" aria-label="Chụp hoặc chọn ảnh biên bản giấy đã ký lúc nhận xe">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/></svg>
+        <div class="ho-doc-upload-text">
+          <strong>Nhấn để chụp / tải ảnh biên bản giấy đã ký</strong>
+          <span>Hỗ trợ JPG, PNG, WebP · Tối đa 5MB/ảnh · Có thể tải nhiều trang</span>
         </div>
       </div>
+      <div id="ciSignedDocGrid" class="ho-doc-grid" aria-live="polite"></div>
+      <span id="ciSignedDocErr" class="ho-field-error" role="alert"></span>
     </section>
 
   </div><!-- /panel-checkin -->

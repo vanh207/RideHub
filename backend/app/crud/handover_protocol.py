@@ -495,6 +495,12 @@ def upload_handover_media(
         db.add(media_record)
         saved.append(media_record)
 
+    # Nếu upload ảnh biên bản giấy đã ký (SIGNED_DOCUMENT), tự động hoàn tất biên bản
+    if media_type == MediaType.SIGNED_DOCUMENT.value and saved:
+        protocol.status = HandoverStatus.COMPLETED.value
+        if not protocol.signed_at:
+            protocol.signed_at = datetime.now()
+
     db.commit()
     for m in saved:
         db.refresh(m)
@@ -623,7 +629,10 @@ def compute_summary(protocol: HandoverProtocol) -> dict:
         free_km = protocol.free_km_limit or 0
         excess_km = max(0, raw_diff - free_km)
 
-    is_fully_signed = bool(protocol.customer_signature and protocol.staff_signature)
+    has_signed_doc = any(
+        m.media_type == MediaType.SIGNED_DOCUMENT.value for m in (protocol.media or [])
+    )
+    is_fully_signed = bool((protocol.customer_signature and protocol.staff_signature) or has_signed_doc)
 
     return {
         "total_extra_fees": total_fees,

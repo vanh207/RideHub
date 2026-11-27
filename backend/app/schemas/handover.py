@@ -40,6 +40,7 @@ class HandoverMediaItem(BaseModel):
 class ChecklistItem(BaseModel):
     item: str = Field(..., description="Tên hạng mục kiểm tra, vd: Đèn pha trước")
     ok: bool = Field(True, description="Trạng thái OK/Not OK")
+    status: Optional[str] = Field(None, description="Trạng thái chi tiết: ok | miss | broken | na (Không có)")
     note: Optional[str] = Field(None, description="Ghi chú thêm nếu có vấn đề")
 
 
@@ -94,10 +95,12 @@ class HandoverProtocolCreate(BaseModel):
     @field_validator("fuel_checkout")
     @classmethod
     def validate_fuel(cls, v: str) -> str:
+        fuel_map = {"E": "EMPTY", "2/4": "1/2"}
+        normalized = fuel_map.get(v, v)
         allowed = {"FULL", "3/4", "1/2", "1/4", "EMPTY"}
-        if v not in allowed:
+        if normalized not in allowed:
             raise ValueError(f"fuel_checkout phải là một trong: {', '.join(sorted(allowed))}")
-        return v
+        return normalized
 
     @field_validator("protocol_type")
     @classmethod
@@ -163,10 +166,12 @@ class HandoverCheckinCreate(BaseModel):
     @field_validator("fuel_checkin")
     @classmethod
     def validate_fuel_checkin(cls, v: str) -> str:
+        fuel_map = {"E": "EMPTY", "2/4": "1/2"}
+        normalized = fuel_map.get(v, v)
         allowed = {"FULL", "3/4", "1/2", "1/4", "EMPTY"}
-        if v not in allowed:
+        if normalized not in allowed:
             raise ValueError(f"fuel_checkin phải là một trong: {', '.join(sorted(allowed))}")
-        return v
+        return normalized
 
     @model_validator(mode="after")
     def validate_deposit_settlement(self):
