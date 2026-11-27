@@ -279,6 +279,9 @@
 }
 
 .booking-eligibility-message {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   padding: 12px 14px;
   border: 1px solid #fecaca;
   border-radius: 12px;
@@ -286,6 +289,7 @@
   color: #991b1b;
   font-size: 13px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .booking-eligibility-message[hidden] {
@@ -295,6 +299,10 @@
 .booking-eligibility-message ul {
   margin: 6px 0 0;
   padding-left: 20px;
+}
+
+.booking-eligibility-message li + li {
+  margin-top: 4px;
 }
 
 .is-invalid {

@@ -209,6 +209,72 @@
         font-size: 13px;
         color: #166534;
       }
+      .profile-main {
+        padding-top: 104px;
+      }
+      .profile-layout {
+        grid-template-columns: 270px minmax(0, 1fr);
+      }
+      .profile-sidebar {
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        position: sticky;
+        top: 92px;
+      }
+      .profile-content {
+        min-width: 0;
+      }
+      @media (max-width: 960px) {
+        .profile-main {
+          padding-top: 88px;
+        }
+        .profile-layout {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 16px;
+        }
+        .profile-sidebar {
+          position: static;
+          flex-direction: row;
+          overflow-x: auto;
+          gap: 8px;
+          padding: 8px;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+        }
+        .profile-sidebar .prof-nav-btn {
+          flex: 0 0 auto;
+          width: auto;
+          min-height: 44px;
+          padding: 10px 12px;
+          white-space: nowrap;
+        }
+      }
+      @media (max-width: 640px) {
+        .profile-content > .panel-card {
+          padding: 18px;
+        }
+        .kyc-box-label {
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        .profile-content .btn-primary {
+          width: 100%;
+          min-height: 44px;
+        }
+      }
+      @media (max-width: 380px) {
+        .profile-content > .panel-card {
+          padding: 14px;
+        }
+        .kyc-tips-banner {
+          padding: 10px 12px;
+        }
+        .kyc-upload-box {
+          padding: 12px;
+        }
+      }
     </style>
   </head>
 
@@ -237,23 +303,13 @@
       </div>
     </header>
 
-    <main class="subpage-main" style="padding-top: 104px">
+    <main class="subpage-main profile-main">
       <div
-        class="container two-col-layout"
-        style="max-width: 1040px; grid-template-columns: 270px 1fr"
+        class="container two-col-layout profile-layout"
+        style="max-width: 1040px"
       >
         <!-- Sidebar chức năng bên cạnh -->
-        <aside
-          class="panel-card"
-          style="
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            position: sticky;
-            top: 92px;
-          "
-        >
+        <aside class="panel-card profile-sidebar">
           <button
             type="button"
             class="user-menu-item prof-nav-btn is-active"
@@ -396,7 +452,7 @@
           </button>
         </aside>
 
-        <div>
+        <div class="profile-content">
           <!-- Hồ sơ cá nhân -->
           <div class="panel-card" data-prof-panel="profile">
             <h1
