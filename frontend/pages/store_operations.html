@@ -7,12 +7,41 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
+    <!-- CSS chung của hệ thống RideHub -->
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+  <link rel="stylesheet" href="../css/components/site-footer.css" />
+
   <!-- CSS giao diện vận hành cửa hàng -->
   <link rel="stylesheet" href="./css/store_operations.css" />
 </head>
 <body>
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+    <!-- Thanh Header Navbar dùng chung cửa hàng -->
+  <header id="mainNavbar" class="navbar is-scrolled" style="position: sticky; top: 0; z-index: 100; background: #ffffff; box-shadow: 0 2px 14px rgba(15, 23, 42, 0.08); border-bottom: 1px solid rgba(22, 163, 74, 0.16); padding: 10px 0;">
+    <div style="max-width: 1180px; margin: 0 auto; padding: 0 16px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 20px;">
+      <!-- Logo RideHub -->
+      <a href="../index.html" class="brand-logo" style="display: flex; align-items: center; text-decoration: none; flex-shrink: 0;">
+        <img src="../assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;" />
+        <span style="font-weight: 800; font-size: 1.25rem; color: var(--green-800); margin-left: 8px;">RideHub</span>
+      </a>
+      
+      <!-- Menu điều hướng các phân hệ cửa hàng -->
+      <nav class="nav-links" style="display: flex; flex-direction: row; align-items: center; gap: 16px; margin: 0; flex-wrap: nowrap;">
+        <a href="store_revenue_dashboard.html" class="nav-link">Báo cáo doanh thu</a>
+        <a href="vehicle_management.html" class="nav-link">Quản lý kho xe</a>
+        <a href="vehicle_schedule.html" class="nav-link">Lịch xe ngày &amp; tuần</a>
+        <a href="store_operations.html" class="nav-link is-active" style="color: var(--green-700); font-weight: 700;">Đổi trạng thái &amp; Cảnh báo</a>
+        <a href="store-orders.html" class="nav-link">Duyệt đơn đặt xe</a>
+      </nav>
+
+      <!-- Khung chứa Chuông & Avatar phân quyền RBAC tự động -->
+      <div class="nav-actions" style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;"></div>
+    </div>
+  </header>
+
   <div class="container">
     <!-- Tiêu đề & Thông tin cửa hàng -->
     <div class="page-header">
@@ -162,5 +191,17 @@
 
   <!-- JS xử lý nghiệp vụ -->
   <script src="../js/store_operations.js"></script>
+  <!-- Footer chuẩn hệ thống RideHub -->
+  <footer class="site-footer" style="margin-top: 48px; background: #ffffff; border-top: 1px solid rgba(22, 163, 74, 0.16); padding: 24px 0 16px 0;">
+    <div style="max-width: 1180px; margin: 0 auto; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 13px; color: #64748b;">
+      <div>© 2026 <strong>RideHub</strong> — Nền tảng chia sẻ và cho thuê xe điện thông minh hàng đầu Việt Nam.</div>
+      <div style="display: flex; gap: 16px;">
+        <a href="../pages/privacy-policy.html" style="color: inherit; text-decoration: none;">Chính sách bảo mật</a>
+        <a href="../pages/admin-faq.html" style="color: inherit; text-decoration: none;">Hỗ trợ kỹ thuật</a>
+      </div>
+    </div>
+  </footer>
+  <!-- Script xác thực và phân quyền RBAC tự động hiển thị avatar -->
+  <script src="../js/auth-rbac.js"></script>
 </body>
 </html>

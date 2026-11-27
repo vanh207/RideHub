@@ -549,6 +549,13 @@ def get_store_orders_list(
             if normalize_status(o.status) == IN_PROGRESS
         ]
 
+    elif norm_status == "completed":
+        filtered_orders = [
+            o
+            for o in filtered_orders
+            if normalize_status(o.status) == COMPLETED
+        ]
+
     # Tìm kiếm
     if search:
         s = search.lower().strip()
@@ -591,6 +598,8 @@ def get_store_orders_list(
             status_label = "Đã từ chối / Hủy"
         elif st == IN_PROGRESS:
             status_label = "Đang thuê"
+        elif st == COMPLETED:
+            status_label = "Đã hoàn thành"
         else:
             status_label = b.status or "Không xác định"
 

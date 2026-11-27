@@ -20,9 +20,9 @@
       { id: 'c3', type: 'system', title: 'Xác thực GPLX hợp lệ', body: 'Hồ sơ Giấy phép lái xe của bạn đã được đồng bộ, sẵn sàng thuê xe không cần thế chấp.', time: 'Hôm qua', link: 'profile.html', read: true }
     ],
     store_owner: [
-      { id: 'so1', type: 'booking', title: 'Đơn thuê mới chờ duyệt', body: 'Khách Nguyễn Văn An vừa gửi yêu cầu thuê Honda Vision 2024 (2 ngày) • Giao tận nơi.', time: '3 phút trước', link: 'store-portal.html', read: false },
-      { id: 'so2', type: 'payment', title: 'Khách đã thanh toán cọc 30%', body: 'Đơn #RH-8842 đã ghi nhận cọc 108.000đ qua VietQR. Chuẩn bị bàn giao xe.', time: '28 phút trước', link: 'store-portal.html', read: false },
-      { id: 'so3', type: 'system', title: 'Báo cáo doanh thu tuần', body: 'Doanh thu cửa hàng tuần này đạt 14.850.000đ (+18% so với tuần trước).', time: 'Hôm qua', link: 'store-portal.html', read: true }
+      { id: 'so1', type: 'booking', title: 'Đơn thuê mới chờ duyệt', body: 'Khách Nguyễn Văn An vừa gửi yêu cầu thuê Honda Vision 2024 (2 ngày) • Giao tận nơi.', time: '3 phút trước', link: 'store_revenue_dashboard.html', read: false },
+      { id: 'so2', type: 'payment', title: 'Khách đã thanh toán cọc 30%', body: 'Đơn #RH-8842 đã ghi nhận cọc 108.000đ qua VietQR. Chuẩn bị bàn giao xe.', time: '28 phút trước', link: 'store_revenue_dashboard.html', read: false },
+      { id: 'so3', type: 'system', title: 'Báo cáo doanh thu tuần', body: 'Doanh thu cửa hàng tuần này đạt 14.850.000đ (+18% so với tuần trước).', time: 'Hôm qua', link: 'store_revenue_dashboard.html', read: true }
     ],
     admin: [
       { id: 'ad1', type: 'system', title: 'Phê duyệt đối tác mới', body: 'Có 2 hồ sơ chủ cửa hàng đang chờ Admin phê duyệt kích hoạt trên hệ thống.', time: '8 phút trước', link: 'admin-ops.html', read: false },
@@ -66,9 +66,8 @@
     store_owner: {
       label: 'Chủ cửa hàng',
       badgeClass: 'status-badge--transit',
-      home: 'pages/store-orders.html',
-      menu: [
-        { label: 'Trang chủ', href: 'index.html' },
+      home: 'pages/store_revenue_dashboard.html',
+      menu: [{ label: 'Báo cáo doanh thu', href: 'pages/store_revenue_dashboard.html' },
         { label: 'Đơn thuê', href: 'pages/store-orders.html' },
         { label: 'Quản lý xe', href: 'pages/vehicle_management.html' },
         { label: 'Lịch xe', href: 'pages/vehicle_schedule.html' },
@@ -78,6 +77,7 @@
       allowedPages: [
         'index.html', 'store-portal.html', 'store-orders.html', 'store_operations.html',
         'vehicle_management.html', 'vehicle_schedule.html', 'handover.html', 'delivery.html',
+        'store_revenue_dashboard.html',
         'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html'
       ]
     },
