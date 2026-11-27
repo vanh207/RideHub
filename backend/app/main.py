@@ -14,6 +14,7 @@ from sqlalchemy.exc import OperationalError
 
 from app import models  # noqa: F401 - import để SQLAlchemy biết các bảng
 from app.core.config import settings
+from app.core.kyc_errors import KycBusinessError, kyc_business_error_handler
 from app.core.store_errors import (
     StoreAPIError,
     store_api_error_handler,
@@ -24,6 +25,7 @@ from app.db.seed_data import seed_default_accounts
 from app.db.session import Base, engine
 from app.middleware.audit_log import AuditLogMiddleware
 from app.jobs.booking_expiry_job import start_expiry_job, stop_expiry_job
+from app.jobs.kyc_cleanup_job import start_cleanup_job, stop_cleanup_job
 from app.routers import (
     admin_reviews,
     audit_logs,
@@ -34,6 +36,7 @@ from app.routers import (
     handover,
     health,
     items,
+    kyc,
     login,
     notifications,
     payment,
@@ -78,15 +81,18 @@ async def lifespan(app: FastAPI):
         logger.error("[DB] Connection detail: %s", error.orig)
 
     await start_expiry_job()
+    await start_cleanup_job()
     try:
         yield
     finally:
+        await stop_cleanup_job()
         await stop_expiry_job()
 
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
 app.add_exception_handler(StoreAPIError, store_api_error_handler)
 app.add_exception_handler(HTTPException, store_http_exception_handler)
+app.add_exception_handler(KycBusinessError, kyc_business_error_handler)
 
 
 # CORS: cho phép trang FE (khác cổng/khác domain) gọi được API này kèm Cookie
@@ -119,6 +125,8 @@ app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
 app.include_router(stores.router, prefix="/api")
 app.include_router(admin_reviews.router, prefix="/api")
+app.include_router(kyc.router, prefix="/api")
+app.include_router(kyc.admin_router, prefix="/api")
 app.include_router(audit_logs.router, prefix="/api")
 app.include_router(policies.router, prefix="/api")
 app.include_router(login.router)

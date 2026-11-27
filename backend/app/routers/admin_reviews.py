@@ -7,9 +7,11 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_admin
+from app.core.kyc_status import APPROVED, REJECTED, SUBMITTED, apply_transition
 from app.db.session import get_db
 from app.models.driver_license import DriverLicense
 from app.models.identity_document import IdentityDocument
+from app.models.kyc_session import KycSession
 from app.models.store import Store
 from app.models.user import User
 
@@ -23,6 +25,25 @@ class ReviewDecision(BaseModel):
 
 def _is_pending(status: str | None) -> bool:
     return (status or "").lower() == "pending"
+
+
+def _linked_kyc_session(db: Session | None, document_id: int) -> KycSession | None:
+    if db is None:
+        return None
+    return (
+        db.query(KycSession)
+        .filter(KycSession.identity_document_id == document_id)
+        .order_by(KycSession.id.desc())
+        .first()
+    )
+
+
+def _sync_kyc_session_after_review(db: Session, document_id: int, decision_status: str) -> None:
+    session = _linked_kyc_session(db, document_id)
+    if session is None or session.status != SUBMITTED:
+        return
+    apply_transition(session, APPROVED if decision_status == "approved" else REJECTED)
+    session.flags = sorted(set(list(session.flags or []) + ["admin_review"]))
 
 
 def _store_data(store: Store) -> dict:
@@ -52,8 +73,15 @@ def _store_data(store: Store) -> dict:
     }
 
 
-def _customer_data(document: IdentityDocument | DriverLicense, resource_type: str) -> dict:
+def _customer_data(
+    document: IdentityDocument | DriverLicense,
+    resource_type: str,
+    db: Session | None = None,
+) -> dict:
     user = document.user
+    kyc_session = (
+        _linked_kyc_session(db, document.id) if isinstance(document, IdentityDocument) else None
+    )
     data = {
         "id": document.id,
         "resource_type": resource_type,
@@ -73,7 +101,17 @@ def _customer_data(document: IdentityDocument | DriverLicense, resource_type: st
             "back_image_url": document.back_image_url,
             "issued_date": document.issued_date,
             "expiry_date": document.expiry_date,
+            "match_score": getattr(document, "match_score", None),
+            "liveness_result": getattr(document, "liveness_result", None),
+            "kyc_flags": getattr(document, "kyc_flags", None) or [],
+            "kyc_provider": getattr(document, "kyc_provider", None),
         })
+        if kyc_session is not None:
+            data.update({
+                "front_image_url": f"/api/admin/kyc/{kyc_session.id}/images/front",
+                "back_image_url": f"/api/admin/kyc/{kyc_session.id}/images/back",
+                "selfie_image_url": f"/api/admin/kyc/{kyc_session.id}/images/selfie",
+            })
     else:
         data.update({
             "license_class": document.license_class,
@@ -105,11 +143,11 @@ def get_review_queue(
         "data": {
             "stores": [_store_data(item) for item in stores if _is_pending(item.status)],
             "customers": [
-                _customer_data(item, "identity_document")
+                _customer_data(item, "identity_document", db)
                 for item in identity_documents
                 if _is_pending(item.status) and item.user and item.user.role == "customer"
             ] + [
-                _customer_data(item, "driver_license")
+                _customer_data(item, "driver_license", db)
                 for item in driver_licenses
                 if _is_pending(item.status) and item.user and item.user.role == "customer"
             ],
@@ -151,6 +189,9 @@ def decide_review(
     else:
         record.verified_by = admin.id
         record.verified_at = datetime.now()
+
+    if resource_type == "identity-documents":
+        _sync_kyc_session_after_review(db, record.id, decision.status)
 
     db.commit()
     db.refresh(record)
