@@ -167,6 +167,11 @@ def create_handover_protocol(
 
     is_signed = bool(payload.customer_signature and payload.staff_signature)
 
+    eff_deposit_type = getattr(payload, "deposit_type", None) or getattr(booking, "deposit_type", None) or "CASH"
+    eff_collateral_info = getattr(payload, "collateral_info", None) or getattr(booking, "collateral_info", None)
+    eff_collateral_status = getattr(payload, "collateral_status", None) or ("HELD" if eff_deposit_type == "VEHICLE_PLEDGE" else None)
+    eff_deposit_orig = Decimal(0) if eff_deposit_type == "VEHICLE_PLEDGE" else (payload.deposit_original or booking.deposit_amount or Decimal(0))
+
     protocol = HandoverProtocol(
         protocol_code=payload.protocol_code,
         booking_id=booking.id,
@@ -189,7 +194,10 @@ def create_handover_protocol(
         free_km_limit=payload.free_km_limit,
         damage_points=damage_json,
         checklist_data=checklist_json,
-        deposit_original=payload.deposit_original or booking.deposit_amount or Decimal(0),
+        deposit_type=eff_deposit_type,
+        collateral_info=eff_collateral_info,
+        collateral_status=eff_collateral_status,
+        deposit_original=eff_deposit_orig,
         customer_signature=payload.customer_signature,
         staff_signature=payload.staff_signature,
         signed_at=datetime.now() if is_signed else None,
@@ -272,6 +280,21 @@ def create_checkin_protocol(
     # Kiểm tra chữ ký: Chỉ COMPLETED khi chữ ký gửi ở lần check-in này đủ cả hai bên
     is_signed = bool(payload.customer_signature and payload.staff_signature)
 
+    eff_deposit_type = (
+        getattr(payload, "deposit_type", None)
+        or (checkout_protocol.deposit_type if checkout_protocol else None)
+        or getattr(booking, "deposit_type", None)
+        or "CASH"
+    )
+    eff_collateral_info = (
+        getattr(payload, "collateral_info", None)
+        or (checkout_protocol.collateral_info if checkout_protocol else None)
+        or getattr(booking, "collateral_info", None)
+    )
+    eff_collateral_status = getattr(payload, "collateral_status", None) or (
+        "RETURNED" if eff_deposit_type == "VEHICLE_PLEDGE" else None
+    )
+
     checkin_protocol = HandoverProtocol(
         protocol_code=payload.protocol_code,
         booking_id=booking.id,
@@ -296,7 +319,10 @@ def create_checkin_protocol(
         free_km_limit=free_km,
         damage_points=damage_json,
         checklist_data=checklist_json,
-        deposit_original=deposit_orig,
+        deposit_type=eff_deposit_type,
+        collateral_info=eff_collateral_info,
+        collateral_status=eff_collateral_status,
+        deposit_original=Decimal(0) if eff_deposit_type == "VEHICLE_PLEDGE" else deposit_orig,
         fee_overtime=payload.fee_overtime or Decimal(0),
         fee_excess_km=payload.fee_excess_km or Decimal(0),
         fee_fuel=payload.fee_fuel or Decimal(0),

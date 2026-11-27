@@ -13,6 +13,7 @@
   let owner = null;
   let deliveryFee = 0;
   let currentDays = 3;
+  let selectedDepositType = 'CASH'; // 'CASH' | 'VEHICLE_PLEDGE'
 
   function byId(id) {
     return document.getElementById(id);
@@ -90,10 +91,28 @@
       addons += checkbox.dataset.perday === '1' ? price * days : price;
     });
     const total = vehicle.price * days + deliveryFee + addons;
-    const deposit = Math.round(total * 0.3);
+    const deposit = selectedDepositType === 'VEHICLE_PLEDGE' ? 0 : Math.round(total * 0.3);
     byId('detailPriceBreakdown').textContent = `${data.formatCurrency(vehicle.price)} × ${days} ngày + Giao nhận ${data.formatCurrency(deliveryFee)} + Tiện ích ${data.formatCurrency(addons)}`;
     byId('detailTotalPrice').textContent = data.formatCurrency(total);
-    byId('detailDeposit').textContent = `Cọc 30%: ${data.formatCurrency(deposit)} • Còn lại ${data.formatCurrency(total - deposit)}`;
+    if (selectedDepositType === 'VEHICLE_PLEDGE') {
+      byId('detailDeposit').textContent = `Thế chấp xe tại trạm (0đ cọc online) • Thanh toán ${data.formatCurrency(total)} khi nhận xe`;
+    } else {
+      byId('detailDeposit').textContent = `Cọc 30%: ${data.formatCurrency(deposit)} • Còn lại ${data.formatCurrency(total - deposit)}`;
+    }
+  }
+
+  function setDepositType(type) {
+    selectedDepositType = type === 'VEHICLE_PLEDGE' ? 'VEHICLE_PLEDGE' : 'CASH';
+    document.querySelectorAll('#depositOptionGroup .deposit-option-card').forEach((card) => {
+      const active = card.dataset.depositType === selectedDepositType;
+      card.style.borderColor = active ? '#16a34a' : '#d5e7dc';
+      card.style.background = active ? '#f0fdf4' : '#ffffff';
+      const radio = card.querySelector('input[type="radio"]');
+      if (radio) radio.checked = active;
+    });
+    const wrap = byId('collateralVehicleWrap');
+    if (wrap) wrap.hidden = selectedDepositType !== 'VEHICLE_PLEDGE';
+    recalcTotal();
   }
 
   function openOwnerModal() {
@@ -203,7 +222,20 @@
     const addons = Array.from(document.querySelectorAll('.addon-chk:checked')).map((checkbox) => checkbox.parentElement.textContent.trim());
     const totalText = byId('detailTotalPrice').textContent;
     const totalNum = Number(totalText.replace(/\D/g, '')) || 0;
-    const depositNum = Math.round(totalNum * 0.3);
+    const isPledge = selectedDepositType === 'VEHICLE_PLEDGE';
+    let collateralInfo = '';
+    if (isPledge) {
+      const colType = byId('collateralVehicleType')?.value || 'Xe máy';
+      const colName = (byId('collateralVehicleName')?.value || '').trim();
+      const colDocs = (byId('collateralDocs')?.value || 'Cà vẹt gốc + CCCD').trim();
+      if (!colName) {
+        toast('Vui lòng nhập tên xe và biển số xe thế chấp trước khi tiếp tục.', true);
+        byId('collateralVehicleName')?.focus();
+        return;
+      }
+      collateralInfo = `${colType}: ${colName} (${colDocs})`;
+    }
+    const depositNum = isPledge ? 0 : Math.round(totalNum * 0.3);
 
     const draft = {
       orderCode: 'RH-' + Math.floor(100000 + Math.random() * 899999),
@@ -218,6 +250,8 @@
       deliveryFee,
       addons,
       breakdown: byId('detailPriceBreakdown').textContent,
+      depositType: selectedDepositType,
+      collateralInfo,
       totalNum,
       depositNum,
       remainNum: totalNum - depositNum,
@@ -237,6 +271,9 @@
 
     byId('btnSelfPickup').addEventListener('click', () => setDelivery('self'));
     byId('btnDelivery').addEventListener('click', () => setDelivery('delivery'));
+    document.querySelectorAll('input[name="depositType"]').forEach((radio) => {
+      radio.addEventListener('change', (e) => setDepositType(e.target.value));
+    });
     document.querySelectorAll('.addon-chk').forEach((checkbox) => checkbox.addEventListener('change', recalcTotal));
     byId('proceedBookingBtn').addEventListener('click', proceedBooking);
 

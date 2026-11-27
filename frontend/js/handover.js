@@ -53,6 +53,10 @@ const MOCK_CONTRACT = {
   kmPerDayLimit: 200,
   overKmFee: 3_500,          // VNĐ/km
   deposit: 5_000_000,        // VNĐ
+  depositType: 'CASH',       // 'CASH' | 'VEHICLE_PLEDGE'
+  collateralInfo: '',        // Thông tin xe thế chấp
+  collateralHeld: false,     // Đã nhận giữ xe thế chấp tại trạm
+  collateralReturned: false, // Đã trả lại xe thế chấp lúc check-in
   rentDays: 2,
   pricePerDay: 937_500,
   customerName: 'Trần Thanh Bình',
@@ -229,11 +233,35 @@ function renderContractInfo() {
     '#hoKmLimit': `${formatNum(c.kmPerDayLimit)} km/ngày × ${c.rentDays} ngày = ${formatNum(calcAllowedKm(c.rentDays, c.kmPerDayLimit))} km`,
     '#coKmLimitPreview': `${formatNum(c.kmPerDayLimit)} km/ngày × ${c.rentDays} ngày = ${formatNum(calcAllowedKm(c.rentDays, c.kmPerDayLimit))} km · Phí vượt: ${formatVnd(c.overKmFee)}/km`,
     '#hoOverFee': formatVnd(c.overKmFee) + '/km',
-    '#hoDeposit': formatVnd(c.deposit),
+    '#hoDeposit': c.depositType === 'VEHICLE_PLEDGE'
+      ? '🏍️ Thế chấp xe (0 ₫ cọc)'
+      : formatVnd(c.deposit),
   };
   for (const [sel, val] of Object.entries(fields)) {
     const el = qs(sel);
     if (el) setText(el, val);
+  }
+
+  const isPledge = c.depositType === 'VEHICLE_PLEDGE';
+  const coBox = qs('#coCollateralBox');
+  if (coBox) {
+    coBox.hidden = !isPledge;
+    const infoEl = qs('#coCollateralInfo');
+    if (infoEl && infoEl.value !== (c.collateralInfo || '')) {
+      infoEl.value = c.collateralInfo || '';
+    }
+    const heldEl = qs('#coCollateralHeld');
+    if (heldEl) heldEl.checked = Boolean(c.collateralHeld);
+  }
+  const ciBox = qs('#ciCollateralReturnBox');
+  if (ciBox) {
+    ciBox.hidden = !isPledge;
+    const ciText = qs('#ciCollateralInfoText');
+    if (ciText) {
+      ciText.textContent = c.collateralInfo || 'Xe cá nhân + Giấy tờ gốc theo hợp đồng';
+    }
+    const retEl = qs('#ciCollateralReturned');
+    if (retEl) retEl.checked = Boolean(c.collateralReturned);
   }
 }
 
@@ -693,8 +721,10 @@ function closeDamageModal() {
 // ─────────────────────────────────────────────────────────────────────────────
 function renderSettlement() {
   const s = calcSettlement();
+  const isPledge = state.contract.depositType === 'VEHICLE_PLEDGE';
   const fields = {
-    '#settlDeposit': formatVnd(s.deposit),
+    '#settlDepositLabel': isPledge ? 'Tài sản thế chấp' : 'Tiền cọc ban đầu',
+    '#settlDeposit': isPledge ? '🏍️ Xe thế chấp (0 ₫ cọc)' : formatVnd(s.deposit),
     '#settlOverKm': s.overKm > 0 ? `${formatNum(s.overKm)} km × ${formatVnd(state.contract.overKmFee)} = ${formatVnd(s.overKmFee)}` : '0 ₫ (trong hạn mức)',
     '#settlFuel': s.fuelFee > 0 ? formatVnd(s.fuelFee) : '0 ₫',
     '#settlOvertime': s.overtimeFee > 0 ? formatVnd(s.overtimeFee) : '0 ₫',
@@ -702,7 +732,7 @@ function renderSettlement() {
     '#settlDamage': s.damageFee > 0 ? formatVnd(s.damageFee) : '0 ₫',
     '#settlCustom': s.customFee > 0 ? formatVnd(s.customFee) : '0 ₫',
     '#settlTotal': formatVnd(s.totalDeductions),
-    '#settlRefund': formatVnd(Math.abs(s.refund)),
+    '#settlRefund': isPledge ? formatVnd(s.totalDeductions) : formatVnd(Math.abs(s.refund)),
   };
   for (const [sel, val] of Object.entries(fields)) {
     const el = qs(sel);
@@ -710,7 +740,15 @@ function renderSettlement() {
   }
   const refundRow = qs('#settlRefundRow');
   if (refundRow) {
-    if (s.refund >= 0) {
+    if (isPledge) {
+      if (s.totalDeductions > 0) {
+        refundRow.className = 'ho-settlement-row charge';
+        setText(qs('#settlRefundLabel'), `⚠️ Khách cần thanh toán phụ phí`);
+      } else {
+        refundRow.className = 'ho-settlement-row refund';
+        setText(qs('#settlRefundLabel'), `✅ Không phát sinh phụ phí (Hoàn trả xe thế chấp)`);
+      }
+    } else if (s.refund >= 0) {
       refundRow.className = 'ho-settlement-row refund';
       setText(qs('#settlRefundLabel'), `✅ Hoàn cọc khách`);
     } else {
@@ -1100,7 +1138,10 @@ async function _submitToBackend(bookingId, token) {
     fuel_checkout: _mapFuelForApi(co.fuel),
     free_km_limit: calcAllowedKm(c.rentDays, c.kmPerDayLimit),
     checklist_data: _mapChecklistForApi(co.checklist),
-    deposit_original: c.deposit || 0,
+    deposit_type: c.depositType || 'CASH',
+    collateral_info: c.depositType === 'VEHICLE_PLEDGE' ? (qs('#coCollateralInfo')?.value?.trim() || c.collateralInfo || null) : null,
+    collateral_status: c.depositType === 'VEHICLE_PLEDGE' ? (c.collateralHeld ? 'HELD' : 'PENDING') : null,
+    deposit_original: c.depositType === 'VEHICLE_PLEDGE' ? 0 : (c.deposit || 0),
     notes: co.note || null,
   };
 
@@ -1139,9 +1180,12 @@ async function _submitToBackend(bookingId, token) {
     fee_fuel: settl.fuelFee,
     fee_cleaning: settl.cleaningFee,
     fee_damage: settl.damageFee + settl.customFee,
-    deposit_original: c.deposit || 0,
-    hold_fine_deposit: holdFine,
-    refund_immediate: refundImm,
+    deposit_type: c.depositType || 'CASH',
+    collateral_info: c.depositType === 'VEHICLE_PLEDGE' ? (c.collateralInfo || null) : null,
+    collateral_status: c.depositType === 'VEHICLE_PLEDGE' ? (c.collateralReturned ? 'RETURNED' : 'HELD') : null,
+    deposit_original: c.depositType === 'VEHICLE_PLEDGE' ? 0 : (c.deposit || 0),
+    hold_fine_deposit: c.depositType === 'VEHICLE_PLEDGE' ? 0 : holdFine,
+    refund_immediate: c.depositType === 'VEHICLE_PLEDGE' ? 0 : refundImm,
     notes: ci.note || null,
   };
 
@@ -1379,6 +1423,19 @@ function bindEvents() {
   qs('#coNote')?.addEventListener('input', e => { state.checkout.note = e.target.value; });
   qs('#ciNote')?.addEventListener('input', e => { state.checkin.note = e.target.value; });
 
+  // Collateral pledge inputs
+  qs('#coCollateralInfo')?.addEventListener('input', e => {
+    state.contract.collateralInfo = e.target.value;
+    const ciText = qs('#ciCollateralInfoText');
+    if (ciText) ciText.textContent = e.target.value || 'Xe cá nhân + Giấy tờ gốc theo hợp đồng';
+  });
+  qs('#coCollateralHeld')?.addEventListener('change', e => {
+    state.contract.collateralHeld = e.target.checked;
+  });
+  qs('#ciCollateralReturned')?.addEventListener('change', e => {
+    state.contract.collateralReturned = e.target.checked;
+  });
+
   // Draft
   qs('#hoDraftBtn')?.addEventListener('click', saveDraft);
 
@@ -1402,6 +1459,8 @@ function boot() {
     const vehicle = params.get('vehicle');
     const plate = params.get('plate');
     const deposit = params.get('deposit');
+    const depositType = params.get('deposit_type');
+    const collateralInfo = params.get('collateral_info');
 
     if (bookingId) state.contract.contractId = bookingId;
     if (customer) {
@@ -1415,7 +1474,17 @@ function boot() {
       state.contract.brand = vehicle;
       state.contract.model = '';
     }
-    if (deposit) state.contract.deposit = Number(deposit) || state.contract.deposit;
+    if (depositType) {
+      state.contract.depositType = depositType.toUpperCase() === 'VEHICLE_PLEDGE' ? 'VEHICLE_PLEDGE' : 'CASH';
+    }
+    if (collateralInfo) {
+      state.contract.collateralInfo = collateralInfo;
+    }
+    if (state.contract.depositType === 'VEHICLE_PLEDGE') {
+      state.contract.deposit = 0;
+    } else if (deposit !== null && deposit !== '') {
+      state.contract.deposit = Number(deposit) || state.contract.deposit;
+    }
   } catch (_) {}
 
   // Init checklists

@@ -385,7 +385,10 @@
       }
 
       const hasResched = o.rescheduleRequest && o.rescheduleRequest.status === 'pending_store';
-      const remainAmount = Math.max(0, o.total - o.deposit);
+      const depositType = (o.depositType || o.deposit_type || (o.pricing && o.pricing.deposit_type) || 'CASH').toUpperCase();
+      const collateralInfo = o.collateralInfo || o.collateral_info || (o.pricing && o.pricing.collateral_info) || '';
+      const isPledge = depositType === 'VEHICLE_PLEDGE';
+      const remainAmount = isPledge ? o.total : Math.max(0, o.total - o.deposit);
 
       // Tham số đồng bộ sang biên bản bàn giao xe
       const handoverParams = new URLSearchParams({
@@ -394,7 +397,9 @@
         phone: o.phone,
         vehicle: o.vehicle,
         plate: o.licensePlate,
-        deposit: o.deposit
+        deposit: isPledge ? 0 : o.deposit,
+        deposit_type: depositType,
+        collateral_info: collateralInfo || o.collateral || ''
       }).toString();
 
       return `
@@ -473,7 +478,11 @@
                 ${o.total.toLocaleString('vi-VN')} đ
               </div>
               <div class="col-val-sub">
-                Đã cọc: <strong style="color:var(--green-700);">${o.deposit.toLocaleString('vi-VN')} đ (VietQR)</strong><br/>
+                ${isPledge
+                  ? `<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;margin-bottom:3px;">🏍️ Thế chấp xe tại trạm</span><br/>
+                     Cọc online: <strong>0 đ</strong><br/>`
+                  : `Đã cọc: <strong style="color:var(--green-700);">${o.deposit.toLocaleString('vi-VN')} đ (VietQR)</strong><br/>`
+                }
                 Thu tại trạm: <strong style="color:#b91c1c;">${remainAmount.toLocaleString('vi-VN')} đ</strong>
               </div>
             </div>

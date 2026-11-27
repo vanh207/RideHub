@@ -113,9 +113,25 @@
           <span class="ho-input" style="background:#f7fdf9;color:#6b8a76;" id="hoKmLimit" aria-readonly="true">—</span>
         </div>
         <div class="ho-field">
-          <span class="ho-label">Tiền cọc</span>
-          <span class="ho-input" style="background:#f7fdf9;color:#6b8a76;font-weight:700;" id="hoDeposit" aria-readonly="true">—</span>
+          <span class="ho-label">Hình thức bảo đảm / Tiền cọc</span>
+          <span class="ho-input" style="background:#f7fdf9;color:#15803d;font-weight:700;" id="hoDeposit" aria-readonly="true">—</span>
         </div>
+      </div>
+
+      <!-- Khối thông tin Thế chấp xe (hiện khi khách chọn Cắm xe / Thế chấp xe) -->
+      <div id="coCollateralBox" hidden style="margin-top:16px;padding:14px 16px;border-radius:14px;background:#fffbeb;border:1.5px solid #fcd34d;display:grid;gap:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <strong style="color:#92400e;font-size:13.5px;">🏍️ Khách hàng chọn: THẾ CHẤP XE TẠI TRẠM (Cắm xe + Giấy tờ gốc)</strong>
+          <span style="padding:2px 10px;border-radius:999px;background:#fef3c7;color:#b45309;font-size:11.5px;font-weight:800;border:1px solid #f59e0b;">0 ₫ cọc online</span>
+        </div>
+        <div class="ho-field" style="margin:0;">
+          <label class="ho-label" for="coCollateralInfo">Thông tin xe &amp; giấy tờ thế chấp (Tên xe, Biển số, Cà vẹt gốc...)</label>
+          <input id="coCollateralInfo" class="ho-input" type="text" placeholder="VD: Xe máy Wave Alpha - BS: 59P1-123.45 (Cà vẹt gốc + CCCD)" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#78350f;cursor:pointer;">
+          <input id="coCollateralHeld" type="checkbox" style="width:16px;height:16px;accent-color:#d97706;" />
+          Xác nhận nhân viên đã kiểm tra và nhận giữ xe + giấy tờ thế chấp tại trạm
+        </label>
       </div>
     </section>
 
@@ -486,9 +502,18 @@
         </div>
       </div>
 
+      <div id="ciCollateralReturnBox" hidden style="margin-bottom:16px;padding:14px 16px;border-radius:14px;background:#fffbeb;border:1.5px solid #fcd34d;display:grid;gap:8px;">
+        <div style="font-weight:800;font-size:13.5px;color:#92400e;">🏍️ Tài sản thế chấp đang giữ tại trạm</div>
+        <div id="ciCollateralInfoText" style="font-size:13px;color:#78350f;font-weight:600;">—</div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#15803d;cursor:pointer;">
+          <input id="ciCollateralReturned" type="checkbox" style="width:16px;height:16px;accent-color:#16a34a;" />
+          Xác nhận đã bàn giao trả lại xe thế chấp &amp; giấy tờ gốc cho khách hàng
+        </label>
+      </div>
+
       <div class="ho-settlement" role="region" aria-label="Bảng quyết toán" aria-live="polite">
         <div class="ho-settlement-row">
-          <span class="ho-settlement-label">Tiền cọc ban đầu</span>
+          <span class="ho-settlement-label" id="settlDepositLabel">Tiền cọc ban đầu</span>
           <span class="ho-settlement-val" id="settlDeposit">—</span>
         </div>
         <div class="ho-settlement-row">

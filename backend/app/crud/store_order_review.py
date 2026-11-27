@@ -597,8 +597,15 @@ def get_store_orders_list(
         rental_amt = float(b.rental_amount or 0)
         delivery_amt = float(b.delivery_fee or 0)
         deposit_amt = float(b.deposit_amount or 0)
+        deposit_type = getattr(b, "deposit_type", None) or "CASH"
+        collateral_info = getattr(b, "collateral_info", None)
         total_amt = float(b.total_amount or 0)
         remain_amt = max(0.0, total_amt - deposit_amt)
+
+        if deposit_type == "VEHICLE_PLEDGE":
+            collat_note = f"Thế chấp xe: {collateral_info}" if collateral_info else "Thế chấp xe + giấy tờ gốc tại trạm"
+        else:
+            collat_note = "Đặt cọc tiền mặt / VietQR (30%)" if deposit_amt > 0 else "Miễn tiền cọc thế chấp (eKYC Hợp lệ)"
 
         item = StoreOrderItem(
             id=b.id,
@@ -634,10 +641,12 @@ def get_store_orders_list(
                 rental_amount=rental_amt,
                 delivery_fee=delivery_amt,
                 deposit_amount=deposit_amt,
+                deposit_type=deposit_type,
+                collateral_info=collateral_info,
                 total_amount=total_amt,
                 paid_deposit=deposit_amt,
                 remaining_amount=remain_amt,
-                collateral_note="Miễn tiền cọc thế chấp (eKYC Hợp lệ)",
+                collateral_note=collat_note,
             ),
             created_at=b.created_at or datetime.now(),
         )

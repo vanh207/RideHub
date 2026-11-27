@@ -62,7 +62,65 @@
   </section>
 
   <main class="subpage-main">
-    <div class="container">
+    <div class="container" style="display:grid;gap:20px;">
+      <!-- Xác nhận đơn đặt xe từ trang chi tiết xe (nếu có draft) -->
+      <section id="checkoutDraftSection" class="panel-card" hidden>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+          <div>
+            <span class="eyebrow" style="margin-bottom:4px;">Xác nhận giữ chỗ</span>
+            <h2 style="margin:0;font-size:1.2rem;font-family:var(--font-display);">Hoàn tất thông tin đặt xe</h2>
+          </div>
+          <span id="draftVehicleBadge" class="status-badge status-badge--available"></span>
+        </div>
+        <form id="bookingForm" style="display:grid;gap:14px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+            <div>
+              <label for="vehicleId" style="display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;">Phương tiện thuê</label>
+              <select id="vehicleId" class="form-input" required></select>
+            </div>
+            <div>
+              <label for="startTime" style="display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;">Nhận xe lúc</label>
+              <input id="startTime" type="datetime-local" class="form-input" required />
+            </div>
+            <div>
+              <label for="endTime" style="display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;">Trả xe lúc</label>
+              <input id="endTime" type="datetime-local" class="form-input" required />
+            </div>
+          </div>
+
+          <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft);border:1px solid var(--green-100);display:grid;gap:10px;">
+            <div style="font-size:13px;font-weight:800;color:var(--text-primary);">Hình thức đặt cọc / thế chấp</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;">
+              <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;border:1.5px solid #d5e7dc;background:#fff;cursor:pointer;">
+                <input type="radio" name="bookingDepositType" value="CASH" checked style="margin-top:3px;accent-color:#16a34a;" />
+                <div>
+                  <div style="font-weight:700;font-size:13px;">💳 Đặt cọc tiền (VietQR 30%)</div>
+                  <div style="font-size:12px;color:var(--text-muted);">Chuyển khoản giữ chỗ online</div>
+                </div>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;border:1.5px solid #d5e7dc;background:#fff;cursor:pointer;">
+                <input type="radio" name="bookingDepositType" value="VEHICLE_PLEDGE" style="margin-top:3px;accent-color:#16a34a;" />
+                <div>
+                  <div style="font-weight:700;font-size:13px;">🏍️ Thế chấp xe (Cắm xe tại trạm)</div>
+                  <div style="font-size:12px;color:var(--text-muted);">0đ cọc online • Mang xe + cà vẹt gốc khi nhận</div>
+                </div>
+              </label>
+            </div>
+            <div id="bookingCollateralWrap" hidden>
+              <label for="bookingCollateralInfo" style="display:block;font-size:12px;font-weight:700;color:#92400e;margin-bottom:4px;">Thông tin xe &amp; giấy tờ thế chấp *</label>
+              <input id="bookingCollateralInfo" type="text" class="form-input" placeholder="VD: Xe máy Wave Alpha - BS: 59P1-123.45 (Cà vẹt gốc + CCCD)" />
+            </div>
+          </div>
+
+          <div id="message" style="font-size:13px;color:var(--text-secondary);white-space:pre-line;"></div>
+
+          <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;">
+            <button id="dismissDraftBtn" type="button" class="btn btn-soft">Hủy nháp</button>
+            <button id="submitBooking" type="submit" class="btn btn-primary btn-premium">Tạo đơn và tiếp tục</button>
+          </div>
+        </form>
+      </section>
+
       <!-- Danh sách đơn đặt xe của tôi -->
       <section class="panel-card">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
@@ -225,6 +283,11 @@
         listEl.innerHTML = filtered.map((b) => {
           const badge = groupBadge(b.group, b.status);
           const sched = b.scheduleText || `${formatDt(b.start_time)} → ${formatDt(b.end_time)}`;
+          const isPledge = (b.deposit_type || '').toUpperCase() === 'VEHICLE_PLEDGE';
+          const depositHtml = isPledge
+            ? `<div style="font-size:13px;font-weight:800;color:#b45309;">🏍️ Thế chấp xe tại trạm (0đ cọc online)</div>
+               ${b.collateral_info ? `<div style="font-size:11.5px;color:#92400e;">${b.collateral_info}</div>` : ''}`
+            : `<div style="font-size:13.5px;font-weight:800;color:var(--green-700);">💳 Cọc: ${formatVnd(b.deposit_amount)}</div>`;
           return `
             <div style="padding:16px;border-radius:14px;border:1px solid var(--green-100);background:#ffffff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
               <div>
@@ -237,11 +300,11 @@
               <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
                 <div style="text-align:right;">
                   <div style="font-size:12px;color:var(--text-muted);">Tổng: ${formatVnd(b.total_amount)}</div>
-                  <div style="font-size:13.5px;font-weight:800;color:var(--green-700);">Cọc: ${formatVnd(b.deposit_amount)}</div>
+                  ${depositHtml}
                 </div>
                 ${b.group === 'paid'
                   ? '<a href="trips.html" class="btn btn-soft" style="min-height:34px;padding:6px 12px;font-size:12.5px;">Xem chuyến đi</a>'
-                  : b.group === 'pending_payment'
+                  : (b.group === 'pending_payment' && !isPledge)
                     ? `<a href="payment-qr.html?booking_id=${encodeURIComponent(b.id)}" class="btn btn-primary" style="min-height:34px;padding:6px 12px;font-size:12.5px;">Thanh toán cọc</a>`
                     : ''}
               </div>
@@ -299,9 +362,11 @@
         });
       });
 
+      window.reloadMyBookings = loadMyBookings;
       loadMyBookings();
     })();
   </script>
+  <script src="js/booking.js"></script>
   <script src="js/components.js"></script>
 </body>
 </html>

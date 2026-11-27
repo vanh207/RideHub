@@ -83,7 +83,13 @@ class HandoverProtocolCreate(BaseModel):
     damage_points: Optional[List[DamagePoint]] = None
     checklist_data: Optional[List[ChecklistItem]] = None
 
-    # Tài chính
+    # Tài chính & Thế chấp
+    deposit_type: str = Field("CASH", description="CASH (Cọc tiền) hoặc VEHICLE_PLEDGE (Thế chấp xe)")
+    collateral_info: Optional[str] = Field(None, max_length=500, description="Thông tin xe & giấy tờ thế chấp")
+    collateral_status: Optional[str] = Field(None, max_length=30, description="HELD | RETURNED")
+    deposit_type: str = "CASH"
+    collateral_info: Optional[str] = None
+    collateral_status: Optional[str] = None
     deposit_original: Decimal = Field(Decimal("0"), ge=0, description="Tiền cọc ban đầu (VNĐ)")
 
     # Chữ ký (nếu ký ngay)
@@ -139,7 +145,10 @@ class HandoverCheckinCreate(BaseModel):
     fee_cleaning: Decimal = Field(Decimal("0"), ge=0, max_digits=12, decimal_places=2)
     fee_damage: Decimal = Field(Decimal("0"), ge=0, max_digits=12, decimal_places=2)
 
-    # Quyết toán cọc
+    # Quyết toán cọc & Thế chấp
+    deposit_type: Optional[str] = Field(None, description="CASH | VEHICLE_PLEDGE")
+    collateral_info: Optional[str] = Field(None, max_length=500)
+    collateral_status: Optional[str] = Field(None, max_length=30, description="HELD | RETURNED")
     deposit_original: Optional[Decimal] = Field(
         None, ge=0, max_digits=12, decimal_places=2
     )
@@ -286,6 +295,9 @@ class HandoverProtocolResponse(BaseModel):
     damage_points: Optional[Any] = None
     checklist_data: Optional[Any] = None
 
+    deposit_type: str = "CASH"
+    collateral_info: Optional[str] = None
+    collateral_status: Optional[str] = None
     deposit_original: Decimal
     fee_overtime: Decimal
     fee_excess_km: Decimal

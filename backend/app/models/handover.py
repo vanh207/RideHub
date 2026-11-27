@@ -87,7 +87,10 @@ class HandoverProtocol(Base):
     damage_points = Column(JSON, nullable=True)   # [{x, y, label, color}]
     checklist_data = Column(JSON, nullable=True)  # [{item, ok, note}]
 
-    # Quyết toán cọc (VNĐ)
+    # Quyết toán cọc & Tài sản thế chấp
+    deposit_type = Column(String(30), default="CASH", nullable=False)  # CASH | VEHICLE_PLEDGE
+    collateral_info = Column(Text, nullable=True)                       # Xe & giấy tờ thế chấp (khi chọn cắm xe)
+    collateral_status = Column(String(30), nullable=True)               # HELD (Đang giữ) | RETURNED (Đã trả)
     deposit_original = Column(Numeric(12, 2), default=0, nullable=False)
     fee_overtime = Column(Numeric(12, 2), default=0, nullable=False)
     fee_excess_km = Column(Numeric(12, 2), default=0, nullable=False)
