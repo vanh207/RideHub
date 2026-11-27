@@ -60,7 +60,22 @@ SENSITIVE_FIELD_NAMES = {
     "customer_signature",
     "staff_signature",
     "signature",
+    "document_number",
+    "license_number",
+    "cccd",
+    "id_number",
+    "selfie_path",
 }
+
+
+_ID_FIELD_NAMES = {"document_number", "license_number", "cccd", "id_number"}
+
+
+def _mask_id(value: Any) -> str:
+    text = str(value)
+    if len(text) <= 4:
+        return "***"
+    return f"{'*' * (len(text) - 4)}{text[-4:]}"
 
 
 def _mask_sensitive_data(data: Any, max_str_len: int = 255) -> Any:
@@ -68,7 +83,10 @@ def _mask_sensitive_data(data: Any, max_str_len: int = 255) -> Any:
     if isinstance(data, dict):
         masked = {}
         for key, value in data.items():
-            if str(key).lower() in SENSITIVE_FIELD_NAMES:
+            key_lower = str(key).lower()
+            if key_lower in _ID_FIELD_NAMES:
+                masked[key] = _mask_id(value)
+            elif key_lower in SENSITIVE_FIELD_NAMES:
                 masked[key] = "********"
             else:
                 masked[key] = _mask_sensitive_data(value, max_str_len)
@@ -228,6 +246,30 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
             "category": "POLICY",
             "default_action": "POLICY_UPDATE",
             "resource_type": "system_policy",
+        },
+        # 5. eKYC (TASK_BONUS_FACECHECK): ghi nhận đồng ý, nộp hồ sơ và admin xem ảnh riêng
+        {
+            "pattern": re.compile(r"^/api/kyc/sessions$"),
+            "methods": {"POST"},
+            "category": "KYC",
+            "default_action": "KYC_CONSENT",
+            "resource_type": "kyc_session",
+        },
+        {
+            "pattern": re.compile(r"^/api/kyc/sessions/(?P<resource_id>[^/]+)/submit$"),
+            "methods": {"POST"},
+            "category": "KYC",
+            "default_action": "KYC_SUBMIT",
+            "resource_type": "kyc_session",
+        },
+        {
+            "pattern": re.compile(
+                r"^/api/admin/kyc/(?P<resource_id>[^/]+)/images/(?P<image_kind>front|back|selfie)$"
+            ),
+            "methods": {"GET"},
+            "category": "KYC",
+            "default_action": "KYC_IMAGE_VIEW",
+            "resource_type": "kyc_session",
         },
     ]
 

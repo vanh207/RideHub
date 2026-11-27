@@ -1,0 +1,5 @@
+# TASK_BONUS_FACECHECK: chỉ cài khi thử nghiệm nhận diện nâng cao.
+# Đây là phần tùy chọn, KHÔNG nạp khi chạy backend mặc định (KYC_FACE_PROVIDER=manual).
+# cv2/pyzbar cần thư viện hệ thống; không kèm trong requirements.txt chính.
+opencv-python-headless==5.1.0.95
+pyzbar==0.1.9

@@ -5,6 +5,7 @@ KycFileStore cấp. Quyết định cuối cùng vẫn do admin duyệt.
 """
 from sqlalchemy import (
     Column,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -32,6 +33,14 @@ class KycSession(Base):
     consent_version = Column(String(30), nullable=True)
     consented_at = Column(DateTime, nullable=True)
     consent_ip = Column(String(45), nullable=True)
+
+    document_number = Column(String(50), nullable=True)
+    full_name = Column(String(150), nullable=True)
+    date_of_birth = Column(Date, nullable=True)
+    issued_date = Column(Date, nullable=True)
+    expiry_date = Column(Date, nullable=True)
+    gender = Column(String(20), nullable=True)
+    address = Column(String(300), nullable=True)
 
     front_path = Column(String(500), nullable=True)
     back_path = Column(String(500), nullable=True)

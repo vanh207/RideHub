@@ -6,13 +6,18 @@ trong details (không ghi số CCCD đầy đủ, ảnh hay base64).
 from enum import Enum
 from typing import Any, Optional
 
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
 
 class KycErrorCode(str, Enum):
     KYC_DISABLED = "KYC_DISABLED"
     KYC_CONSENT_REQUIRED = "KYC_CONSENT_REQUIRED"
+    KYC_CONSENT_VERSION_INVALID = "KYC_CONSENT_VERSION_INVALID"
     KYC_SESSION_NOT_FOUND = "KYC_SESSION_NOT_FOUND"
     KYC_SESSION_EXPIRED = "KYC_SESSION_EXPIRED"
     KYC_SESSION_USED = "KYC_SESSION_USED"
+    KYC_SESSION_ACTIVE = "KYC_SESSION_ACTIVE"
     KYC_INVALID_TRANSITION = "KYC_INVALID_TRANSITION"
     KYC_ATTEMPTS_EXCEEDED = "KYC_ATTEMPTS_EXCEEDED"
     KYC_CHALLENGE_INVALID = "KYC_CHALLENGE_INVALID"
@@ -40,9 +45,11 @@ class KycErrorCode(str, Enum):
 ERROR_MESSAGES: dict[KycErrorCode, str] = {
     KycErrorCode.KYC_DISABLED: "Tính năng xác thực danh tính đang tắt.",
     KycErrorCode.KYC_CONSENT_REQUIRED: "Bạn cần đồng ý xử lý dữ liệu sinh trắc học trước khi tiếp tục.",
+    KycErrorCode.KYC_CONSENT_VERSION_INVALID: "Phiên bản đồng ý không đúng. Vui lòng tải lại trang và đọc lại nội dung.",
     KycErrorCode.KYC_SESSION_NOT_FOUND: "Không tìm thấy phiên xác thực hợp lệ.",
     KycErrorCode.KYC_SESSION_EXPIRED: "Phiên xác thực đã hết hạn. Vui lòng bắt đầu lại.",
     KycErrorCode.KYC_SESSION_USED: "Phiên xác thực này đã được gửi. Vui lòng tạo phiên mới nếu cần gửi lại.",
+    KycErrorCode.KYC_SESSION_ACTIVE: "Bạn đang có một hồ sơ xác thực đã gửi. Vui lòng chờ kết quả.",
     KycErrorCode.KYC_INVALID_TRANSITION: "Trạng thái hồ sơ không cho phép thao tác này.",
     KycErrorCode.KYC_ATTEMPTS_EXCEEDED: "Bạn đã vượt quá số lần thử trong ngày. Vui lòng thử lại sau.",
     KycErrorCode.KYC_CHALLENGE_INVALID: "Yêu cầu quét mặt không còn hiệu lực. Vui lòng bắt đầu lại.",
@@ -68,6 +75,39 @@ ERROR_MESSAGES: dict[KycErrorCode, str] = {
 }
 
 
+KYC_HTTP_STATUS: dict[KycErrorCode, int] = {
+    KycErrorCode.KYC_DISABLED: 403,
+    KycErrorCode.KYC_CONSENT_REQUIRED: 422,
+    KycErrorCode.KYC_CONSENT_VERSION_INVALID: 422,
+    KycErrorCode.KYC_SESSION_NOT_FOUND: 404,
+    KycErrorCode.KYC_SESSION_EXPIRED: 400,
+    KycErrorCode.KYC_SESSION_USED: 409,
+    KycErrorCode.KYC_SESSION_ACTIVE: 409,
+    KycErrorCode.KYC_INVALID_TRANSITION: 409,
+    KycErrorCode.KYC_ATTEMPTS_EXCEEDED: 429,
+    KycErrorCode.KYC_CHALLENGE_INVALID: 400,
+    KycErrorCode.KYC_UPLOAD_REQUIRED: 400,
+    KycErrorCode.KYC_IMAGE_INVALID_FORMAT: 415,
+    KycErrorCode.KYC_IMAGE_TOO_LARGE: 413,
+    KycErrorCode.KYC_IMAGE_TOO_SMALL: 400,
+    KycErrorCode.KYC_IMAGE_LOW_RESOLUTION: 400,
+    KycErrorCode.KYC_IMAGE_BAD_ASPECT: 400,
+    KycErrorCode.KYC_IMAGE_TOO_BLURRY: 400,
+    KycErrorCode.KYC_DECOMPRESSION_BOMB: 413,
+    KycErrorCode.KYC_QR_UNAVAILABLE: 422,
+    KycErrorCode.KYC_QR_UNPARSABLE: 422,
+    KycErrorCode.KYC_QR_MISMATCH: 422,
+    KycErrorCode.KYC_AGE_BELOW_MINIMUM: 422,
+    KycErrorCode.KYC_ID_EXPIRED: 422,
+    KycErrorCode.KYC_DUPLICATE_ID: 409,
+    KycErrorCode.KYC_NOT_APPROVED: 403,
+    KycErrorCode.KYC_FORBIDDEN: 403,
+    KycErrorCode.KYC_PROVIDER_UNAVAILABLE: 503,
+    KycErrorCode.KYC_VENDOR_CONFIG_INVALID: 503,
+    KycErrorCode.KYC_DELETE_FAILED: 500,
+}
+
+
 class KycBusinessError(Exception):
     """Lỗi nghiệp vụ eKYC có mã máy đọc được và thông điệp tiếng Việt."""
 
@@ -88,3 +128,11 @@ class KycBusinessError(Exception):
             "message": self.message,
             "details": self.details,
         }
+
+
+async def kyc_business_error_handler(_: Request, exc: KycBusinessError) -> JSONResponse:
+    """Chuyển lỗi nghiệp vụ eKYC sang HTTP, không trả dữ liệu nhạy cảm."""
+    return JSONResponse(
+        status_code=KYC_HTTP_STATUS.get(exc.code, 400),
+        content=exc.to_dict(),
+    )

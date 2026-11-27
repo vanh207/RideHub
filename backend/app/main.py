@@ -14,6 +14,7 @@ from sqlalchemy.exc import OperationalError
 
 from app import models  # noqa: F401 - import để SQLAlchemy biết các bảng
 from app.core.config import settings
+from app.core.kyc_errors import KycBusinessError, kyc_business_error_handler
 from app.core.store_errors import (
     StoreAPIError,
     store_api_error_handler,
@@ -34,6 +35,7 @@ from app.routers import (
     handover,
     health,
     items,
+    kyc,
     login,
     notifications,
     payment,
@@ -87,6 +89,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
 app.add_exception_handler(StoreAPIError, store_api_error_handler)
 app.add_exception_handler(HTTPException, store_http_exception_handler)
+app.add_exception_handler(KycBusinessError, kyc_business_error_handler)
 
 
 # CORS: cho phép trang FE (khác cổng/khác domain) gọi được API này kèm Cookie
@@ -119,6 +122,8 @@ app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
 app.include_router(stores.router, prefix="/api")
 app.include_router(admin_reviews.router, prefix="/api")
+app.include_router(kyc.router, prefix="/api")
+app.include_router(kyc.admin_router, prefix="/api")
 app.include_router(audit_logs.router, prefix="/api")
 app.include_router(policies.router, prefix="/api")
 app.include_router(login.router)

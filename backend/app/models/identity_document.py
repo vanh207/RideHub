@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey, func
+from sqlalchemy import Column, Integer, String, Text, Date, DateTime, Float, JSON, ForeignKey, func
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 
@@ -11,6 +11,11 @@ class IdentityDocument(Base):
     document_number = Column(String(50), unique=True, index=True)
     front_image_url = Column(String(500))
     back_image_url = Column(String(500))
+    selfie_path = Column(String(500), nullable=True)
+    match_score = Column(Float, nullable=True)
+    liveness_result = Column(String(30), nullable=True)
+    kyc_flags = Column(JSON, nullable=False, default=list)
+    kyc_provider = Column(String(30), nullable=True)
     issued_date = Column(Date)
     expiry_date = Column(Date)
     
