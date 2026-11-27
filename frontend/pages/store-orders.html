@@ -816,58 +816,35 @@
     style="position:fixed;top:24px;right:24px;z-index:999999;display:flex;flex-direction:column;gap:12px;pointer-events:none;">
   </div>
 
-  <!-- Header / Navbar Cửa Hàng Đồng Bộ Responsive Pill -->
-  <header class="portal-nav">
-    <div class="container portal-nav-inner">
-      <a href="../index.html" class="portal-brand-wrap" aria-label="RideHub Homepage">
-        <svg width="34" height="34" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg"
-          style="flex-shrink:0;">
-          <defs>
-            <linearGradient id="navLogoBg" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#22c55e" />
-              <stop offset="60%" stop-color="#16a34a" />
-              <stop offset="100%" stop-color="#14532d" />
-            </linearGradient>
-            <linearGradient id="navLogoTrack" x1="12" y1="10" x2="34" y2="34" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#ffffff" />
-              <stop offset="100%" stop-color="#bbf7d0" />
-            </linearGradient>
-          </defs>
-          <rect x="2" y="2" width="40" height="40" rx="12" fill="url(#navLogoBg)" />
-          <path d="M14 32V13C14 13 19 11 25 11C31 11 35 14 35 19C35 23 31 26 25 26H14" stroke="url(#navLogoTrack)"
-            stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M22 25L32 34" stroke="url(#navLogoTrack)" stroke-width="3.2" stroke-linecap="round" />
-          <circle cx="33" cy="13" r="3" fill="#86efac" />
-        </svg>
-        <span class="portal-brand-text"
-          style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text-primary);">
-          Ride<span style="color:var(--green-600);">Hub</span>
-        </span>
-        <span class="portal-brand-badge"
-          style="font-size:10.5px;font-weight:800;letter-spacing:0.8px;padding:3px 8px;border-radius:999px;background:var(--green-100);color:var(--green-800);text-transform:uppercase;margin-left:2px;">Cổng
-          Cửa Hàng</span>
+  <!-- Navbar chuẩn hệ thống RideHub (đồng bộ trang chủ) -->
+  <header id="mainNavbar" class="navbar is-scrolled">
+    <div class="container navbar-inner">
+      <a href="../index.html" class="brand-logo">
+        <img src="../assets/logo-rh.png" alt="RideHub" style="height:34px;width:auto;object-fit:contain;" />
+        <span>RideHub</span>
       </a>
-
-      <!-- 3 Nút Chức Năng Cửa Hàng Đồng Bộ Phong Cách Pill Active -->
-      <nav class="portal-nav-links" aria-label="Menu chức năng Cửa hàng">
-        <a href="../index.html" class="portal-nav-pill">Trang chủ</a>
-        <a href="store-orders.html" class="portal-nav-pill is-active">Duyệt đơn đặt xe</a>
-        <a href="handover.html" class="portal-nav-pill">Biên bản giao/nhận</a>
-        <a href="test-cases.html" class="portal-nav-pill">Bảng kiểm thử QA</a>
+      <nav class="nav-links" aria-label="Điều hướng chính">
+        <a href="../index.html" class="nav-link">Trang chủ</a>
+        <a href="store-orders.html" class="nav-link is-active">Đơn thuê</a>
+        <a href="handover.html" class="nav-link">Bàn giao xe</a>
       </nav>
-
-      <!-- User Station Badge & Back to Home -->
-      <div class="portal-nav-actions">
-        <div class="portal-station-pill">
-          <span class="portal-station-dot"></span>
-          <span>GreenRide Q.1 (Trực tuyến)</span>
-        </div>
-        <a href="../index.html" class="portal-btn-back">
-          ← Về Trang chủ
-        </a>
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <line x1="4" y1="7" x2="20" y2="7"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="17" x2="20" y2="17"></line>
+          </svg>
+        </button>
       </div>
     </div>
   </header>
+
+  <aside id="mobileDrawer" class="mobile-drawer" aria-label="Menu di động">
+    <a href="../index.html">Trang chủ</a>
+    <a href="store-orders.html">Đơn thuê</a>
+    <a href="handover.html">Bàn giao xe</a>
+  </aside>
 
   <!-- Store Hero Banner -->
   <section class="store-hero-banner">
@@ -1526,6 +1503,7 @@
   <script src="../js/config.js"></script>
   <script src="../js/components.js"></script>
   <script src="../js/pages/store-orders.js"></script>
+  <script src="../js/effects.js"></script>
   <script src="../js/auth-rbac.js"></script>
 </body>
 
