@@ -64,6 +64,7 @@
         { id: 'home', label: 'Trang chủ', href: 'index.html' },
         { id: 'anomalies', label: 'Hàng chờ bất thường', href: 'pages/operations-anomalies.html' },
         { id: 'policies', label: 'Chính sách & Audit', href: 'pages/admin-policies-audit.html' },
+        { id: 'faq', label: 'Quản lý FAQ', href: 'pages/admin-faq.html' },
         { id: 'tests', label: 'Kiểm thử', href: 'pages/test-cases.html' }
       ]
     }

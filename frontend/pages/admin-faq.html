@@ -21,7 +21,7 @@
     .admin-shell {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 32px 20px 72px;
+      padding: 96px 20px 72px;
     }
     .admin-topbar {
       display: flex;
@@ -36,6 +36,28 @@
       border-top: 4px solid var(--green-600, #16a34a);
       border-radius: 20px;
       box-shadow: 0 14px 36px -18px rgba(19, 42, 28, 0.16);
+    }
+    .admin-breadcrumb {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+    .admin-breadcrumb a {
+      color: var(--green-700, #15803d);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    .admin-breadcrumb a:hover {
+      color: var(--green-800, #166534);
+      text-decoration: underline;
+    }
+    .admin-breadcrumb .current {
+      color: #0f291a;
+      font-weight: 700;
     }
     .back-link {
       display: inline-flex;
@@ -160,10 +182,11 @@
       font-size: 20px;
       flex-shrink: 0;
     }
-    .stat-card__icon--green { background: #dcfce7; color: #15803d; }
-    .stat-card__icon--emerald { background: #d1fae5; color: #047857; }
-    .stat-card__icon--amber { background: #fef3c7; color: #b45309; }
-    .stat-card__icon--blue { background: #dbeafe; color: #1d4ed8; }
+    .stat-card__icon--green   { background: linear-gradient(135deg,#bbf7d0,#86efac); color: #15803d; }
+    .stat-card__icon--emerald { background: linear-gradient(135deg,#6ee7b7,#34d399); color: #065f46; }
+    .stat-card__icon--amber   { background: linear-gradient(135deg,#fde68a,#fbbf24); color: #92400e; }
+    .stat-card__icon--blue    { background: linear-gradient(135deg,#bfdbfe,#93c5fd); color: #1e40af; }
+    .stat-card__icon svg      { width: 24px; height: 24px; stroke-width: 1.8; }
     .stat-card__value {
       font-family: var(--font-display, 'Outfit', sans-serif);
       font-size: 1.75rem;
@@ -559,20 +582,132 @@
     .toast-banner.is-error { background: #b91c1c; }
     .toast-banner.is-success { background: #15803d; }
 
-    @media (max-width: 960px) {
-      .admin-shell { padding: 20px 14px 56px; }
-      .admin-topbar { padding: 18px; }
+    /* ── Pagination Bar ── */
+    .faq-pagination-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1.5px solid #edf5f0;
+    }
+    .faq-pagination-info {
+      font-size: 13.5px;
+      color: #4d6b57;
+      font-weight: 500;
+    }
+    .faq-pagination-info strong {
+      color: #0f291a;
+      font-weight: 800;
+    }
+    .faq-pagination-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+    .faq-page-size-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #4d6b57;
+      font-weight: 600;
+    }
+    .faq-page-size-select {
+      min-height: 38px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      border: 1.5px solid #d5e7dc;
+      background: #fbfefc;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: #132a1c;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.16s ease;
+    }
+    .faq-page-size-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.14);
+      background: #ffffff;
+    }
+    .faq-pagination-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .faq-page-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-width: 38px;
+      height: 38px;
+      padding: 0 12px;
+      border-radius: 10px;
+      border: 1.5px solid #d5e7dc;
+      background: #ffffff;
+      color: #1f472f;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+    .faq-page-btn:hover:not(:disabled) {
+      background: #ecfdf3;
+      border-color: #16a34a;
+      color: #15803d;
+      transform: translateY(-1px);
+    }
+    .faq-page-btn.is-active {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      border-color: #16a34a;
+      color: #ffffff;
+      box-shadow: 0 4px 12px -2px rgba(22, 163, 74, 0.45);
+    }
+    .faq-page-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      border-color: #e2ede6;
+      background: #f6faf7;
+      color: #8fa697;
+    }
+    .faq-page-ellipsis {
+      padding: 0 6px;
+      color: #8fa697;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .faq-page-numbers {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── Responsive breakpoints: Laptop, iPad/Tablet, Mobile ── */
+    @media (max-width: 1024px) {
+      .admin-shell { padding: 90px 18px 60px; }
+      .admin-topbar { padding: 20px 22px; }
       .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .faq-filters { width: 100%; }
-      .faq-filters input { flex: 1 1 220px; min-width: 0; }
-      .faq-filters select { flex: 1 1 150px; }
+      .faq-card { padding: 20px; }
     }
 
     @media (max-width: 768px) {
-      .admin-title { font-size: 1.4rem; }
-      .admin-nav-pills { width: 100%; }
+      .admin-shell { padding: 84px 14px 48px; }
+      .admin-topbar { padding: 18px 16px; border-radius: 16px; }
+      .admin-title { font-size: 1.45rem; }
+      .admin-nav-pills { width: 100%; margin-top: 4px; }
       .admin-nav-pills .btn { flex: 1 1 calc(50% - 6px); justify-content: center; }
-      .faq-card { padding: 16px; }
+      .faq-card { padding: 18px 14px; border-radius: 16px; }
+      .faq-filters { width: 100%; }
+      .faq-filters input { width: 100%; min-width: 0; }
+      .faq-filters select { flex: 1 1 calc(50% - 6px); }
+
       .table-wrap { border: 0; overflow: visible; }
       table.faq-table { min-width: 0; }
       table.faq-table thead { display: none; }
@@ -582,11 +717,11 @@
       }
       table.faq-table tbody tr {
         background: #ffffff;
-        border: 1px solid #d5e7dc;
+        border: 1.5px solid #d5e7dc;
         border-radius: 16px;
-        padding: 14px;
-        margin-bottom: 12px;
-        box-shadow: 0 6px 18px -12px rgba(19, 42, 28, 0.16);
+        padding: 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 6px 20px -10px rgba(19, 42, 28, 0.14);
       }
       table.faq-table td {
         padding: 6px 0;
@@ -598,14 +733,44 @@
         justify-content: space-between;
         border-bottom: 1px dashed #e2efe7;
         padding-bottom: 8px;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
       }
       .row-actions {
-        margin-top: 6px;
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed #e2efe7;
       }
       .row-actions .btn-sm {
         flex: 1;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13.5px;
+        border-radius: 10px;
+      }
+
+      .faq-pagination-bar {
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
         text-align: center;
+      }
+      .faq-pagination-controls {
+        flex-direction: column;
+        width: 100%;
+        gap: 12px;
+      }
+      .faq-page-size-wrap {
+        width: 100%;
+        justify-content: center;
+      }
+      .faq-pagination-nav {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
       }
       dialog.faq-dialog {
         max-height: 92dvh;
@@ -614,29 +779,62 @@
       .form-grid { grid-template-columns: 1fr; }
     }
 
-    @media (max-width: 440px) {
+    @media (max-width: 480px) {
       .stats-grid { grid-template-columns: 1fr; }
       .admin-nav-pills .btn { flex: 1 1 100%; }
+      .faq-filters select { flex: 1 1 100%; }
+      .faq-page-numbers { gap: 4px; }
+      .faq-page-btn { min-width: 34px; height: 34px; padding: 0 8px; font-size: 12px; }
     }
   </style>
 </head>
 <body>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Header chung hệ thống RideHub -->
+  <header id="mainNavbar" class="navbar is-scrolled">
+    <div class="container navbar-inner">
+      <a href="../index.html" class="brand-logo">
+        <img src="../assets/logo-rh.png" alt="RideHub" style="height:34px;width:auto;object-fit:contain;" />
+        <span>RideHub</span>
+      </a>
+      <nav class="nav-links" aria-label="Điều hướng chính">
+        <a href="../index.html" class="nav-link">Trang chủ</a>
+        <a href="operations-anomalies.html" class="nav-link">Hàng chờ bất thường</a>
+        <a href="admin-policies-audit.html" class="nav-link">Chính sách &amp; Audit</a>
+        <a href="admin-faq.html" class="nav-link is-active">Quản lý FAQ</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <aside id="mobileDrawer" class="mobile-drawer">
+    <a href="../index.html">Trang chủ</a>
+    <a href="operations-anomalies.html">Hàng chờ bất thường</a>
+    <a href="admin-policies-audit.html">Chính sách &amp; Audit</a>
+    <a href="admin-faq.html">Quản lý FAQ</a>
+  </aside>
+
   <main class="admin-shell">
     <header class="admin-topbar">
       <div>
-        <a class="back-link" href="../index.html">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          Quay lại Trang chủ RideHub
-        </a>
+        <nav class="admin-breadcrumb" aria-label="Đường dẫn trang">
+          <a href="../index.html">Trang chủ</a>
+          <span aria-hidden="true">›</span>
+          <a href="operations-anomalies.html">Trung tâm Quản trị</a>
+          <span aria-hidden="true">›</span>
+          <span class="current">Kho Tri Thức &amp; FAQ</span>
+        </nav>
         <p class="admin-eyebrow">TRUNG TÂM QUẢN TRỊ • CHATBOT AI</p>
         <h1 class="admin-title">Quản lý Kho Tri Thức &amp; FAQ</h1>
         <p class="admin-subtitle">Thêm, chỉnh sửa, bật/tắt và xóa các câu hỏi thường gặp để Chatbot AI tư vấn chính xác.</p>
       </div>
       <div class="admin-nav-pills">
-        <a href="operations-anomalies.html" class="btn btn-outline">⚡ Giao dịch bất thường</a>
+        <a href="operations-anomalies.html" class="btn btn-outline">⚡ Hàng chờ bất thường</a>
         <a href="admin-policies-audit.html" class="btn btn-outline">🛡️ Chính sách &amp; Audit</a>
         <button id="refreshFaqBtn" class="btn btn-secondary" type="button">↻ Làm mới</button>
         <button id="openCreateFaqBtn" class="btn btn-primary" type="button">+ Thêm FAQ mới</button>
@@ -651,28 +849,45 @@
     <section id="faqContent" hidden>
       <div class="stats-grid" aria-label="Thống kê kho FAQ">
         <article class="stat-card">
-          <div class="stat-card__icon stat-card__icon--emerald">📚</div>
+          <div class="stat-card__icon stat-card__icon--emerald">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
           <div>
             <div class="stat-card__value" id="statTotalFaq">0</div>
             <div class="stat-card__label">Tổng số mục FAQ</div>
           </div>
         </article>
         <article class="stat-card">
-          <div class="stat-card__icon stat-card__icon--green">✅</div>
+          <div class="stat-card__icon stat-card__icon--green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
           <div>
             <div class="stat-card__value" id="statActiveFaq">0</div>
             <div class="stat-card__label">Đang hoạt động</div>
           </div>
         </article>
         <article class="stat-card">
-          <div class="stat-card__icon stat-card__icon--amber">⏸️</div>
+          <div class="stat-card__icon stat-card__icon--amber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>
+            </svg>
+          </div>
           <div>
             <div class="stat-card__value" id="statInactiveFaq">0</div>
             <div class="stat-card__label">Đang tạm ẩn</div>
           </div>
         </article>
         <article class="stat-card">
-          <div class="stat-card__icon stat-card__icon--blue">🏷️</div>
+          <div class="stat-card__icon stat-card__icon--blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+              <circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
           <div>
             <div class="stat-card__value" id="statCategories">0</div>
             <div class="stat-card__label">Nhóm chủ đề</div>
@@ -715,6 +930,36 @@
           </table>
         </div>
         <div id="faqEmptyState" class="empty-state" hidden>Chưa có mục FAQ nào phù hợp với bộ lọc hiện tại.</div>
+
+        <!-- Thanh phân trang FAQ -->
+        <div class="faq-pagination-bar" id="faqPaginationBar" aria-label="Phân trang danh sách FAQ">
+          <div class="faq-pagination-info">
+            Hiển thị <strong id="faqPageStart">0</strong> – <strong id="faqPageEnd">0</strong> trong tổng số <strong id="faqPageTotal">0</strong> mục
+          </div>
+          <div class="faq-pagination-controls">
+            <div class="faq-page-size-wrap">
+              <label for="faqPageSizeSelect" class="faq-page-size-label">Hiển thị:</label>
+              <select id="faqPageSizeSelect" class="faq-page-size-select" aria-label="Số mục mỗi trang">
+                <option value="5">5 mục / trang</option>
+                <option value="10" selected>10 mục / trang</option>
+                <option value="15">15 mục / trang</option>
+                <option value="20">20 mục / trang</option>
+                <option value="all">Tất cả mục</option>
+              </select>
+            </div>
+            <nav class="faq-pagination-nav" aria-label="Điều hướng trang">
+              <button type="button" class="faq-page-btn" id="faqPrevPageBtn" aria-label="Trang trước" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span>Trước</span>
+              </button>
+              <div class="faq-page-numbers" id="faqPageNumbers"></div>
+              <button type="button" class="faq-page-btn" id="faqNextPageBtn" aria-label="Trang kế tiếp" disabled>
+                <span>Sau</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </nav>
+          </div>
+        </div>
       </section>
     </section>
   </main>
@@ -822,6 +1067,9 @@
   <div id="faqToast" class="toast-banner" role="status" aria-live="polite" hidden></div>
 
   <script src="../js/config.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/effects.js"></script>
+  <script src="../js/auth-rbac.js"></script>
   <script src="../js/admin-faq.js"></script>
 </body>
 </html>
