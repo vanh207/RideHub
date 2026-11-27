@@ -51,6 +51,40 @@ from app.routers import (
 logger = logging.getLogger("ridehub.startup")
 
 
+def _ensure_collateral_columns() -> None:
+    """Tự động bổ sung cột deposit_type, collateral_info, collateral_status nếu DB đã tạo từ trước."""
+    from sqlalchemy import inspect, text
+
+    alter_statements = {
+        "bookings": {
+            "deposit_type": "ALTER TABLE bookings ADD COLUMN deposit_type VARCHAR(30) NOT NULL DEFAULT 'CASH'",
+            "collateral_info": "ALTER TABLE bookings ADD COLUMN collateral_info TEXT NULL",
+        },
+        "handover_protocols": {
+            "deposit_type": "ALTER TABLE handover_protocols ADD COLUMN deposit_type VARCHAR(30) NOT NULL DEFAULT 'CASH'",
+            "collateral_info": "ALTER TABLE handover_protocols ADD COLUMN collateral_info TEXT NULL",
+            "collateral_status": "ALTER TABLE handover_protocols ADD COLUMN collateral_status VARCHAR(30) NULL",
+            "collateral_handler_name": "ALTER TABLE handover_protocols ADD COLUMN collateral_handler_name VARCHAR(100) NULL",
+            "collateral_handled_at": "ALTER TABLE handover_protocols ADD COLUMN collateral_handled_at TIMESTAMP NULL",
+            "collateral_customer_confirmed": "ALTER TABLE handover_protocols ADD COLUMN collateral_customer_confirmed BOOLEAN NOT NULL DEFAULT FALSE",
+        },
+    }
+    try:
+        inspector = inspect(engine)
+        existing_tables = set(inspector.get_table_names())
+        with engine.begin() as conn:
+            for table, cols in alter_statements.items():
+                if table not in existing_tables:
+                    continue
+                existing_cols = {c["name"] for c in inspector.get_columns(table)}
+                for col_name, ddl in cols.items():
+                    if col_name not in existing_cols:
+                        conn.execute(text(ddl))
+                        logger.info("[DB] Added missing column %s.%s", table, col_name)
+    except Exception as exc:
+        logger.warning("[DB] Auto-migration collateral columns skipped: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Khởi tạo Firebase Admin SDK
@@ -60,6 +94,7 @@ async def lifespan(app: FastAPI):
     # Lưu ý: create_all KHÔNG sửa bảng đã tồn tại. Đổi cột -> sửa bằng SQL hoặc xoá bảng tạo lại.
     try:
         Base.metadata.create_all(bind=engine)
+        _ensure_collateral_columns()
         logger.info(
             "[DB] Connected to MySQL %s:%s/%s",
             settings.DB_HOST,

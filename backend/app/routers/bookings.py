@@ -470,6 +470,8 @@ def get_my_bookings(
             "rental_amount": float(b.rental_amount or 0),
             "delivery_fee": float(b.delivery_fee or 0),
             "deposit_amount": float(b.deposit_amount or 0),
+            "deposit_type": getattr(b, "deposit_type", None) or "CASH",
+            "collateral_info": getattr(b, "collateral_info", None),
             "total_amount": float(b.total_amount or 0),
         })
 

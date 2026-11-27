@@ -54,6 +54,8 @@ class Booking(Base):
     rental_amount = Column(Numeric(12, 2), nullable=False)
     delivery_fee = Column(Numeric(12, 2), default=0)
     deposit_amount = Column(Numeric(12, 2), default=0)
+    deposit_type = Column(String(30), default="CASH", nullable=False)  # CASH | VEHICLE_PLEDGE
+    collateral_info = Column(Text, nullable=True)  # Thông tin xe & giấy tờ thế chấp (nếu chọn cắm xe)
     total_amount = Column(Numeric(12, 2), nullable=False)
     cancelled_at = Column(TIMESTAMP, nullable=True)
     cancelled_by = Column(String(30), nullable=True)

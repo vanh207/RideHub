@@ -16,6 +16,95 @@ body {
 /* ── Navbar chuẩn hệ thống – padding bù chiều cao navbar sticky ── */
 /* Navbar hệ thống RideHub có chiều cao ~64px; thêm padding-top tự nhiên */
 
+/* ── Collateral / Vehicle Pledge Card (Đồng bộ thiết kế xanh ngọc RideHub) ── */
+.ho-collateral-card {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #f8fcf9 100%);
+  border: 1.5px solid #bbf7d0;
+  display: grid;
+  gap: 14px;
+}
+.ho-collateral-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #bbf7d0;
+}
+.ho-collateral-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #14532d;
+}
+.ho-collateral-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: #dcfce7;
+  color: #15803d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ho-collateral-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 800;
+  background: #ffffff;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+.ho-collateral-badge.is-held {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #22c55e;
+}
+.ho-collateral-badge.is-returned {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #16a34a;
+}
+.ho-collateral-audit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+.ho-collateral-check-list {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #dcfce7;
+}
+.ho-collateral-check-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #132a1c;
+  cursor: pointer;
+}
+.ho-collateral-check-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #16a34a;
+  flex-shrink: 0;
+}
+
 /* ── Main layout ── */
 .ho-main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
 

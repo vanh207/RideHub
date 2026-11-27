@@ -292,7 +292,24 @@ def _create_booking_tx(
     ensure_customer_verified(db, customer_id)
 
     rental_amount = calculate_rental_amount(vehicle, start_time, end_time)
-    deposit_amount = calculate_deposit_amount(rental_amount)
+    deposit_type = (getattr(payload, "deposit_type", "CASH") or "CASH").upper()
+    collateral_info = (getattr(payload, "collateral_info", None) or "").strip() or None
+    if deposit_type == "VEHICLE_PLEDGE":
+        deposit_amount = Decimal("0.00")
+        booking_status = "PENDING"
+        if not collateral_info:
+            collateral_info = "Thế chấp xe + giấy tờ gốc tại trạm"
+    elif deposit_type == "COMBINED":
+        deposit_amount = calculate_deposit_amount(rental_amount)
+        booking_status = HOLD_BOOKING_STATUS
+        if not collateral_info:
+            collateral_info = "Thế chấp xe + giấy tờ gốc kèm đặt cọc tiền"
+    else:
+        deposit_type = "CASH"
+        deposit_amount = calculate_deposit_amount(rental_amount)
+        booking_status = HOLD_BOOKING_STATUS
+        collateral_info = None
+
     total_amount = _money(rental_amount + delivery_fee)
     hold_expires_at = attempt_now + timedelta(
         minutes=settings.BOOKING_HOLD_MINUTES
@@ -306,10 +323,12 @@ def _create_booking_tx(
         start_time=start_time,
         end_time=end_time,
         hold_expires_at=hold_expires_at,
-        status=HOLD_BOOKING_STATUS,
+        status=booking_status,
         rental_amount=rental_amount,
         delivery_fee=delivery_fee,
         deposit_amount=deposit_amount,
+        deposit_type=deposit_type,
+        collateral_info=collateral_info,
         total_amount=total_amount,
         # Booking model chưa có customer_note; payload.customer_note bị bỏ qua.
     )
@@ -364,6 +383,8 @@ def _create_booking_tx(
         rental_amount=float(booking.rental_amount),
         delivery_fee=float(booking.delivery_fee),
         deposit_amount=float(booking.deposit_amount),
+        deposit_type=booking.deposit_type or "CASH",
+        collateral_info=booking.collateral_info,
         total_amount=float(booking.total_amount),
         reservation_id=reservation.id,
     )

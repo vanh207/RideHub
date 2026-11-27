@@ -93,7 +93,7 @@
       ],
       allowedPages: [
         'index.html', 'admin-ops.html', 'operations-anomalies.html',
-        'admin-policies-audit.html', 'admin-faq.html', 'test-cases.html',
+        'admin-policies-audit.html', 'admin-faq.html',
         'profile.html', 'auth.html', 'chat.html', 'privacy-policy.html'
       ]
     }

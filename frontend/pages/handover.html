@@ -113,8 +113,56 @@
           <span class="ho-input" style="background:#f7fdf9;color:#6b8a76;" id="hoKmLimit" aria-readonly="true">—</span>
         </div>
         <div class="ho-field">
-          <span class="ho-label">Tiền cọc</span>
-          <span class="ho-input" style="background:#f7fdf9;color:#6b8a76;font-weight:700;" id="hoDeposit" aria-readonly="true">—</span>
+          <span class="ho-label">Chính sách bảo đảm</span>
+          <select id="hoPolicySelect" class="ho-input" style="font-weight:700;color:#15803d;background:#f7fdf9;" aria-label="Chính sách đặt cọc hoặc thế chấp">
+            <option value="CASH">Chỉ đặt cọc tiền</option>
+            <option value="VEHICLE_PLEDGE">Chỉ thế chấp tài sản</option>
+            <option value="COMBINED">Kết hợp đặt cọc &amp; thế chấp</option>
+          </select>
+        </div>
+        <div class="ho-field">
+          <span class="ho-label">Tiền cọc hợp đồng</span>
+          <span class="ho-input" style="background:#f7fdf9;color:#15803d;font-weight:700;" id="hoDeposit" aria-readonly="true">—</span>
+        </div>
+      </div>
+
+      <!-- Khối thông tin Thế chấp tài sản (Check-out) -->
+      <div id="coCollateralBox" class="ho-collateral-card" hidden>
+        <div class="ho-collateral-head">
+          <div class="ho-collateral-title">
+            <span class="ho-collateral-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </span>
+            <span>Tài sản thế chấp tiếp nhận tại trạm</span>
+          </div>
+          <span id="coCollateralStatusBadge" class="ho-collateral-badge">Chưa tiếp nhận</span>
+        </div>
+
+        <div class="ho-field" style="margin:0;">
+          <label class="ho-label" for="coCollateralInfo">Thông tin xe &amp; giấy tờ thế chấp (Tên xe, Biển số, Cà vẹt gốc...)</label>
+          <input id="coCollateralInfo" class="ho-input" type="text" placeholder="VD: Xe máy Wave Alpha - BS: 59P1-123.45 (Cà vẹt gốc + CCCD)" />
+        </div>
+
+        <div class="ho-collateral-audit-grid">
+          <div class="ho-field" style="margin:0;">
+            <label class="ho-label" for="coCollateralHandler">Nhân viên tiếp nhận tài sản</label>
+            <input id="coCollateralHandler" class="ho-input" type="text" placeholder="Tên nhân viên tiếp nhận" />
+          </div>
+          <div class="ho-field" style="margin:0;">
+            <label class="ho-label" for="coCollateralTime">Thời gian tiếp nhận</label>
+            <input id="coCollateralTime" class="ho-input" type="datetime-local" />
+          </div>
+        </div>
+
+        <div class="ho-collateral-check-list">
+          <label class="ho-collateral-check-item">
+            <input id="coCollateralHeld" type="checkbox" />
+            <span>Nhân viên xác nhận đã kiểm tra và nhận giữ tài sản thế chấp &amp; giấy tờ gốc</span>
+          </label>
+          <label class="ho-collateral-check-item">
+            <input id="coCollateralCustConfirmed" type="checkbox" />
+            <span>Khách hàng (<strong id="coCollateralCustName">—</strong>) xác nhận đã bàn giao tài sản thế chấp cho trạm</span>
+          </label>
         </div>
       </div>
     </section>
@@ -486,9 +534,48 @@
         </div>
       </div>
 
+      <div id="ciCollateralReturnBox" class="ho-collateral-card" style="margin-top:0;margin-bottom:16px;" hidden>
+        <div class="ho-collateral-head">
+          <div class="ho-collateral-title">
+            <span class="ho-collateral-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            </span>
+            <span>Hoàn trả tài sản thế chấp &amp; Kiểm soát bàn giao</span>
+          </div>
+          <span id="ciCollateralStatusBadge" class="ho-collateral-badge is-held">Đang giữ tại trạm</span>
+        </div>
+
+        <div style="padding:10px 12px;border-radius:10px;background:#ffffff;border:1px solid #dcfce7;font-size:13px;color:#132a1c;">
+          <span style="color:#4d6b57;font-weight:600;">Tài sản đang giữ:</span>
+          <strong id="ciCollateralInfoText" style="margin-left:6px;color:#14532d;">—</strong>
+        </div>
+
+        <div class="ho-collateral-audit-grid">
+          <div class="ho-field" style="margin:0;">
+            <label class="ho-label" for="ciCollateralHandler">Nhân viên bàn giao trả tài sản</label>
+            <input id="ciCollateralHandler" class="ho-input" type="text" placeholder="Tên nhân viên bàn giao" />
+          </div>
+          <div class="ho-field" style="margin:0;">
+            <label class="ho-label" for="ciCollateralTime">Thời gian bàn giao trả</label>
+            <input id="ciCollateralTime" class="ho-input" type="datetime-local" />
+          </div>
+        </div>
+
+        <div class="ho-collateral-check-list">
+          <label class="ho-collateral-check-item">
+            <input id="ciCollateralReturned" type="checkbox" />
+            <span>Nhân viên xác nhận đã bàn giao trả lại tài sản thế chấp &amp; giấy tờ gốc</span>
+          </label>
+          <label class="ho-collateral-check-item">
+            <input id="ciCollateralCustConfirmed" type="checkbox" />
+            <span>Khách hàng (<strong id="ciCollateralCustName">—</strong>) xác nhận đã nhận lại đầy đủ tài sản thế chấp</span>
+          </label>
+        </div>
+      </div>
+
       <div class="ho-settlement" role="region" aria-label="Bảng quyết toán" aria-live="polite">
         <div class="ho-settlement-row">
-          <span class="ho-settlement-label">Tiền cọc ban đầu</span>
+          <span class="ho-settlement-label" id="settlDepositLabel">Tiền cọc ban đầu</span>
           <span class="ho-settlement-val" id="settlDeposit">—</span>
         </div>
         <div class="ho-settlement-row">
