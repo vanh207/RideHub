@@ -485,7 +485,7 @@ def get_my_bookings(
     description="Lấy danh sách các đơn đặt xe thuộc cửa hàng của tài khoản đang đăng nhập, hỗ trợ lọc, tìm kiếm và phân trang.",
 )
 def get_store_orders_endpoint(
-    status: str = Query("all", description="Bộ lọc trạng thái: all, pending, approved, cancelled, in_progress"),
+    status_filter: str = Query("all", description="Bộ lọc trạng thái: all, pending, approved, cancelled, in_progress"),
     search: Optional[str] = Query(None, description="Từ khóa tìm kiếm (mã đơn, tên, sđt)"),
     page: int = Query(1, ge=1, description="Số trang"),
     page_size: int = Query(20, ge=1, le=100, description="Số bản ghi mỗi trang"),
@@ -498,7 +498,7 @@ def get_store_orders_endpoint(
             db,
             user=current_user,
             store_id=store_id,
-            status_filter=status,
+            status_filter=status_filter,
             search=search,
             page=page,
             page_size=page_size,
