@@ -84,9 +84,18 @@
     .admin-panel.is-active { display: block; }
     .policy-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
       gap: 18px;
       margin-bottom: 22px;
+    }
+    @media (max-width: 640px) {
+      .admin-shell { padding: 86px 0 48px; }
+      .admin-tabs { width: 100%; }
+      .admin-tab-btn { flex: 1; padding: 10px 12px; font-size: 13px; text-align: center; }
+      .surface-card { padding: 16px; border-radius: 14px; }
+      .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .filter-grid { grid-template-columns: 1fr; }
+      .policy-card-head { flex-wrap: wrap; gap: 8px; }
     }
     .surface-card {
       background: #ffffff;
@@ -236,7 +245,6 @@
     <a href="../index.html">Trang chủ</a>
     <a href="operations-anomalies.html">Hàng chờ bất thường</a>
     <a href="admin-policies-audit.html">Chính sách &amp; Audit</a>
-    <a href="test-cases.html">Kiểm thử</a>
   </aside>
 
   <main class="admin-shell">
