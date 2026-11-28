@@ -13,3 +13,5 @@ firebase-admin>=6.5.0
 payos>=1.1.0
 email-validator>=2.0.0
 python-multipart>=0.0.18
+# Pillow: giải mã/kiểm tra ảnh eKYC và mã hóa lại để xóa EXIF (cài được trên Python 3.14).
+Pillow==13.0.0

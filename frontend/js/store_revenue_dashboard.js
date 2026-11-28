@@ -59,7 +59,7 @@
   ];
 
   // 4. Danh sách giao dịch đối soát chi tiết
-  const TRANSACTIONS = [
+  let TRANSACTIONS = [
     {
       id: 'RH-8830',
       date: '15/11/2026 14:20',
@@ -189,6 +189,7 @@
     const start = performance.now();
 
     const step = (now) => {
+      if (el.dataset.countupStopped === '1') return;
       const p = Math.min((now - start) / dur, 1);
       const ease = 1 - Math.pow(1 - p, 3);
       const cur = target * ease;
@@ -385,37 +386,52 @@
     const tooltip = document.getElementById('revenueChartTooltip');
     if (!tooltip) return;
 
+    const showTooltipAt = (el, clientX, clientY) => {
+      const label = el.dataset.tipLabel;
+      const car = el.dataset.tipCar;
+      const scooter = el.dataset.tipScooter;
+      const total = el.dataset.tipTotal;
+      const trips = el.dataset.tipTrips;
+
+      tooltip.innerHTML = `
+        <div style="font-weight:800;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:4px;margin-bottom:4px;">
+          ${currentViewMode === 'daily' ? 'Ngày ' : 'Tháng '}${label}
+        </div>
+        <div>🚗 Ô tô: <strong>${car}</strong></div>
+        <div>🛵 Xe máy: <strong>${scooter}</strong></div>
+        <div style="margin-top:2px;color:#86efac;">💰 Tổng thu: <strong>${total}</strong></div>
+        <div style="font-size:11px;color:#cbd5e1;">📋 Hoàn tất: <strong>${trips} cuốc</strong></div>
+      `;
+      const pad = 110;
+      const clampedX = Math.min(Math.max(clientX, pad), window.innerWidth - pad);
+      const clampedY = Math.max(clientY - 16, 120);
+      tooltip.style.left = clampedX + 'px';
+      tooltip.style.top = clampedY + 'px';
+      tooltip.style.opacity = '1';
+    };
+
     const interactiveEls = document.querySelectorAll('.chart-bar-group, .chart-point');
 
     interactiveEls.forEach((el) => {
-      el.addEventListener('mouseenter', () => {
-        const label = el.dataset.tipLabel;
-        const car = el.dataset.tipCar;
-        const scooter = el.dataset.tipScooter;
-        const total = el.dataset.tipTotal;
-        const trips = el.dataset.tipTrips;
-
-        tooltip.innerHTML = `
-          <div style="font-weight:800;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:4px;margin-bottom:4px;">
-            ${currentViewMode === 'daily' ? 'Ngày ' : 'Tháng '}${label}
-          </div>
-          <div>🚗 Ô tô: <strong>${car}</strong></div>
-          <div>🛵 Xe máy: <strong>${scooter}</strong></div>
-          <div style="margin-top:2px;color:#86efac;">💰 Tổng thu: <strong>${total}</strong></div>
-          <div style="font-size:11px;color:#cbd5e1;">📋 Hoàn tất: <strong>${trips} cuốc</strong></div>
-        `;
-        tooltip.style.opacity = '1';
-      });
-
-      el.addEventListener('mousemove', (e) => {
-        tooltip.style.left = (e.clientX + 14) + 'px';
-        tooltip.style.top = (e.clientY - 20) + 'px';
-      });
-
+      el.addEventListener('mouseenter', (e) => showTooltipAt(el, e.clientX, e.clientY));
+      el.addEventListener('mousemove', (e) => showTooltipAt(el, e.clientX, e.clientY));
       el.addEventListener('mouseleave', () => {
         tooltip.style.opacity = '0';
       });
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rect = el.getBoundingClientRect();
+        showTooltipAt(el, e.clientX || (rect.left + rect.width / 2), e.clientY || rect.top);
+      });
     });
+
+    if (!global.__chartTooltipOutsideBound) {
+      global.__chartTooltipOutsideBound = true;
+      document.addEventListener('click', () => {
+        const tip = document.getElementById('revenueChartTooltip');
+        if (tip) tip.style.opacity = '0';
+      });
+    }
   }
 
   // =========================================================================
@@ -461,22 +477,7 @@
     const countEl = document.getElementById('tableRecordCount');
     if (!tbody) return;
 
-    let filtered = TRANSACTIONS.filter((t) => {
-      // Lọc trạng thái
-      if (currentPayoutFilter !== 'all' && t.status !== currentPayoutFilter) {
-        return false;
-      }
-      // Lọc tìm kiếm
-      if (currentSearchQuery) {
-        const q = currentSearchQuery.toLowerCase();
-        return (
-          t.id.toLowerCase().includes(q) ||
-          t.vehicle.toLowerCase().includes(q) ||
-          t.customer.toLowerCase().includes(q)
-        );
-      }
-      return true;
-    });
+    let filtered = getFilteredTransactions();
 
     if (countEl) {
       countEl.innerHTML = `Hiển thị <strong>${filtered.length}</strong> trên tổng số <strong>${TRANSACTIONS.length}</strong> giao dịch`;
@@ -629,10 +630,11 @@
       confirmPayoutBtn.addEventListener('click', () => {
         const val = parseInt(payoutInput.value || '0', 10);
         if (val < 100000) {
-          alert('Số tiền rút tối thiểu là 100.000 VNĐ.');
+          showToast('⚠️ Số tiền rút tối thiểu là 100.000 VNĐ.');
           return;
         }
         payoutModal.classList.remove('is-open');
+        showToast(`✅ Đã gửi yêu cầu rút ${val.toLocaleString('vi-VN')}đ qua PayOS VietQR!`);
       });
     }
 
@@ -643,26 +645,178 @@
     }
   }
 
+    // =========================================================================
+  // 6.1 BỘ LỌC GIAO DỊCH DÙNG CHUNG (CHO CẢ HIỂN THỊ BẢNG VÀ XUẤT FILE CSV)
   // =========================================================================
-  // 7. HÀM XUẤT BÁO CÁO CSV (UTF-8 BOM HỖ TRỢ TIẾNG VIỆT TRÊN EXCEL)
+  function getFilteredTransactions() {
+    return TRANSACTIONS.filter((t) => {
+      // 1. Lọc theo trạng thái giải ngân
+      if (currentPayoutFilter !== 'all' && t.status !== currentPayoutFilter) {
+        return false;
+      }
+      // 2. Lọc theo từ khóa tìm kiếm (mã đơn, xe, tên khách)
+      if (currentSearchQuery) {
+        const q = currentSearchQuery.toLowerCase();
+        return (
+          (t.id && t.id.toLowerCase().includes(q)) ||
+          (t.vehicle && t.vehicle.toLowerCase().includes(q)) ||
+          (t.customer && t.customer.toLowerCase().includes(q))
+        );
+      }
+      return true;
+    });
+  }
+
+  // =========================================================================
+  // 7. HÀM XUẤT BÁO CÁO CSV CHUẨN THỰC TẾ (UTF-8 BOM CHO EXCEL + DÒNG TỔNG KẾT)
   // =========================================================================
   function exportRevenueReportCSV() {
-    let csv = '\uFEFFMã đơn,Thời gian,Phương tiện,Khách thuê,Tổng tiền thuê,Phí sàn 10%,Thực nhận,Tiền cọc,Trạng thái\n';
+    // 1. Lấy đúng danh sách giao dịch thực tế đang được lọc trên màn hình
+    const listToExport = getFilteredTransactions();
+
+    if (!listToExport || listToExport.length === 0) {
+      showToast('⚠️ Không có giao dịch nào phù hợp để xuất báo cáo!');
+      return;
+    }
+
+    // 2. Tiêu đề bảng cột CSV (Kèm mã BOM \uFEFF để Excel mở không bị lỗi font Tiếng Việt)
+    let csv = '\uFEFFMã đơn,Thời gian,Phương tiện,Khách thuê,Tổng tiền thuê (VNĐ),Phí sàn 10% (VNĐ),Thực nhận 90% (VNĐ),Tiền cọc,Trạng thái\n';
     
-    TRANSACTIONS.forEach((t) => {
-      csv += `"${t.id}","${t.date}","${t.vehicle}","${t.customer}","${t.total}","${t.platformFee}","${t.net}","${t.deposit}","${t.statusText}"\n`;
+    let sumTotal = 0;
+    let sumFee = 0;
+    let sumNet = 0;
+
+    // 3. Đổ từng dòng dữ liệu thực tế
+    listToExport.forEach((t) => {
+      const totalNum = Number(t.total || 0);
+      const feeNum = Number(t.platformFee || 0);
+      const netNum = Number(t.net || 0);
+      sumTotal += totalNum;
+      sumFee += feeNum;
+      sumNet += netNum;
+
+      csv += `"${t.id}","${t.date}","${t.vehicle}","${t.customer}","${totalNum.toLocaleString('vi-VN')}","${feeNum.toLocaleString('vi-VN')}","${netNum.toLocaleString('vi-VN')}","${t.deposit}","${t.statusText}"\n`;
     });
 
+    // 4. Thêm dòng TỔNG CỘNG ở cuối file để đối soát số liệu
+    csv += `\n"TỔNG CỘNG (${listToExport.length} đơn)","","","","${sumTotal.toLocaleString('vi-VN')}","${sumFee.toLocaleString('vi-VN')}","${sumNet.toLocaleString('vi-VN')}","",""\n`;
+
+    // 5. Tự động lấy tên cửa hàng thực tế của người dùng để đặt tên file
+    let storeName = 'Cua_Hang';
+    try {
+      const userRaw = localStorage.getItem('ridehub_current_user') || localStorage.getItem('ridehub_user');
+      if (userRaw) {
+        const u = JSON.parse(userRaw);
+        if (u.storeName) storeName = u.storeName.replace(/\s+/g, '_');
+        else if (u.name) storeName = u.name.replace(/\s+/g, '_');
+      }
+    } catch (_) {}
+
+    const now = new Date();
+    const dateStamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `Bao_Cao_Doanh_Thu_GreenRide_Q1_${Date.now()}.csv`);
+    link.setAttribute('download', `Bao_Cao_Doanh_Thu_${storeName}_${dateStamp}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
+    showToast(`✅ Đã xuất báo cáo ${listToExport.length} giao dịch thành công!`);
+  }
+
+  // =========================================================================
+  // 7.1 ĐỒNG BỘ DỮ LIỆU ĐƠN THỰC TẾ TỪ CÁC TRANG CÓ LIÊN QUAN (FALLBACK SYNC)
+  // =========================================================================
+  function loadTransactionsFromRelatedPages() {
+    let collectedOrders = [];
+
+    // Nguồn A: Trang Quản lý đơn hàng cửa hàng (store-orders.html)
+    try {
+      const rawStoreOrders = localStorage.getItem('ridehub_store_orders_v1');
+      if (rawStoreOrders) {
+        const storeOrders = JSON.parse(rawStoreOrders);
+        if (Array.isArray(storeOrders) && storeOrders.length > 0) {
+          storeOrders.forEach((o) => {
+            const total = Number(o.total || 0);
+            const fee = Math.round(total * 0.1);
+            const net = total - fee;
+            const st = (o.status || '').toLowerCase();
+            const isCompleted = st === 'completed' || st === 'settled';
+            const isApproved = st === 'approved' || st === 'confirmed';
+
+            let statusKey = 'pending_settle';
+            let statusText = 'Chờ đối soát';
+            if (isCompleted) {
+              statusKey = 'settled';
+              statusText = 'Đã giải ngân VietQR';
+            } else if (st === 'cancelled') {
+              statusKey = 'cancelled';
+              statusText = 'Đã hủy đơn';
+            } else if (isApproved) {
+              statusKey = 'pending_settle';
+              statusText = 'Đã duyệt / Chờ giao xe';
+            }
+
+            collectedOrders.push({
+              id: o.id || `RH-${o.booking_id || '0001'}`,
+              date: o.schedule ? o.schedule.split('→')[0].trim() : (o.created_at || 'Hôm nay'),
+              vehicle: o.vehicle || (o.vehicleName || 'Xe điện RideHub'),
+              customer: o.customer || (o.customerName || 'Khách thuê'),
+              total: total,
+              platformFee: fee,
+              net: net,
+              deposit: typeof o.deposit === 'number' ? `${o.deposit.toLocaleString('vi-VN')}đ` : (o.collateral || o.deposit || 'Miễn cọc eKYC'),
+              status: statusKey,
+              statusText: statusText
+            });
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Lỗi đọc ridehub_store_orders_v1:', e);
+    }
+
+    // Nguồn B: Trang Đặt xe khách hàng (ridehub_bookings_db)
+    try {
+      const rawBookings = localStorage.getItem('ridehub_bookings_db');
+      if (rawBookings) {
+        const bookings = JSON.parse(rawBookings);
+        if (Array.isArray(bookings) && bookings.length > 0) {
+          bookings.forEach((b) => {
+            const bId = b.booking_code || `RH-${b.id || '0001'}`;
+            // Tránh trùng đơn đã lấy từ Nguồn A
+            if (collectedOrders.some((item) => item.id === bId)) return;
+
+            const total = Number(b.total_amount || b.total || b.pricing?.total_amount || 0);
+            const fee = Math.round(total * 0.1);
+            const net = total - fee;
+            const st = (b.status || '').toLowerCase();
+            const isCompleted = st === 'completed';
+
+            collectedOrders.push({
+              id: bId,
+              date: b.created_at ? new Date(b.created_at).toLocaleDateString('vi-VN') : 'Hôm nay',
+              vehicle: b.vehicle_name || b.vehicle?.name || 'Xe điện RideHub',
+              customer: b.customer_name || b.customer?.full_name || 'Khách thuê',
+              total: total,
+              platformFee: fee,
+              net: net,
+              deposit: b.deposit_amount ? `${Number(b.deposit_amount).toLocaleString('vi-VN')}đ` : 'Miễn cọc eKYC',
+              status: isCompleted ? 'settled' : 'pending_settle',
+              statusText: isCompleted ? 'Đã giải ngân VietQR' : 'Chờ đối soát'
+            });
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Lỗi đọc ridehub_bookings_db:', e);
+    }
+
+    return collectedOrders.length > 0 ? collectedOrders : null;
   }
 
   // =========================================================================
@@ -670,85 +824,197 @@
   // =========================================================================
   async function loadRevenueDataFromBackend(storeId = 1, period = 'day') {
     try {
+      // Tự động nhận diện store_id của tài khoản chủ xe đang đăng nhập
+      try {
+        const userRaw = localStorage.getItem('ridehub_current_user') || localStorage.getItem('ridehub_user');
+        if (userRaw) {
+          const u = JSON.parse(userRaw);
+          if (u.store_id) storeId = u.store_id;
+          else if (u.storeId) storeId = u.storeId;
+        }
+      } catch (_) {}
+      storeId = storeId || 1;
+
       const token = localStorage.getItem('ridehub_token') || localStorage.getItem('access_token');
       const headers = { 'Content-Type': 'application/json' };
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${API_BASE_URL}/stores/${storeId}/revenue/report?period=${period}&limit_top_vehicles=5`, {
-        method: 'GET',
-        headers: headers
-      });
-
-      if (!response.ok) {
-        console.warn('Backend chưa phản hồi hoặc chưa đăng nhập, sử dụng dữ liệu mẫu.');
-        return false;
-      }
-
-      const resData = await response.json();
-      console.log('✅ Đã nhận dữ liệu doanh thu từ Backend:', resData);
-
-      // 1. Cập nhật thẻ KPI
-      if (resData.summary) {
-        const gross = Number(resData.summary.total_revenue || 0);
-        const net = Math.round(gross * 0.9);
-        const fee = Math.round(gross * 0.1);
-
-        const grossEl = document.getElementById('statGrossRevenue');
-        if (grossEl) grossEl.textContent = gross.toLocaleString('vi-VN') + 'đ';
-
-        const netRevEl = document.getElementById('statNetRevenue');
-        if (netRevEl) netRevEl.textContent = net.toLocaleString('vi-VN') + 'đ';
-
-        const feeEl = document.getElementById('statPlatformFee');
-        if (feeEl) feeEl.textContent = fee.toLocaleString('vi-VN') + 'đ';
-
-        const ordersEl = document.getElementById('statCompletedTrips');
-        if (ordersEl) ordersEl.textContent = (resData.summary.completed_orders || 0) + ' cuốc';
-
-        const avgEl = document.getElementById('statAov');
-        if (avgEl) avgEl.textContent = Number(resData.summary.avg_order_value || 0).toLocaleString('vi-VN') + 'đ';
-      }
-
-      // 2. Map dữ liệu timeline vào biểu đồ SVG
-      if (resData.timeline && resData.timeline.length > 0) {
-        const mappedData = resData.timeline.map((item) => {
-          let label = item.time_bucket;
-          if (label.includes('-')) {
-            const parts = label.split('-');
-            if (parts.length === 3) label = `${parts[2]}/${parts[1]}`;
-            else if (parts.length === 2) label = `T${parseInt(parts[1], 10)}`;
-          }
-          const total = Number(item.rental_revenue || 0) + Number(item.delivery_revenue || 0);
-          return {
-            label: label,
-            car: Math.round(total * 0.6),
-            scooter: Math.round(total * 0.4),
-            trips: item.completed_orders || 0
-          };
+      // 1. Gọi API Báo cáo Doanh thu tổng quan (KPI + Biểu đồ + Top xe)
+      let backendReportLoaded = false;
+      try {
+        const response = await fetch(`${API_BASE_URL}/stores/${storeId}/revenue/report?period=${period}&limit_top_vehicles=5`, {
+          method: 'GET',
+          headers: headers
         });
 
-        if (period === 'day') {
-          DAILY_REVENUE_DATA.splice(0, DAILY_REVENUE_DATA.length, ...mappedData);
-        } else {
-          MONTHLY_REVENUE_DATA.splice(0, MONTHLY_REVENUE_DATA.length, ...mappedData);
+        if (response.ok) {
+          const resData = await response.json();
+          console.log('✅ Đã nhận dữ liệu doanh thu từ Backend:', resData);
+
+          // 1.1 Cập nhật các thẻ KPI tổng doanh thu, cuốc xe
+          if (resData.summary) {
+            const gross = Number(resData.summary.total_revenue || 0);
+            const net = Math.round(gross * 0.9);
+            const fee = Math.round(gross * 0.1);
+
+            const grossEl = document.getElementById('statGrossRevenue');
+            if (grossEl) {
+              grossEl.dataset.countupStopped = '1';
+              grossEl.textContent = gross.toLocaleString('vi-VN') + 'đ';
+            }
+
+            const netRevEl = document.getElementById('statNetRevenue');
+            if (netRevEl) {
+              netRevEl.dataset.countupStopped = '1';
+              netRevEl.textContent = net.toLocaleString('vi-VN') + 'đ';
+            }
+
+            const feeEl = document.getElementById('statPlatformFee');
+            if (feeEl) feeEl.textContent = fee.toLocaleString('vi-VN') + 'đ';
+
+            const ordersEl = document.getElementById('statCompletedTrips');
+            if (ordersEl) {
+              ordersEl.dataset.countupStopped = '1';
+              ordersEl.textContent = (resData.summary.completed_orders || 0) + ' cuốc';
+            }
+
+            const avgEl = document.getElementById('statAov');
+            if (avgEl) avgEl.textContent = Number(resData.summary.avg_order_value || 0).toLocaleString('vi-VN') + 'đ';
+            backendReportLoaded = true;
+          }
+
+          // 1.2 Cập nhật Biểu đồ doanh thu
+          if (resData.timeline && resData.timeline.length > 0) {
+            const mappedData = resData.timeline.map((item) => {
+              let label = item.time_bucket;
+              if (label.includes('-')) {
+                const parts = label.split('-');
+                if (parts.length === 3) label = `${parts[2]}/${parts[1]}`;
+                else if (parts.length === 2) label = `T${parseInt(parts[1], 10)}`;
+              }
+              const total = Number(item.rental_revenue || 0) + Number(item.delivery_revenue || 0);
+              return {
+                label: label,
+                car: Math.round(total * 0.6),
+                scooter: Math.round(total * 0.4),
+                trips: item.completed_orders || 0
+              };
+            });
+
+            if (period === 'day') {
+              DAILY_REVENUE_DATA.splice(0, DAILY_REVENUE_DATA.length, ...mappedData);
+            } else {
+              MONTHLY_REVENUE_DATA.splice(0, MONTHLY_REVENUE_DATA.length, ...mappedData);
+            }
+            renderRevenueChart();
+          }
+
+          // 1.3 Cập nhật danh sách Top xe thuê nhiều nhất
+          if (resData.top_vehicles && resData.top_vehicles.length > 0) {
+            const mappedVehicles = resData.top_vehicles.map((v) => ({
+              name: `${v.brand} ${v.model}`,
+              plate: v.plate_number,
+              days: v.rental_count,
+              revenue: Number(v.total_revenue || 0),
+              rate: Math.min(100, Math.round((v.rental_count / 20) * 100)),
+              type: v.vehicle_type === 'car' ? 'Ô tô' : 'Xe máy'
+            }));
+            TOP_VEHICLES.splice(0, TOP_VEHICLES.length, ...mappedVehicles);
+            renderTopVehiclesTable();
+          }
         }
-        renderRevenueChart();
+      } catch (e) {
+        console.warn('API Revenue Report chưa kết nối:', e);
       }
 
-      // 3. Map Top xe vào bảng
-      if (resData.top_vehicles && resData.top_vehicles.length > 0) {
-        const mappedVehicles = resData.top_vehicles.map((v) => ({
-          name: `${v.brand} ${v.model}`,
-          plate: v.plate_number,
-          days: v.rental_count,
-          revenue: Number(v.total_revenue || 0),
-          rate: Math.min(100, Math.round((v.rental_count / 20) * 100)),
-          type: v.vehicle_type === 'car' ? 'Ô tô' : 'Xe máy'
-        }));
-        TOP_VEHICLES.splice(0, TOP_VEHICLES.length, ...mappedVehicles);
-        renderTopVehiclesTable();
+      // 2. NGUỒN 1: Lấy danh sách đơn xe thực tế từ Backend Database
+      let realOrdersFound = false;
+      try {
+        const ordersRes = await fetch(`${API_BASE_URL}/bookings/store/orders?page=1&page_size=50`, {
+          method: 'GET',
+          headers: headers
+        });
+        if (ordersRes.ok) {
+          const ordersData = await ordersRes.json();
+          if (ordersData.orders && ordersData.orders.length > 0) {
+            const realTransactions = ordersData.orders.map((o) => {
+              const total = o.pricing?.total_amount || 0;
+              const fee = Math.round(total * 0.1);
+              const net = total - fee;
+              const st = (o.status || '').toLowerCase();
+              const isCompleted = st === 'completed';
+
+              const dt = new Date(o.created_at);
+              const dateStr = !isNaN(dt.getTime())
+                ? `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`
+                : 'Hôm nay';
+
+              return {
+                id: o.booking_code || `RH-${o.id}`,
+                date: dateStr,
+                vehicle: o.vehicle?.name || 'Xe điện RideHub',
+                customer: o.customer?.full_name || 'Khách thuê',
+                total: total,
+                platformFee: fee,
+                net: net,
+                deposit: o.pricing?.deposit_amount ? `${Number(o.pricing.deposit_amount).toLocaleString('vi-VN')}đ (Đã hoàn)` : 'Miễn cọc eKYC',
+                status: isCompleted ? 'settled' : 'pending_settle',
+                statusText: isCompleted ? 'Đã giải ngân VietQR' : (o.status_label || 'Chờ đối soát')
+              };
+            });
+
+            TRANSACTIONS = realTransactions;
+            renderTransactionsTable();
+            realOrdersFound = true;
+          }
+        }
+      } catch (orderErr) {
+        console.warn('Chưa thể tải đơn từ API:', orderErr);
+      }
+
+      // 3. NGUỒN 2: Nếu Backend chưa có hoặc offline -> Tự động đồng bộ từ các trang liên quan (store-orders.html & booking.html)
+      if (!realOrdersFound) {
+        const relatedOrders = loadTransactionsFromRelatedPages();
+        if (relatedOrders && relatedOrders.length > 0) {
+          TRANSACTIONS = relatedOrders;
+          renderTransactionsTable();
+          realOrdersFound = true;
+
+          // Nếu chưa có số liệu KPI từ API thì tính toán trực tiếp từ các đơn thực tế này
+          if (!backendReportLoaded) {
+            const validOrders = TRANSACTIONS.filter((t) => t.status === 'settled');
+            const gross = validOrders.reduce((acc, t) => acc + (t.total || 0), 0);
+            const fee = Math.round(gross * 0.1);
+            const net = gross - fee;
+
+            const grossEl = document.getElementById('statGrossRevenue');
+            if (grossEl) {
+              grossEl.dataset.countupStopped = '1';
+              grossEl.textContent = gross.toLocaleString('vi-VN') + 'đ';
+            }
+
+            const netRevEl = document.getElementById('statNetRevenue');
+            if (netRevEl) {
+              netRevEl.dataset.countupStopped = '1';
+              netRevEl.textContent = net.toLocaleString('vi-VN') + 'đ';
+            }
+
+            const feeEl = document.getElementById('statPlatformFee');
+            if (feeEl) feeEl.textContent = fee.toLocaleString('vi-VN') + 'đ';
+
+            const ordersEl = document.getElementById('statCompletedTrips');
+            if (ordersEl) {
+              ordersEl.dataset.countupStopped = '1';
+              ordersEl.textContent = validOrders.length + ' cuốc';
+            }
+
+            const avgEl = document.getElementById('statAov');
+            const avg = validOrders.length > 0 ? Math.round(gross / validOrders.length) : 0;
+            if (avgEl) avgEl.textContent = avg.toLocaleString('vi-VN') + 'đ';
+          }
+        }
       }
 
       return true;
@@ -758,7 +1024,6 @@
       return false;
     }
   }
-
   // =========================================================================
   // 9. TIỆN ÍCH TOAST THÔNG BÁO
   // =========================================================================
@@ -779,6 +1044,9 @@
   }
 
   global.showReceiptToast = function (orderId) {
+    const tx = TRANSACTIONS.find((item) => item.id === orderId);
+    if (!tx) return;
+    showToast(`🧾 Biên lai ${tx.id}: Thực nhận ${Number(tx.net || 0).toLocaleString('vi-VN')}đ (${tx.statusText})`);
   };
 
   // Tự động khởi chạy khi DOM sẵn sàng

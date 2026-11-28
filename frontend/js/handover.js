@@ -16,9 +16,21 @@ const HO_CONFIG = {
   CLEANING_FEE: 150_000,           // VNĐ — phí vệ sinh xe bẩn
   OVERTIME_RATE_PER_HOUR: 50_000, // VNĐ / giờ quá giờ
   DRAFT_KEY: 'rh_handover_draft_v1',
-  // TODO: khi nối backend, lấy từ CONFIG.API_BASE_URL (config.js)
-  API_ENDPOINT: '/api/v1/handover',
+  API_BASE_URL: (typeof CONFIG !== 'undefined' && CONFIG.API_BASE_URL) ? CONFIG.API_BASE_URL : 'http://127.0.0.1:8000/api',
 };
+
+function getAuthToken() {
+  try {
+    const keys = ['ridehub_auth_token', 'ridehub_token', 'access_token', 'token'];
+    for (const k of keys) {
+      const v = localStorage.getItem(k);
+      if (v) return v;
+    }
+    const match = document.cookie.match(/(?:^|;\s*)(?:ridehub_token|access_token|token)=([^;]+)/);
+    if (match && match[1]) return decodeURIComponent(match[1]);
+  } catch (_) {}
+  return '';
+}
 
 const FUEL_LEVELS = ['E', '1/4', '2/4', '3/4', 'FULL'];
 const FUEL_SEGS = 4; // số đoạn trên thanh xăng (0 → 4 đoạn)
@@ -41,6 +53,17 @@ const MOCK_CONTRACT = {
   kmPerDayLimit: 200,
   overKmFee: 3_500,          // VNĐ/km
   deposit: 5_000_000,        // VNĐ
+  baseDeposit: 5_000_000,    // Tiền cọc gốc theo hợp đồng (để khôi phục nếu đổi lại CASH/COMBINED)
+  depositType: 'CASH',       // 'CASH' | 'VEHICLE_PLEDGE' | 'COMBINED'
+  collateralInfo: '',        // Thông tin xe thế chấp
+  collateralHeld: false,     // Đã nhận giữ xe thế chấp tại trạm
+  collateralOutHandler: '',  // Nhân viên tiếp nhận thế chấp
+  collateralOutTime: '',     // Thời gian tiếp nhận
+  collateralOutCustConfirmed: false, // Khách xác nhận giao tài sản
+  collateralReturned: false, // Đã trả lại xe thế chấp lúc check-in
+  collateralInHandler: '',   // Nhân viên bàn giao trả tài sản
+  collateralInTime: '',      // Thời gian bàn giao trả
+  collateralInCustConfirmed: false, // Khách xác nhận đã nhận lại tài sản
   rentDays: 2,
   pricePerDay: 937_500,
   customerName: 'Trần Thanh Bình',
@@ -68,8 +91,7 @@ let state = {
     photos: [],         // [{id, file, url, label, note, required}]
     checklist: [],      // populated from CHECKLIST_ITEMS
     damages: [],        // [{id, x, y, type, severity, note, age:'old'}]
-    sigCustomer: null,  // base64
-    sigStaff: null,
+    signedDocPhotos: [], // [{id, file, url, name}]
     customerName: MOCK_CONTRACT.customerName,
     staffName: MOCK_CONTRACT.staffName,
     note: '',
@@ -81,8 +103,7 @@ let state = {
     photos: [],
     checklist: [],
     damages: [],        // age:'new' for new damages found on return
-    sigCustomer: null,
-    sigStaff: null,
+    signedDocPhotos: [], // [{id, file, url, name}]
     customerName: MOCK_CONTRACT.customerName,
     staffName: MOCK_CONTRACT.staffName,
     note: '',
@@ -120,7 +141,6 @@ const REQUIRED_PHOTO_SLOTS = [
   { id: 'req-left',     label: 'Bên trái' },
   { id: 'req-right',    label: 'Bên phải' },
   { id: 'req-odo',      label: 'Đồng hồ ODO' },
-  { id: 'req-interior', label: 'Nội thất' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -218,12 +238,68 @@ function renderContractInfo() {
     '#hoRegExp': c.registrationExp,
     '#hoInsExp': c.insuranceExp,
     '#hoKmLimit': `${formatNum(c.kmPerDayLimit)} km/ngày × ${c.rentDays} ngày = ${formatNum(calcAllowedKm(c.rentDays, c.kmPerDayLimit))} km`,
+    '#coKmLimitPreview': `${formatNum(c.kmPerDayLimit)} km/ngày × ${c.rentDays} ngày = ${formatNum(calcAllowedKm(c.rentDays, c.kmPerDayLimit))} km · Phí vượt: ${formatVnd(c.overKmFee)}/km`,
     '#hoOverFee': formatVnd(c.overKmFee) + '/km',
-    '#hoDeposit': formatVnd(c.deposit),
+    '#hoDeposit': c.depositType === 'VEHICLE_PLEDGE'
+      ? '0 ₫ (Miễn cọc tiền)'
+      : formatVnd(c.deposit),
   };
   for (const [sel, val] of Object.entries(fields)) {
     const el = qs(sel);
     if (el) setText(el, val);
+  }
+
+  const policyEl = qs('#hoPolicySelect');
+  if (policyEl) policyEl.value = c.depositType || 'CASH';
+
+  const hasPledge = c.depositType === 'VEHICLE_PLEDGE' || c.depositType === 'COMBINED';
+  const coBox = qs('#coCollateralBox');
+  if (coBox) {
+    coBox.hidden = !hasPledge;
+    const infoEl = qs('#coCollateralInfo');
+    if (infoEl && infoEl.value !== (c.collateralInfo || '')) infoEl.value = c.collateralInfo || '';
+    const handlerEl = qs('#coCollateralHandler');
+    if (handlerEl) handlerEl.value = c.collateralOutHandler || c.staffName || '';
+    const timeEl = qs('#coCollateralTime');
+    if (timeEl && c.collateralOutTime) timeEl.value = c.collateralOutTime;
+    const heldEl = qs('#coCollateralHeld');
+    if (heldEl) heldEl.checked = Boolean(c.collateralHeld);
+    const custConfEl = qs('#coCollateralCustConfirmed');
+    if (custConfEl) custConfEl.checked = Boolean(c.collateralOutCustConfirmed);
+    setText(qs('#coCollateralCustName'), state.checkout.customerName || c.customerName || 'Khách thuê');
+    const coBadge = qs('#coCollateralStatusBadge');
+    if (coBadge) {
+      const heldOk = Boolean(c.collateralHeld);
+      coBadge.textContent = heldOk
+        ? (c.collateralOutCustConfirmed ? '✓ Đã tiếp nhận (2 bên xác nhận)' : '✓ Đang giữ tại trạm')
+        : 'Chưa tiếp nhận';
+      coBadge.className = `ho-collateral-badge ${heldOk ? 'is-held' : ''}`;
+    }
+  }
+
+  const ciBox = qs('#ciCollateralReturnBox');
+  if (ciBox) {
+    ciBox.hidden = !hasPledge;
+    setText(qs('#ciCollateralInfoText'), c.collateralInfo || 'Xe cá nhân + Giấy tờ gốc theo hợp đồng');
+    const handlerEl = qs('#ciCollateralHandler');
+    if (handlerEl) handlerEl.value = c.collateralInHandler || state.checkin.staffName || c.staffName || '';
+    const timeEl = qs('#ciCollateralTime');
+    if (timeEl && c.collateralInTime) timeEl.value = c.collateralInTime;
+    const retEl = qs('#ciCollateralReturned');
+    if (retEl) retEl.checked = Boolean(c.collateralReturned);
+    const custConfEl = qs('#ciCollateralCustConfirmed');
+    if (custConfEl) custConfEl.checked = Boolean(c.collateralInCustConfirmed);
+    setText(qs('#ciCollateralCustName'), state.checkin.customerName || c.customerName || 'Khách thuê');
+    const ciBadge = qs('#ciCollateralStatusBadge');
+    if (ciBadge) {
+      const retOk = Boolean(c.collateralReturned && c.collateralInCustConfirmed);
+      ciBadge.textContent = retOk
+        ? '✓ Đã hoàn trả khách (2 bên xác nhận)'
+        : c.collateralReturned
+          ? 'Đã bàn giao (Chờ khách xác nhận)'
+          : 'Đang giữ tại trạm';
+      ciBadge.className = `ho-collateral-badge ${retOk ? 'is-returned' : 'is-held'}`;
+    }
   }
 }
 
@@ -274,6 +350,11 @@ function renderFuel(tabKey) {
     seg.classList.toggle('filled', filled);
     seg.classList.toggle('warn', filled && idx <= 1);
   });
+
+  if (tabKey === 'checkout') {
+    const badge = qs('#ciFuelOutBadge');
+    if (badge) setText(badge, level === 'E' ? 'E (Hết)' : level);
+  }
 
   // Fuel warning & fee (checkin only)
   if (tabKey === 'checkin') {
@@ -496,6 +577,7 @@ function renderChecklist(tabKey) {
       { key: 'ok', label: 'Đủ', cls: 'ok' },
       { key: 'miss', label: 'Thiếu', cls: 'miss' },
       { key: 'broken', label: 'Hư hỏng', cls: 'broken' },
+      { key: 'na', label: 'Không có', cls: 'na' },
     ];
     statuses.forEach(s => {
       const btn = document.createElement('button');
@@ -510,10 +592,10 @@ function renderChecklist(tabKey) {
       statusWrap.appendChild(btn);
     });
 
-    // Note input (shown if not 'ok')
+    // Note input (shown if 'miss' or 'broken')
     const noteWrap = document.createElement('div');
     noteWrap.className = 'ho-checklist-note';
-    if (item.status !== 'ok') {
+    if (item.status === 'miss' || item.status === 'broken') {
       const noteInput = document.createElement('input');
       noteInput.type = 'text';
       noteInput.placeholder = 'Ghi chú...';
@@ -677,8 +759,16 @@ function closeDamageModal() {
 // ─────────────────────────────────────────────────────────────────────────────
 function renderSettlement() {
   const s = calcSettlement();
+  const dtype = state.contract.depositType || 'CASH';
+  const isPledgeOnly = dtype === 'VEHICLE_PLEDGE';
+  const isCombined = dtype === 'COMBINED';
   const fields = {
-    '#settlDeposit': formatVnd(s.deposit),
+    '#settlDepositLabel': isPledgeOnly
+      ? 'Chính sách bảo đảm'
+      : isCombined
+        ? 'Tiền cọc ban đầu (+ Thế chấp xe)'
+        : 'Tiền cọc ban đầu',
+    '#settlDeposit': isPledgeOnly ? 'Chỉ thế chấp tài sản (0 ₫ cọc)' : formatVnd(s.deposit),
     '#settlOverKm': s.overKm > 0 ? `${formatNum(s.overKm)} km × ${formatVnd(state.contract.overKmFee)} = ${formatVnd(s.overKmFee)}` : '0 ₫ (trong hạn mức)',
     '#settlFuel': s.fuelFee > 0 ? formatVnd(s.fuelFee) : '0 ₫',
     '#settlOvertime': s.overtimeFee > 0 ? formatVnd(s.overtimeFee) : '0 ₫',
@@ -686,7 +776,7 @@ function renderSettlement() {
     '#settlDamage': s.damageFee > 0 ? formatVnd(s.damageFee) : '0 ₫',
     '#settlCustom': s.customFee > 0 ? formatVnd(s.customFee) : '0 ₫',
     '#settlTotal': formatVnd(s.totalDeductions),
-    '#settlRefund': formatVnd(Math.abs(s.refund)),
+    '#settlRefund': isPledgeOnly ? formatVnd(s.totalDeductions) : formatVnd(Math.abs(s.refund)),
   };
   for (const [sel, val] of Object.entries(fields)) {
     const el = qs(sel);
@@ -694,9 +784,17 @@ function renderSettlement() {
   }
   const refundRow = qs('#settlRefundRow');
   if (refundRow) {
-    if (s.refund >= 0) {
+    if (isPledgeOnly) {
+      if (s.totalDeductions > 0) {
+        refundRow.className = 'ho-settlement-row charge';
+        setText(qs('#settlRefundLabel'), `⚠️ Khách cần thanh toán phụ phí`);
+      } else {
+        refundRow.className = 'ho-settlement-row refund';
+        setText(qs('#settlRefundLabel'), `✅ Không phát sinh phụ phí (Hoàn trả tài sản thế chấp)`);
+      }
+    } else if (s.refund >= 0) {
       refundRow.className = 'ho-settlement-row refund';
-      setText(qs('#settlRefundLabel'), `✅ Hoàn cọc khách`);
+      setText(qs('#settlRefundLabel'), isCombined ? `✅ Hoàn cọc khách &amp; trả tài sản thế chấp` : `✅ Hoàn cọc khách`);
     } else {
       refundRow.className = 'ho-settlement-row charge';
       setText(qs('#settlRefundLabel'), `⚠️ Khách cần trả thêm`);
@@ -705,71 +803,79 @@ function renderSettlement() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SIGNATURE
+// SIGNED PAPER PROTOCOL PHOTOS (Ảnh biên bản giấy đã ký)
 // ─────────────────────────────────────────────────────────────────────────────
-function initSignature(canvasId, tabKey, sigKey) {
-  const canvas = qs(`#${canvasId}`);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  let drawing = false;
-  let lastX = 0, lastY = 0;
+function renderSignedDocs(tabKey) {
+  const prefix = tabKey === 'checkout' ? 'co' : 'ci';
+  const grid = qs(`#${prefix}SignedDocGrid`);
+  const zone = qs(`#${prefix}SignedDocZone`);
+  const errEl = qs(`#${prefix}SignedDocErr`);
+  if (!grid) return;
 
-  function getPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    if (e.touches) {
-      return [
-        (e.touches[0].clientX - rect.left) * scaleX,
-        (e.touches[0].clientY - rect.top) * scaleY,
-      ];
-    }
-    return [(e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY];
+  const docs = state[tabKey].signedDocPhotos || [];
+  grid.innerHTML = '';
+
+  if (docs.length > 0) {
+    zone?.classList.remove('is-error');
+    if (errEl) { errEl.textContent = ''; errEl.classList.remove('visible'); }
   }
 
-  function start(e) {
-    drawing = true;
-    [lastX, lastY] = getPos(e);
-    e.preventDefault();
-  }
-  function draw(e) {
-    if (!drawing) return;
-    e.preventDefault();
-    const [x, y] = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(x, y);
-    ctx.strokeStyle = '#132a1c';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-    [lastX, lastY] = [x, y];
-  }
-  function end() {
-    if (!drawing) return;
-    drawing = false;
-    state[tabKey][sigKey] = canvas.toDataURL('image/png');
-    canvas.classList.add('has-sig');
-    canvas.classList.remove('is-error');
-  }
+  docs.forEach((doc, idx) => {
+    const item = document.createElement('div');
+    item.className = 'ho-doc-item';
 
-  canvas.addEventListener('mousedown', start);
-  canvas.addEventListener('mousemove', draw);
-  canvas.addEventListener('mouseup', end);
-  canvas.addEventListener('mouseleave', end);
-  canvas.addEventListener('touchstart', start, { passive: false });
-  canvas.addEventListener('touchmove', draw, { passive: false });
-  canvas.addEventListener('touchend', end);
+    const img = document.createElement('img');
+    img.src = doc.url;
+    img.alt = doc.name || `Ảnh biên bản trang ${idx + 1}`;
+    img.addEventListener('click', () => openLightbox(doc.url, img.alt));
+
+    const badge = document.createElement('span');
+    badge.className = 'ho-doc-badge';
+    badge.textContent = `Trang ${idx + 1}`;
+
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'del-btn';
+    del.innerHTML = '&times;';
+    del.setAttribute('aria-label', `Xoá ảnh biên bản trang ${idx + 1}`);
+    del.addEventListener('click', (e) => {
+      e.stopPropagation();
+      try { if (doc.url && doc.url.startsWith('blob:')) URL.revokeObjectURL(doc.url); } catch {}
+      state[tabKey].signedDocPhotos = state[tabKey].signedDocPhotos.filter(d => d.id !== doc.id);
+      renderSignedDocs(tabKey);
+    });
+
+    item.appendChild(img);
+    item.appendChild(badge);
+    item.appendChild(del);
+    grid.appendChild(item);
+  });
 }
 
-function clearSignature(canvasId, tabKey, sigKey) {
-  const canvas = qs(`#${canvasId}`);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  state[tabKey][sigKey] = null;
-  canvas.classList.remove('has-sig');
+function triggerSignedDocUpload(tabKey) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/jpeg,image/png,image/webp';
+  input.multiple = true;
+  input.addEventListener('change', () => {
+    [...(input.files || [])].forEach(f => handleSignedDocFile(tabKey, f));
+  });
+  input.click();
+}
+
+function handleSignedDocFile(tabKey, file) {
+  if (!file) return;
+  if (!HO_CONFIG.ALLOWED_TYPES.includes(file.type)) {
+    showToast('Chỉ hỗ trợ ảnh JPG, PNG, WebP cho biên bản giấy.', 'error');
+    return;
+  }
+  if (file.size > HO_CONFIG.MAX_FILE_SIZE_MB * 1024 * 1024) {
+    showToast(`File "${file.name}" vượt quá ${HO_CONFIG.MAX_FILE_SIZE_MB}MB.`, 'error');
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  state[tabKey].signedDocPhotos.push({ id: uid(), file, url, name: file.name });
+  renderSignedDocs(tabKey);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -858,7 +964,7 @@ function validatePhase(tabKey) {
     }
   }
 
-  // 6 Ảnh bắt buộc
+  // 5 Ảnh bắt buộc
   const missingPhotos = REQUIRED_PHOTO_SLOTS.filter(slot =>
     !phase.photos.find(p => p.required === slot.id)
   );
@@ -874,21 +980,19 @@ function validatePhase(tabKey) {
     });
   }
 
-  // Chữ ký
-  if (!phase.sigCustomer) {
-    errors.push('Thiếu chữ ký khách thuê.');
-    const c = qs(`#${prefix}SigCustomer`);
-    if (c) {
-      c.classList.add('is-error');
-      if (!firstError) firstError = c;
+  // Ảnh biên bản giấy đã ký
+  if (!phase.signedDocPhotos || phase.signedDocPhotos.length === 0) {
+    const msg = 'Vui lòng chụp/tải lên ảnh biên bản giấy đã ký xác nhận.';
+    errors.push(msg);
+    const zone = qs(`#${prefix}SignedDocZone`);
+    const errEl = qs(`#${prefix}SignedDocErr`);
+    if (zone) {
+      zone.classList.add('is-error');
+      if (!firstError) firstError = zone;
     }
-  }
-  if (!phase.sigStaff) {
-    errors.push('Thiếu chữ ký nhân viên.');
-    const s = qs(`#${prefix}SigStaff`);
-    if (s) {
-      s.classList.add('is-error');
-      if (!firstError) firstError = s;
+    if (errEl) {
+      errEl.textContent = msg;
+      errEl.classList.add('visible');
     }
   }
 
@@ -917,9 +1021,7 @@ function _serializePhase(phase) {
   return {
     ...phase,
     photos: phase.photos.map(p => ({ id: p.id, label: p.label, note: p.note, required: p.required })),
-    // Don't serialize signatures (canvas data) for now — too large; TODO: compress
-    sigCustomer: null,
-    sigStaff: null,
+    signedDocPhotos: [],
   };
 }
 
@@ -931,14 +1033,12 @@ function loadDraft() {
     if (draft.checkout) {
       Object.assign(state.checkout, draft.checkout);
       state.checkout.photos = []; // can't restore blob URLs
-      state.checkout.sigCustomer = null;
-      state.checkout.sigStaff = null;
+      state.checkout.signedDocPhotos = [];
     }
     if (draft.checkin) {
       Object.assign(state.checkin, draft.checkin);
       state.checkin.photos = [];
-      state.checkin.sigCustomer = null;
-      state.checkin.sigStaff = null;
+      state.checkin.signedDocPhotos = [];
     }
     return true;
   } catch (e) {
@@ -987,14 +1087,22 @@ async function submitHandover() {
   }
 
   try {
-    const coPayload = buildPayload('checkout');
-    const ciPayload = buildPayload('checkin');
-    await _mockSubmit(coPayload);
-    await _mockSubmit(ciPayload);
-    showToast('✅ Biên bản đã được lưu thành công!', 'success', 4000);
+    const token = getAuthToken();
+    const numericBookingId = _resolveNumericBookingId();
+
+    if (token && numericBookingId > 0) {
+      await _submitToBackend(numericBookingId, token);
+      showToast('✅ Biên bản & ảnh biên bản giấy đã lưu lên hệ thống!', 'success', 4000);
+    } else {
+      const coPayload = buildPayload('checkout');
+      const ciPayload = buildPayload('checkin');
+      await _mockSubmit(coPayload);
+      await _mockSubmit(ciPayload);
+      showToast('✅ Đã lưu biên bản (chế độ demo — đăng nhập & chọn đơn để đồng bộ DB).', 'success', 4500);
+    }
     try { localStorage.removeItem(HO_CONFIG.DRAFT_KEY); } catch {}
   } catch (err) {
-    showToast('Lỗi khi lưu biên bản. Vui lòng thử lại.', 'error', 5000);
+    showToast(err?.message || 'Lỗi khi lưu biên bản. Vui lòng thử lại.', 'error', 5000);
     console.error('[Handover] Submit error:', err);
   } finally {
     if (submitBtn) {
@@ -1002,6 +1110,155 @@ async function submitHandover() {
       submitBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Xác nhận & Lưu biên bản`;
     }
   }
+}
+
+function _resolveNumericBookingId() {
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('booking_id') || state.contract.contractId || '';
+  if (/^\d+$/.test(String(raw).trim())) return Number(raw);
+  return 0;
+}
+
+function _mapChecklistForApi(items) {
+  return (items || []).map(c => ({
+    item: c.name,
+    ok: c.status === 'ok' || c.status === 'na',
+    status: c.status || 'ok',
+    note: c.note || null,
+  }));
+}
+
+function _mapFuelForApi(fuel) {
+  if (fuel === 'E') return 'EMPTY';
+  if (fuel === '2/4') return '1/2';
+  return fuel || 'FULL';
+}
+
+async function _uploadMediaBatch(protocolId, files, mediaType, captions, token) {
+  if (!files || files.length === 0) return [];
+  const fd = new FormData();
+  files.forEach(f => fd.append('files', f));
+  fd.append('media_type', mediaType);
+  if (captions && captions.length) fd.append('captions', captions.join('|'));
+
+  const res = await fetch(`${HO_CONFIG.API_BASE_URL}/handover/${protocolId}/media`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: fd,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Upload ảnh (${mediaType}) thất bại (${res.status})`);
+  }
+  return res.json();
+}
+
+async function _submitToBackend(bookingId, token) {
+  const co = state.checkout;
+  const ci = state.checkin;
+  const c = state.contract;
+  const settl = calcSettlement();
+  const suffix = Date.now().toString().slice(-5);
+
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+
+  const hasPledge = c.depositType === 'VEHICLE_PLEDGE' || c.depositType === 'COMBINED';
+  // 1. Tạo biên bản CHECK_OUT
+  const coBody = {
+    protocol_code: `BB-OUT-${bookingId}-${suffix}`,
+    booking_id: bookingId,
+    protocol_type: 'CHECK_OUT',
+    handover_location: qs('#coPickupAddr')?.value?.trim() || c.pickupAddr || 'Cửa hàng RideHub',
+    vehicle_name: `${c.brand} ${c.model}`.trim() || 'Xe thuê',
+    license_plate: c.licensePlate || 'Chưa cập nhật',
+    vehicle_category: 'CAR',
+    customer_name: qs('#coCustName')?.value?.trim() || co.customerName,
+    customer_cccd: qs('#coCustCCCD')?.value?.trim() || c.customerCCCD || '',
+    customer_phone: qs('#coCustPhone')?.value?.trim() || c.customerPhone || '',
+    customer_license: qs('#coCustLicense')?.value?.trim() || c.customerLicense || '',
+    odo_checkout: Number(qs('#coOdo')?.value || co.odo) || 0,
+    fuel_checkout: _mapFuelForApi(co.fuel),
+    free_km_limit: calcAllowedKm(c.rentDays, c.kmPerDayLimit),
+    checklist_data: _mapChecklistForApi(co.checklist),
+    deposit_type: c.depositType || 'CASH',
+    collateral_info: hasPledge ? (qs('#coCollateralInfo')?.value?.trim() || c.collateralInfo || null) : null,
+    collateral_status: hasPledge ? (c.collateralHeld ? 'HELD' : 'PENDING') : null,
+    collateral_handler_name: hasPledge ? (qs('#coCollateralHandler')?.value?.trim() || c.collateralOutHandler || co.staffName || null) : null,
+    collateral_handled_at: hasPledge && (qs('#coCollateralTime')?.value || c.collateralOutTime) ? (qs('#coCollateralTime')?.value || c.collateralOutTime) : null,
+    collateral_customer_confirmed: hasPledge ? Boolean(c.collateralOutCustConfirmed) : false,
+    deposit_original: c.depositType === 'VEHICLE_PLEDGE' ? 0 : (c.deposit || 0),
+    notes: co.note || null,
+  };
+
+  const coRes = await fetch(`${HO_CONFIG.API_BASE_URL}/handover/checkout`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(coBody),
+  });
+  if (!coRes.ok) {
+    const err = await coRes.json().catch(() => ({}));
+    throw new Error(err.detail || `Lưu Check-out thất bại (${coRes.status})`);
+  }
+  const coProtocol = await coRes.json();
+
+  // Upload ảnh xe & ảnh biên bản giấy Check-out
+  const coVehicleFiles = co.photos.filter(p => p.file).map(p => p.file);
+  const coVehicleCaptions = co.photos.filter(p => p.file).map(p => p.label || 'Ảnh xe lúc giao');
+  await _uploadMediaBatch(coProtocol.id, coVehicleFiles, 'VEHICLE_PHOTO', coVehicleCaptions, token);
+
+  const coDocFiles = (co.signedDocPhotos || []).filter(d => d.file).map(d => d.file);
+  const coDocCaptions = (co.signedDocPhotos || []).filter(d => d.file).map((_, i) => `Biên bản giao xe trang ${i + 1}`);
+  await _uploadMediaBatch(coProtocol.id, coDocFiles, 'SIGNED_DOCUMENT', coDocCaptions, token);
+
+  // 2. Tạo biên bản CHECK_IN
+  const holdFine = Math.min(c.deposit || 0, Math.max(0, settl.totalDeductions));
+  const refundImm = Math.max(0, (c.deposit || 0) - holdFine);
+  const ciBody = {
+    protocol_code: `BB-IN-${bookingId}-${suffix}`,
+    booking_id: bookingId,
+    odo_checkin: Number(qs('#ciOdo')?.value || ci.odo) || 0,
+    fuel_checkin: _mapFuelForApi(ci.fuel),
+    handover_location: qs('#coPickupAddr')?.value?.trim() || c.returnAddr || 'Cửa hàng RideHub',
+    checklist_data: _mapChecklistForApi(ci.checklist),
+    fee_overtime: settl.overtimeFee,
+    fee_excess_km: settl.overKmFee,
+    fee_fuel: settl.fuelFee,
+    fee_cleaning: settl.cleaningFee,
+    fee_damage: settl.damageFee + settl.customFee,
+    deposit_type: c.depositType || 'CASH',
+    collateral_info: hasPledge ? (c.collateralInfo || null) : null,
+    collateral_status: hasPledge ? (c.collateralReturned ? 'RETURNED' : 'HELD') : null,
+    collateral_handler_name: hasPledge ? (qs('#ciCollateralHandler')?.value?.trim() || c.collateralInHandler || ci.staffName || null) : null,
+    collateral_handled_at: hasPledge && (qs('#ciCollateralTime')?.value || c.collateralInTime) ? (qs('#ciCollateralTime')?.value || c.collateralInTime) : null,
+    collateral_customer_confirmed: hasPledge ? Boolean(c.collateralInCustConfirmed) : false,
+    deposit_original: c.depositType === 'VEHICLE_PLEDGE' ? 0 : (c.deposit || 0),
+    hold_fine_deposit: c.depositType === 'VEHICLE_PLEDGE' ? 0 : holdFine,
+    refund_immediate: c.depositType === 'VEHICLE_PLEDGE' ? 0 : refundImm,
+    notes: ci.note || null,
+  };
+
+  const ciRes = await fetch(`${HO_CONFIG.API_BASE_URL}/handover/checkin`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(ciBody),
+  });
+  if (!ciRes.ok) {
+    const err = await ciRes.json().catch(() => ({}));
+    throw new Error(err.detail || `Lưu Check-in thất bại (${ciRes.status})`);
+  }
+  const ciProtocol = await ciRes.json();
+
+  // Upload ảnh xe & ảnh biên bản giấy Check-in
+  const ciVehicleFiles = ci.photos.filter(p => p.file).map(p => p.file);
+  const ciVehicleCaptions = ci.photos.filter(p => p.file).map(p => p.label || 'Ảnh xe lúc nhận');
+  await _uploadMediaBatch(ciProtocol.id, ciVehicleFiles, 'VEHICLE_PHOTO', ciVehicleCaptions, token);
+
+  const ciDocFiles = (ci.signedDocPhotos || []).filter(d => d.file).map(d => d.file);
+  const ciDocCaptions = (ci.signedDocPhotos || []).filter(d => d.file).map((_, i) => `Biên bản nhận xe trang ${i + 1}`);
+  await _uploadMediaBatch(ciProtocol.id, ciDocFiles, 'SIGNED_DOCUMENT', ciDocCaptions, token);
 }
 
 function buildPayload(tabKey) {
@@ -1022,8 +1279,9 @@ function buildPayload(tabKey) {
     formData.append('customFeeNote', state.checkin.customFeeNote);
     formData.append('settlement', JSON.stringify(calcSettlement()));
   }
-  if (phase.sigCustomer) formData.append('sigCustomer', phase.sigCustomer);
-  if (phase.sigStaff) formData.append('sigStaff', phase.sigStaff);
+  (phase.signedDocPhotos || []).forEach((d, i) => {
+    if (d.file) formData.append(`signed_doc_${i}`, d.file, d.name);
+  });
   phase.photos.forEach((p, i) => {
     if (p.file) formData.append(`photo_${i}`, p.file, p.label);
   });
@@ -1173,29 +1431,31 @@ function bindEvents() {
   qs('#hoLightbox')?.addEventListener('click', e => { if (e.target === qs('#hoLightbox')) closeLightbox(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLightbox(); closeDamageModal(); } });
 
-  // Signatures
+  // Signed paper protocol upload & name sync
   ['checkout', 'checkin'].forEach(tabKey => {
     const prefix = tabKey === 'checkout' ? 'co' : 'ci';
-    initSignature(`${prefix}SigCustomer`, tabKey, 'sigCustomer');
-    initSignature(`${prefix}SigStaff`, tabKey, 'sigStaff');
-    qs(`#${prefix}SigCustomerRedo`)?.addEventListener('click', () => clearSignature(`${prefix}SigCustomer`, tabKey, 'sigCustomer'));
-    qs(`#${prefix}SigStaffRedo`)?.addEventListener('click', () => clearSignature(`${prefix}SigStaff`, tabKey, 'sigStaff'));
+    const docZone = qs(`#${prefix}SignedDocZone`);
+    if (docZone) {
+      docZone.addEventListener('click', () => triggerSignedDocUpload(tabKey));
+      docZone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          triggerSignedDocUpload(tabKey);
+        }
+      });
+    }
 
     // Name sync
     const custNameInput = qs(`#${prefix}CustName`);
     if (custNameInput) {
       custNameInput.addEventListener('input', () => {
         state[tabKey].customerName = custNameInput.value;
-        const nameEl = qs(`#${prefix}SigCustName`);
-        if (nameEl) setText(nameEl, custNameInput.value || 'Khách thuê');
       });
     }
     const staffNameInput = qs(`#${prefix}StaffName`);
     if (staffNameInput) {
       staffNameInput.addEventListener('input', () => {
         state[tabKey].staffName = staffNameInput.value;
-        const nameEl = qs(`#${prefix}SigStaffName`);
-        if (nameEl) setText(nameEl, staffNameInput.value || 'Nhân viên');
       });
     }
   });
@@ -1213,6 +1473,71 @@ function bindEvents() {
   // Note textareas
   qs('#coNote')?.addEventListener('input', e => { state.checkout.note = e.target.value; });
   qs('#ciNote')?.addEventListener('input', e => { state.checkin.note = e.target.value; });
+
+  // Collateral policy & audit trail inputs
+  function _nowLocalIso() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  qs('#hoPolicySelect')?.addEventListener('change', e => {
+    const val = e.target.value;
+    state.contract.depositType = val;
+    if (val === 'VEHICLE_PLEDGE') {
+      state.contract.deposit = 0;
+    } else {
+      state.contract.deposit = state.contract.baseDeposit || 5_000_000;
+    }
+    renderContractInfo();
+    renderSettlement();
+  });
+
+  qs('#coCollateralInfo')?.addEventListener('input', e => {
+    state.contract.collateralInfo = e.target.value;
+    setText(qs('#ciCollateralInfoText'), e.target.value || 'Xe cá nhân + Giấy tờ gốc theo hợp đồng');
+  });
+  qs('#coCollateralHandler')?.addEventListener('input', e => {
+    state.contract.collateralOutHandler = e.target.value;
+  });
+  qs('#coCollateralTime')?.addEventListener('change', e => {
+    state.contract.collateralOutTime = e.target.value;
+  });
+  qs('#coCollateralHeld')?.addEventListener('change', e => {
+    state.contract.collateralHeld = e.target.checked;
+    if (e.target.checked && !state.contract.collateralOutTime) {
+      state.contract.collateralOutTime = _nowLocalIso();
+    }
+    if (e.target.checked && !state.contract.collateralOutHandler) {
+      state.contract.collateralOutHandler = qs('#coStaffName')?.value?.trim() || state.contract.staffName || '';
+    }
+    renderContractInfo();
+  });
+  qs('#coCollateralCustConfirmed')?.addEventListener('change', e => {
+    state.contract.collateralOutCustConfirmed = e.target.checked;
+    renderContractInfo();
+  });
+
+  qs('#ciCollateralHandler')?.addEventListener('input', e => {
+    state.contract.collateralInHandler = e.target.value;
+  });
+  qs('#ciCollateralTime')?.addEventListener('change', e => {
+    state.contract.collateralInTime = e.target.value;
+  });
+  qs('#ciCollateralReturned')?.addEventListener('change', e => {
+    state.contract.collateralReturned = e.target.checked;
+    if (e.target.checked && !state.contract.collateralInTime) {
+      state.contract.collateralInTime = _nowLocalIso();
+    }
+    if (e.target.checked && !state.contract.collateralInHandler) {
+      state.contract.collateralInHandler = qs('#ciStaffName')?.value?.trim() || state.contract.staffName || '';
+    }
+    renderContractInfo();
+  });
+  qs('#ciCollateralCustConfirmed')?.addEventListener('change', e => {
+    state.contract.collateralInCustConfirmed = e.target.checked;
+    renderContractInfo();
+  });
 
   // Draft
   qs('#hoDraftBtn')?.addEventListener('click', saveDraft);
@@ -1237,6 +1562,8 @@ function boot() {
     const vehicle = params.get('vehicle');
     const plate = params.get('plate');
     const deposit = params.get('deposit');
+    const depositType = params.get('deposit_type');
+    const collateralInfo = params.get('collateral_info');
 
     if (bookingId) state.contract.contractId = bookingId;
     if (customer) {
@@ -1250,7 +1577,21 @@ function boot() {
       state.contract.brand = vehicle;
       state.contract.model = '';
     }
-    if (deposit) state.contract.deposit = Number(deposit) || state.contract.deposit;
+    if (depositType) {
+      const upper = depositType.toUpperCase();
+      state.contract.depositType = (upper === 'VEHICLE_PLEDGE' || upper === 'COMBINED') ? upper : 'CASH';
+    }
+    if (collateralInfo) {
+      state.contract.collateralInfo = collateralInfo;
+    }
+    if (deposit !== null && deposit !== '' && Number(deposit) > 0) {
+      state.contract.baseDeposit = Number(deposit);
+    }
+    if (state.contract.depositType === 'VEHICLE_PLEDGE') {
+      state.contract.deposit = 0;
+    } else if (deposit !== null && deposit !== '') {
+      state.contract.deposit = Number(deposit) || state.contract.deposit;
+    }
   } catch (_) {}
 
   // Init checklists
@@ -1266,6 +1607,7 @@ function boot() {
   // Render both phases
   ['checkout', 'checkin'].forEach(tabKey => {
     renderPhotos(tabKey);
+    renderSignedDocs(tabKey);
     renderChecklist(tabKey);
     renderDamages(tabKey);
     renderFuel(tabKey);
@@ -1316,11 +1658,6 @@ function _prefillFormFields() {
     const el = qs(`#${id}`);
     if (el) el.value = val || '';
   }
-  // Sig names
-  setText(qs('#coSigCustName'), state.checkout.customerName);
-  setText(qs('#coSigStaffName'), state.checkout.staffName);
-  setText(qs('#ciSigCustName'), state.checkin.customerName);
-  setText(qs('#ciSigStaffName'), state.checkin.staffName);
 }
 
 // Wait for DOM

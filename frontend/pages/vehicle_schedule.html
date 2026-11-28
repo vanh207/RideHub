@@ -2,19 +2,68 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Lịch Xe Theo Ngày &amp; Tuần — RideHub</title>
+  
+  <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
   
   <!-- Font chữ tiêu chuẩn từ dự án -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
+  <!-- CSS chung của hệ thống RideHub -->
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+  <link rel="stylesheet" href="../css/components/site-footer.css" />
+
   <!-- File CSS bóc tách riêng (đầy đủ màu sắc, components và layout) -->
   <link rel="stylesheet" href="css/vehicle_schedule.css" />
 </head>
-<body>
-  <div class="container">
+<body style="margin: 0; padding: 0; background: var(--bg-page);">
+  <!-- Hiệu ứng nền & Toast -->
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Thanh Navbar dùng chung (Chuẩn mẫu từ trang Quản lý kho xe) -->
+  <header id="mainNavbar" class="navbar is-scrolled" style="margin-bottom: 24px;">
+    <div class="container navbar-inner" style="flex-direction: row;">
+      <a href="../index.html" class="brand-logo" style="display: flex; align-items: center; text-decoration: none;">
+        <img src="../assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;" />
+        <span style="font-weight: 800; font-size: 1.25rem; color: var(--green-800); margin-left: 8px;">RideHub</span>
+      </a>
+      <nav class="nav-links">
+        <a href="store_revenue_dashboard.html" class="nav-link">Báo cáo doanh thu</a>
+        <a href="vehicle_management.html" class="nav-link">Quản lý kho xe</a>
+        <a href="vehicle_schedule.html" class="nav-link is-active" style="color: var(--green-700); font-weight: 700;">Lịch xe ngày &amp; tuần</a>
+        <a href="store_operations.html" class="nav-link">Đổi trạng thái &amp; Cảnh báo</a>
+        <a href="store-orders.html" class="nav-link">Duyệt đơn đặt xe</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <line x1="4" y1="7" x2="20" y2="7"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="17" x2="20" y2="17"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <aside id="mobileDrawer" class="mobile-drawer" aria-label="Menu di động">
+    <a href="store_revenue_dashboard.html">Báo cáo doanh thu</a>
+    <a href="vehicle_management.html">Quản lý kho xe</a>
+    <a href="vehicle_schedule.html">Lịch xe ngày &amp; tuần</a>
+    <a href="store_operations.html">Đổi trạng thái &amp; Cảnh báo</a>
+    <a href="store-orders.html">Duyệt đơn đặt xe</a>
+  </aside>
+
+  <!-- NỘI DUNG CHÍNH (Đẩy 80px để không bị Navbar che chữ giống trang Quản lý kho xe) -->
+  <div class="container" style="padding-top: 80px;">
     
     <!-- Tiêu đề trang & Nút chuyển chế độ xem Tháng / Tuần -->
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
@@ -26,8 +75,8 @@
       </div>
       <!-- Nút chuyển chế độ xem: Theo Tháng / Theo Tuần -->
       <div class="schedule-mode-toggle" style="display: flex; gap: 6px; background: var(--bg-surface-soft); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--green-100);">
-        <button id="viewMonthBtn" class="btn btn-primary" type="button" style="min-height: 32px; padding: 4px 14px; font-size: 12.5px;">Chế độ Tháng</button>
-        <button id="viewWeekBtn" class="btn btn-soft" type="button" style="min-height: 32px; padding: 4px 14px; font-size: 12.5px;">Chế độ Tuần</button>
+        <button id="viewMonthBtn" class="btn btn-primary" type="button" style="padding: 6px 14px; font-size: 12.5px;">Chế độ Tháng</button>
+        <button id="viewWeekBtn" class="btn btn-soft" type="button" style="padding: 6px 14px; font-size: 12.5px;">Chế độ Tuần</button>
       </div>
     </div>
 
@@ -46,9 +95,9 @@
             </div>
           </div>
           <div class="cal-nav-group" style="display: flex; gap: 6px; align-items: center;">
-            <button id="calPrevBtn" class="btn btn-soft cal-nav-btn" type="button" style="min-height: 34px; padding: 4px 12px;" title="Lùi lại">‹</button>
-            <button id="calTodayBtn" class="btn btn-soft cal-nav-btn" type="button" style="min-height: 34px; padding: 4px 14px; font-size: 12px;">Hôm nay</button>
-            <button id="calNextBtn" class="btn btn-soft cal-nav-btn" type="button" style="min-height: 34px; padding: 4px 12px;" title="Tiến tới">›</button>
+            <button id="calPrevBtn" class="btn btn-soft cal-nav-btn" type="button" title="Lùi lại">‹</button>
+            <button id="calTodayBtn" class="btn btn-soft cal-nav-btn" type="button" style="font-size: 12.5px;">Hôm nay</button>
+            <button id="calNextBtn" class="btn btn-soft cal-nav-btn" type="button" title="Tiến tới">›</button>
           </div>
         </div>
 
@@ -75,18 +124,19 @@
 
         <!-- VIEW 2: LỊCH TUẦN (WEEK VIEW GRID) -->
         <div id="weekViewWrapper" hidden>
+          <div class="week-swipe-hint">← Vuốt ngang để xem cả 7 ngày trong tuần →</div>
           <div id="weekGrid" class="week-view-grid"></div>
         </div>
       </div>
 
       <!-- CỘT PHẢI: CHI TIẾT SỰ KIỆN TRONG NGÀY ĐÃ CHỌN -->
       <div class="panel-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 14px; border-bottom: 1px solid rgba(22, 163, 74, 0.12); padding-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; border-bottom: 1px solid rgba(22, 163, 74, 0.12); padding-bottom: 10px;">
           <div>
             <h2 id="calSelectedDateTitle" style="margin: 0; font-size: 1.15rem;">Lịch ngày 14/11/2026</h2>
             <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Chi tiết lịch trình nhận, trả &amp; bảo dưỡng</div>
           </div>
-          <span id="calDayCountBadge" class="status-badge status-badge--available">0 lịch</span>
+          <span id="calDayCountBadge" class="status-badge status-badge--available" style="flex-shrink: 0;">0 lịch</span>
         </div>
 
         <!-- Danh sách thẻ lịch xe trong ngày -->
@@ -96,7 +146,69 @@
     </div>
   </div>
 
-  <!-- File Javascript bóc tách riêng (dữ liệu giả & logic điều hướng) -->
+  <!-- FOOTER GỌN ĐẸP BÁM SÁT ĐÁY TRANG -->
+  <footer class="site-footer site-footer--compact">
+    <div class="footer-road-edge">
+      <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Nền tảng thuê xe thông minh">
+        <svg viewBox="0 0 110 64" width="76" height="32">
+          <path d="M22 36 C28 22,46 20,60 25 L76 17 L85 20 L75 36 Z" fill="#4ade80"/>
+          <g transform="translate(27,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g>
+          <g transform="translate(81,45)"><g class="wheel-spin"><circle r="10" fill="#132a1c"/><circle r="4.5" fill="#dcfce7"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#22c55e" stroke-width="1.5"/></g></g>
+        </svg>
+      </div>
+    </div>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand-row">
+            <img src="../assets/logo-rh.png" alt="RideHub Logo" class="footer-logo" />
+            <span class="footer-brand-name">RideHub</span>
+          </div>
+          <p class="footer-brand-desc">
+            Cổng quản trị đối tác &amp; thuê xe xanh thông minh. Tự động hóa lịch đặt xe, eKYC CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+          </p>
+          <div class="footer-contact">
+            <div><strong>Hotline:</strong> <a href="tel:19006868">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn">support@ridehub.vn</a></div>
+            <div><strong>Trạm chính:</strong> 120 Nguyễn Huệ, P. Bến Nghé, Q.1, TP.HCM</div>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Quản lý Cửa hàng</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="store_revenue_dashboard.html">Báo cáo doanh thu</a></li>
+            <li class="footer-link-item"><a href="store-orders.html">Duyệt &amp; Quản lý đơn thuê</a></li>
+            <li class="footer-link-item"><a href="vehicle_management.html">Kho xe &amp; Thêm/Sửa xe</a></li>
+            <li class="footer-link-item"><a href="vehicle_schedule.html">Lịch xe ngày &amp; tuần</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Vận hành &amp; Hỗ trợ</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="handover.html">Biên bản giao/nhận xe</a></li>
+            <li class="footer-link-item"><a href="delivery.html">Điểm giao nhận &amp; Biểu phí</a></li>
+            <li class="footer-link-item"><a href="../index.html">Trang chủ RideHub</a></li>
+            <li class="footer-link-item"><a href="privacy-policy.html">Chính sách bảo mật</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-bottom-row">
+        <div>© 2026 <strong>RideHub Technology JSC</strong>. Cổng Đối tác Trạm GreenRide Q.1.</div>
+        <div class="footer-bottom-links">
+          <span class="footer-badge">Bảo mật PayOS VietQR</span>
+          <span class="footer-badge">Chuẩn eKYC Chip</span>
+          <a href="../index.html#storySection">Điều khoản</a>
+          <a href="privacy-policy.html">Bảo mật</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Nạp file JavaScript hệ thống, phân quyền RBAC và logic lịch xe -->
+  <script src="../js/components.js"></script>
+  <script src="../js/vehicle-anim.js"></script>
+  <script src="../js/effects.js"></script>
+  <script src="../js/auth-rbac.js"></script>
   <script src="../js/vehicle_schedule.js"></script>
 </body>
 </html>

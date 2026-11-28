@@ -246,12 +246,14 @@
               Bảo mật hồ sơ eKYC &amp; Hình ảnh giấy tờ
             </h2>
             <p class="policy-p">
-              Ảnh chụp CCCD và GPLX của khách hàng là dữ liệu nhạy cảm cao, do đó RideHub áp dụng các tiêu chuẩn an ninh mạng hàng đầu:
+              CHƯA ĐƯỢC REVIEW PHÁP LÝ. Ảnh chụp CCCD và khuôn mặt của khách hàng là dữ liệu nhạy cảm; RideHub hiện áp dụng các biện pháp sau:
             </p>
             <ul class="policy-list">
-              <li>Mã hóa toàn bộ kênh truyền tải dữ liệu bằng giao thức SSL/TLS 1.3 với chứng chỉ bảo mật cao cấp.</li>
-              <li>Dữ liệu ảnh giấy tờ được lưu trữ phân tách trên hạ tầng đám mây bảo mật cao, có gắn watermark nhận diện bản quyền RideHub chống làm giả.</li>
-              <li>Hệ thống phân quyền Role-Based Access Control (RBAC) nghiêm ngặt: chỉ nhân viên thẩm định có thẩm quyền mới được cấp quyền rà soát hồ sơ theo quy trình kiểm toán nội bộ.</li>
+              <li>Kênh truyền tải dữ liệu được mã hóa bằng HTTPS/TLS khi triển khai production.</li>
+              <li>Ảnh eKYC được lưu trong thư mục riêng trên máy chủ, không trả URL công khai; chỉ admin/operator có quyền mới xem được qua API bảo mật.</li>
+              <li>Ảnh khuôn mặt được xóa sau 30 ngày kể từ khi phiên hết hạn; ảnh CCCD và hồ sơ định danh được xóa sau 180 ngày kể từ ngày tạo.</li>
+              <li>Mỗi lượt xóa được ghi audit log; hệ thống không lưu base64 ảnh trong trình duyệt và không tự động duyệt hồ sơ theo điểm số.</li>
+              <li>Bạn có thể yêu cầu xóa sớm dữ liệu qua email hỗ trợ; yêu cầu sẽ được đối chiếu với hợp đồng thuê xe còn hiệu lực.</li>
             </ul>
           </div>
 

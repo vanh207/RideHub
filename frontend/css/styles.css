@@ -1338,6 +1338,11 @@ button {
 
 .complaint-upload input {
   position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
   opacity: 0;
   pointer-events: none;
 }
@@ -1413,6 +1418,47 @@ button {
 
   .post-rental-fields-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .post-rental-trip,
+  .post-rental-form-panel {
+    padding: 18px;
+  }
+
+  .post-rental-heading {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .post-rental-tabs {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .post-rental-tab {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+
+  .review-stars button {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    place-items: center;
+  }
+
+  .post-rental-panel > .btn {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .complaint-upload > span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 }
 

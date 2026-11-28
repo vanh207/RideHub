@@ -2,6 +2,11 @@
   "use strict";
 
   const form = document.getElementById("bookingForm");
+  const draftSection = document.getElementById("checkoutDraftSection");
+  const draftVehicleBadge = document.getElementById("draftVehicleBadge");
+  const dismissDraftBtn = document.getElementById("dismissDraftBtn");
+  const bookingCollateralWrap = document.getElementById("bookingCollateralWrap");
+  const bookingCollateralInput = document.getElementById("bookingCollateralInfo");
   const vehicleSelect = document.getElementById("vehicleId");
   const startInput = document.getElementById("startTime");
   const endInput = document.getElementById("endTime");
@@ -10,12 +15,58 @@
   const query = new URLSearchParams(window.location.search);
   let draft = {};
 
+  if (!form) return;
+
   try {
     const rawDraft = localStorage.getItem("ridehub_checkout_draft");
     draft = rawDraft ? JSON.parse(rawDraft) : {};
   } catch (_) {
     draft = {};
   }
+
+  function syncDraftUI() {
+    const hasDraft = Boolean(draft && (draft.vehicle || draft.vehicleId || query.get("vehicle_id")));
+    if (draftSection) draftSection.hidden = !hasDraft;
+    if (draftVehicleBadge && draft.vehicle) {
+      draftVehicleBadge.textContent = draft.vehicle;
+    }
+    const dtype = (draft.depositType === "VEHICLE_PLEDGE" || draft.depositType === "COMBINED")
+      ? draft.depositType
+      : "CASH";
+    document.querySelectorAll('input[name="bookingDepositType"]').forEach((r) => {
+      r.checked = r.value === dtype;
+    });
+    if (bookingCollateralWrap) bookingCollateralWrap.hidden = dtype === "CASH";
+    if (bookingCollateralInput && draft.collateralInfo) {
+      bookingCollateralInput.value = draft.collateralInfo;
+    }
+    if (submitButton) {
+      submitButton.textContent = dtype === "VEHICLE_PLEDGE"
+        ? "Gửi đơn thế chấp xe"
+        : "Tạo đơn & Thanh toán cọc";
+    }
+  }
+
+  document.querySelectorAll('input[name="bookingDepositType"]').forEach((r) => {
+    r.addEventListener("change", () => {
+      if (bookingCollateralWrap) bookingCollateralWrap.hidden = r.value === "CASH";
+      if (submitButton) {
+        submitButton.textContent = r.value === "VEHICLE_PLEDGE"
+          ? "Gửi đơn thế chấp xe"
+          : "Tạo đơn & Thanh toán cọc";
+      }
+    });
+  });
+
+  if (dismissDraftBtn) {
+    dismissDraftBtn.addEventListener("click", () => {
+      try { localStorage.removeItem("ridehub_checkout_draft"); } catch (_) {}
+      draft = {};
+      if (draftSection) draftSection.hidden = true;
+    });
+  }
+
+  syncDraftUI();
 
   function localDateTime(value) {
     const pad = (part) => String(part).padStart(2, "0");
@@ -226,6 +277,16 @@
       return;
     }
 
+    const selectedRadio = document.querySelector('input[name="bookingDepositType"]:checked');
+    const depositType = selectedRadio ? selectedRadio.value : "CASH";
+    const needsPledge = depositType === "VEHICLE_PLEDGE" || depositType === "COMBINED";
+    const collateralInfo = bookingCollateralInput ? bookingCollateralInput.value.trim() : "";
+    if (needsPledge && !collateralInfo) {
+      message.textContent = "Vui lòng nhập thông tin xe và giấy tờ thế chấp.";
+      if (bookingCollateralInput) bookingCollateralInput.focus();
+      return;
+    }
+
     submitButton.disabled = true;
     submitButton.textContent = "Đang tạo đơn…";
     message.textContent = "";
@@ -245,6 +306,8 @@
             vehicle_id: vehicleId,
             start_time: startInput.value,
             end_time: endInput.value,
+            deposit_type: depositType,
+            collateral_info: needsPledge ? collateralInfo : null,
           }),
         },
       );
@@ -259,13 +322,27 @@
       try {
         localStorage.removeItem("ridehub_checkout_draft");
       } catch (_) {}
+
+      if (depositType === "VEHICLE_PLEDGE") {
+        if (window.showRideHubToast) {
+          window.showRideHubToast("Đã gửi đơn thế chấp xe tới cửa hàng chờ duyệt!");
+        }
+        if (draftSection) draftSection.hidden = true;
+        if (typeof window.reloadMyBookings === "function") {
+          window.reloadMyBookings();
+        }
+        return;
+      }
+
       window.location.assign(
         `payment-qr.html?booking_id=${encodeURIComponent(bookingId)}`,
       );
     } catch (error) {
       message.textContent = error.message;
       submitButton.disabled = false;
-      submitButton.textContent = "Tạo đơn và tiếp tục thanh toán";
+      submitButton.textContent = depositType === "VEHICLE_PLEDGE"
+        ? "Gửi đơn thế chấp xe"
+        : "Tạo đơn & Thanh toán cọc";
     }
   }
 

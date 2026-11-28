@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Bảng Phương tiện &amp; Form Thêm/Sửa xe — RideHub</title>
   <link rel="icon" type="image/png" href="../assets/logo-rh.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,7 +19,7 @@
   <!-- CSS riêng cho quản lý kho xe & kéo thả ảnh -->
   <link rel="stylesheet" href="css/vehicle_management.css" />
 </head>
-<body style="background: var(--bg-page); min-height: 100vh;">
+<body style="background: var(--bg-page); min-height: 100vh; margin: 0; padding-bottom: 0; display: flex; flex-direction: column;">
 
   <!-- Hiệu ứng nền nhận diện thương hiệu -->
   <div class="noise-overlay" aria-hidden="true"></div>
@@ -33,19 +33,36 @@
         <img src="../assets/logo-rh.png" alt="RideHub" style="height:36px;width:auto;" />
         <span style="font-weight: 800; font-size: 1.25rem; color: var(--green-800); margin-left: 8px;">RideHub</span>
       </a>
-            <nav class="nav-links">
-        <a href="../index.html" class="nav-link">Trang chủ</a>
-        <a href="../vehicles.html" class="nav-link">Tìm &amp; Thuê xe</a>
+      <nav class="nav-links">
+        <a href="store_revenue_dashboard.html" class="nav-link">Báo cáo doanh thu</a>
         <a href="vehicle_management.html" class="nav-link is-active" style="color: var(--green-700); font-weight: 700;">Quản lý kho xe</a>
-        <a href="delivery.html" class="nav-link">Điểm giao nhận &amp; Phí</a>
+        <a href="vehicle_schedule.html" class="nav-link">Lịch xe ngày &amp; tuần</a>
+        <a href="store_operations.html" class="nav-link">Đổi trạng thái &amp; Cảnh báo</a>
+        <a href="store-orders.html" class="nav-link">Duyệt đơn đặt xe</a>
       </nav>
 
-      <div class="nav-actions"></div>
+      <div class="nav-actions">
+        <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <line x1="4" y1="7" x2="20" y2="7"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="17" x2="20" y2="17"></line>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
+  <aside id="mobileDrawer" class="mobile-drawer" aria-label="Menu di động">
+    <a href="store_revenue_dashboard.html">Báo cáo doanh thu</a>
+    <a href="vehicle_management.html">Quản lý kho xe</a>
+    <a href="vehicle_schedule.html">Lịch xe ngày &amp; tuần</a>
+    <a href="store_operations.html">Đổi trạng thái &amp; Cảnh báo</a>
+    <a href="store-orders.html">Duyệt đơn đặt xe</a>
+  </aside>
+
   <!-- NỘI DUNG CHÍNH -->
-  <main class="container fleet-main">
+  <main class="container fleet-main" style="flex: 1 0 auto; width: 100%;">
     
     <!-- Tiêu đề trang & Nút hành động -->
     <div class="fleet-top-bar">
@@ -80,7 +97,7 @@
 
   </main>
 
-  <footer class="site-footer">
+  <footer class="site-footer site-footer--compact">
     <div class="footer-road-edge">
       <div id="footerCruisingCar" class="road-vehicle" style="width:76px;bottom:2px;" title="RideHub — Nền tảng thuê xe thông minh">
         <svg viewBox="0 0 110 64" width="76" height="32">
@@ -98,52 +115,40 @@
             <span class="footer-brand-name">RideHub</span>
           </div>
           <p class="footer-brand-desc">
-            Nền tảng thuê xe xanh tự lái thông minh hàng đầu. Tự động hóa lịch đặt xe, đối soát giữ chỗ 30 phút, eKYC định danh CCCD gắn chip và thanh toán VietQR an toàn 24/7.
+            Cổng quản trị đối tác &amp; thuê xe xanh thông minh. Tự động hóa lịch đặt xe, eKYC CCCD gắn chip và thanh toán VietQR an toàn 24/7.
           </p>
           <div class="footer-contact">
-            <div><strong>Hotline 24/7:</strong> <a href="tel:19006868">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn">support@ridehub.vn</a></div>
-            <div><strong>Địa chỉ:</strong> 45 Lê Duẩn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+            <div><strong>Hotline:</strong> <a href="tel:19006868">1900 6868</a> • <strong>Email:</strong> <a href="mailto:support@ridehub.vn">support@ridehub.vn</a></div>
+            <div><strong>Trạm chính:</strong> 120 Nguyễn Huệ, P. Bến Nghé, Q.1, TP.HCM</div>
           </div>
         </div>
         <div>
-          <div class="footer-col-title">Khám phá &amp; Đặt xe</div>
+          <div class="footer-col-title">Quản lý Cửa hàng</div>
           <ul class="footer-links-list">
-            <li class="footer-link-item"><a href="../index.html">Trang chủ</a></li>
-            <li class="footer-link-item"><a href="../vehicles.html">Tìm &amp; Thuê xe máy, Ô tô</a></li>
-            <li class="footer-link-item"><a href="../trips.html">Hành trình &amp; Chuyến đi của tôi</a></li>
-            <li class="footer-link-item"><a href="../booking.html">Đơn thuê &amp; Thanh toán cọc</a></li>
-            <li class="footer-link-item"><a href="../index.html#storySection">Quy trình bàn giao 4 bước</a></li>
-          </ul>
-        </div>
-        <div>
-          <div class="footer-col-title">Dành cho Đối tác</div>
-          <ul class="footer-links-list">
-            <li class="footer-link-item"><a href="store-portal.html">Cổng Quản lý Cửa hàng</a></li>
-            <li class="footer-link-item"><a href="../admin-ops.html">Trung tâm Quản trị Admin</a></li>
+            <li class="footer-link-item"><a href="store_revenue_dashboard.html">Báo cáo doanh thu</a></li>
+            <li class="footer-link-item"><a href="store-orders.html">Duyệt &amp; Quản lý đơn thuê</a></li>
             <li class="footer-link-item"><a href="vehicle_management.html">Kho xe &amp; Thêm/Sửa xe</a></li>
-            <li class="footer-link-item"><a href="auth.html">Đăng ký làm Chủ xe / Đối tác</a></li>
-            <li class="footer-link-item"><a href="../index.html#featuresSection">Hệ thống đối soát tự động PayOS</a></li>
+            <li class="footer-link-item"><a href="vehicle_schedule.html">Lịch xe ngày &amp; tuần</a></li>
           </ul>
         </div>
         <div>
-          <div class="footer-col-title">Cam kết &amp; An toàn</div>
-          <div class="footer-commitments">
-            <div class="footer-commitment"><span>✓</span><span><strong>Định danh eKYC chuẩn:</strong> CCCD gắn chip đối chiếu khuôn mặt Face Match.</span></div>
-            <div class="footer-commitment"><span>✓</span><span><strong>Minh bạch bàn giao:</strong> Quay video toàn cảnh 360°, ảnh biên bản &amp; ảnh ODO thực tế.</span></div>
-            <div class="footer-commitment"><span>✓</span><span><strong>Hoàn tiền cọc tự động:</strong> Hoàn 100% trước 24h khi khách hủy theo chính sách.</span></div>
-          </div>
+          <div class="footer-col-title">Vận hành &amp; Hỗ trợ</div>
+          <ul class="footer-links-list">
+            <li class="footer-link-item"><a href="handover.html">Biên bản giao/nhận xe</a></li>
+            <li class="footer-link-item"><a href="delivery.html">Điểm giao nhận &amp; Biểu phí</a></li>
+            <li class="footer-link-item"><a href="../index.html">Trang chủ RideHub</a></li>
+            <li class="footer-link-item"><a href="privacy-policy.html">Chính sách bảo mật</a></li>
+          </ul>
         </div>
       </div>
       <div class="footer-divider"></div>
       <div class="footer-bottom-row">
-        <div>
-          © 2026 <strong>RideHub Technology JSC</strong>. Nền tảng chia sẻ &amp; thuê xe điện, xe tự lái Việt Nam.
-        </div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
-          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Bảo mật PayOS VietQR</span>
-          <span style="padding:3px 8px;border-radius:999px;background:rgba(74,222,128,0.15);color:var(--green-300);font-size:11px;font-weight:700;">Chuẩn an toàn eKYC Chip</span>
-          <a href="../index.html#storySection" style="color:#a7f3d0;text-decoration:none;">Điều khoản sử dụng</a>
-          <a href="privacy-policy.html" style="color:#a7f3d0;text-decoration:none;">Chính sách bảo mật</a>
+        <div>© 2026 <strong>RideHub Technology JSC</strong>. Cổng Đối tác Trạm GreenRide Q.1.</div>
+        <div class="footer-bottom-links">
+          <span class="footer-badge">Bảo mật PayOS VietQR</span>
+          <span class="footer-badge">Chuẩn eKYC Chip</span>
+          <a href="../index.html#storySection">Điều khoản</a>
+          <a href="privacy-policy.html">Bảo mật</a>
         </div>
       </div>
     </div>
@@ -160,7 +165,7 @@
           <h3 id="addVehModalTitle" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-primary);">Thêm xe mới vào kho</h3>
           <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-secondary);">Nhập thông số xe và hình ảnh để hiển thị cho khách thuê</p>
         </div>
-        <button id="closeAddVehModalBtn" class="btn btn-soft" style="min-height: 32px; padding: 4px 14px; border-radius: 999px; font-weight: 700; font-size: 13px;" type="button">✕ Đóng</button>
+        <button id="closeAddVehModalBtn" class="btn btn-soft" style="padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 13px; flex-shrink: 0;" type="button">✕ Đóng</button>
       </div>
 
       <form id="addVehicleForm" style="display: flex; flex-direction: column; gap: 14px;">
@@ -210,7 +215,7 @@
         </div>
 
         <!-- 4 Ô Thông số sắp xếp lưới 2x2 cực kỳ thoáng và cân đối -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="fleet-form-grid-2">
           <div>
             <label for="addVehTransmission" id="addVehTransmissionLabel" style="display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">Loại xe máy</label>
             <select id="addVehTransmission" class="float-input" style="padding: 10px 12px; width: 100%;">
@@ -273,7 +278,7 @@
         <!-- Chính sách hủy -->
         <div style="padding: 14px; border-radius: 14px; background: var(--bg-surface-soft); border: 1px solid var(--green-100);">
           <div style="font-size: 12px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Chính sách hủy chuyến</div>
-          <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 8px;">
+          <div class="fleet-cancel-radios" style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 8px;">
             <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
               <input type="radio" name="cancelPolicyMode" value="system" checked />
               <span>Lấy chính sách hệ thống</span>
@@ -306,7 +311,7 @@
           <h3 id="vdTitle" style="margin: 8px 0 2px 0; font-size: 1.3rem;">Tên xe</h3>
           <div id="vdMeta" style="font-size: 13px; color: var(--text-muted);">Phân loại</div>
         </div>
-        <button id="closeDetailModalBtn" class="btn btn-soft" style="min-height: 32px; padding: 4px 10px;" type="button">Đóng</button>
+        <button id="closeDetailModalBtn" class="btn btn-soft" style="padding: 6px 14px; flex-shrink: 0;" type="button">Đóng</button>
       </div>
 
       <div id="vdGallery" class="fleet-gallery-grid"></div>

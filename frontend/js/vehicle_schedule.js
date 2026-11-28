@@ -11,6 +11,11 @@
     return String(n).padStart(2, '0');
   }
 
+  function parseLocalDateKey(key) {
+    const [y, m, d] = String(key).split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
   // 1. DỮ LIỆU ĐƠN THUÊ GIẢ LẬP (Trích xuất từ DEFAULT_ORDERS của store-portal.html)
   const mockOrders = [
     {
@@ -51,6 +56,28 @@
     }
   ];
 
+    function getRealOrders() {
+    // 1. Thử lấy từ Quản lý đơn hàng (store-orders.html)
+    try {
+      const raw = localStorage.getItem('ridehub_store_orders_v1');
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list) && list.length > 0) return list;
+      }
+    } catch (_) {}
+
+    // 2. Thử lấy từ Đặt xe hệ thống
+    try {
+      const raw2 = localStorage.getItem('ridehub_bookings_db');
+      if (raw2) {
+        const list2 = JSON.parse(raw2);
+        if (Array.isArray(list2) && list2.length > 0) return list2;
+      }
+    } catch (_) {}
+
+    return mockOrders;
+  }
+
   // 2. BẢN ĐỒ TỔNG HỢP SỰ KIỆN THEO NGÀY (Giao xe, Trả xe, Bảo dưỡng)
   function getCalendarEventsMap() {
     const map = {};
@@ -60,7 +87,8 @@
     };
 
     // Bóc tách ngày giao & trả từ chuỗi schedule (dd/mm/yyyy)
-    mockOrders.forEach((o) => {
+    const activeOrders = getRealOrders();
+    activeOrders.forEach((o) => {
       const matches = (o.schedule || '').match(/(\d{2})\/(\d{2})\/(\d{4})/g) || [];
       if (matches[0]) {
         const [d, m, y] = matches[0].split('/');
@@ -137,7 +165,7 @@
         .join('');
       const more =
         evs.length > 2
-          ? `<span style="font-size:10px;color:var(--text-muted);font-weight:700;">+${evs.length - 2} lịch khác</span>`
+          ? `<span class="rh-cal-more">+${evs.length - 2}</span>`
           : '';
 
       html += `
@@ -166,7 +194,7 @@
     const subTitleEl = document.getElementById('calSubTitle');
     if (!weekGrid || !titleEl) return;
 
-    const selDate = new Date(calSelectedKey);
+    const selDate = parseLocalDateKey(calSelectedKey);
     const dayOfWeek = selDate.getDay();
     const diffToMon = (dayOfWeek + 6) % 7;
     const monDate = new Date(selDate);
@@ -247,9 +275,9 @@
       .map(
         (ev) => `
         <div class="event-detail-card">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-            <strong style="font-size:13.5px;color:var(--text-primary);">${ev.title}</strong>
-            <span class="rh-cal-pill rh-cal-pill--${ev.type}">${ev.status}</span>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+            <strong style="font-size:13.5px;color:var(--text-primary);min-width:0;overflow-wrap:anywhere;">${ev.title}</strong>
+            <span class="rh-cal-pill rh-cal-pill--${ev.type}" style="flex-shrink:0;">${ev.status}</span>
           </div>
           <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.45;">${ev.detail}</div>
           <div style="font-size:11.5px;color:var(--text-muted);font-weight:600;">⏰ Thời gian dự kiến: ${ev.time}</div>
@@ -286,7 +314,7 @@
           calYear -= 1;
         }
       } else {
-        const cur = new Date(calSelectedKey);
+        const cur = parseLocalDateKey(calSelectedKey);
         cur.setDate(cur.getDate() - 7);
         calSelectedKey = `${cur.getFullYear()}-${pad2(cur.getMonth() + 1)}-${pad2(cur.getDate())}`;
       }
@@ -302,7 +330,7 @@
           calYear += 1;
         }
       } else {
-        const cur = new Date(calSelectedKey);
+        const cur = parseLocalDateKey(calSelectedKey);
         cur.setDate(cur.getDate() + 7);
         calSelectedKey = `${cur.getFullYear()}-${pad2(cur.getMonth() + 1)}-${pad2(cur.getDate())}`;
       }

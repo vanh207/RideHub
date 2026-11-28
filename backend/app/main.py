@@ -14,6 +14,7 @@ from sqlalchemy.exc import OperationalError
 
 from app import models  # noqa: F401 - import để SQLAlchemy biết các bảng
 from app.core.config import settings
+from app.core.kyc_errors import KycBusinessError, kyc_business_error_handler
 from app.core.store_errors import (
     StoreAPIError,
     store_api_error_handler,
@@ -24,6 +25,7 @@ from app.db.seed_data import seed_default_accounts
 from app.db.session import Base, engine
 from app.middleware.audit_log import AuditLogMiddleware
 from app.jobs.booking_expiry_job import start_expiry_job, stop_expiry_job
+from app.jobs.kyc_cleanup_job import start_cleanup_job, stop_cleanup_job
 from app.routers import (
     admin_reviews,
     audit_logs,
@@ -34,6 +36,7 @@ from app.routers import (
     handover,
     health,
     items,
+    kyc,
     login,
     notifications,
     payment,
@@ -48,6 +51,40 @@ from app.routers import (
 logger = logging.getLogger("ridehub.startup")
 
 
+def _ensure_collateral_columns() -> None:
+    """Tự động bổ sung cột deposit_type, collateral_info, collateral_status nếu DB đã tạo từ trước."""
+    from sqlalchemy import inspect, text
+
+    alter_statements = {
+        "bookings": {
+            "deposit_type": "ALTER TABLE bookings ADD COLUMN deposit_type VARCHAR(30) NOT NULL DEFAULT 'CASH'",
+            "collateral_info": "ALTER TABLE bookings ADD COLUMN collateral_info TEXT NULL",
+        },
+        "handover_protocols": {
+            "deposit_type": "ALTER TABLE handover_protocols ADD COLUMN deposit_type VARCHAR(30) NOT NULL DEFAULT 'CASH'",
+            "collateral_info": "ALTER TABLE handover_protocols ADD COLUMN collateral_info TEXT NULL",
+            "collateral_status": "ALTER TABLE handover_protocols ADD COLUMN collateral_status VARCHAR(30) NULL",
+            "collateral_handler_name": "ALTER TABLE handover_protocols ADD COLUMN collateral_handler_name VARCHAR(100) NULL",
+            "collateral_handled_at": "ALTER TABLE handover_protocols ADD COLUMN collateral_handled_at TIMESTAMP NULL",
+            "collateral_customer_confirmed": "ALTER TABLE handover_protocols ADD COLUMN collateral_customer_confirmed BOOLEAN NOT NULL DEFAULT FALSE",
+        },
+    }
+    try:
+        inspector = inspect(engine)
+        existing_tables = set(inspector.get_table_names())
+        with engine.begin() as conn:
+            for table, cols in alter_statements.items():
+                if table not in existing_tables:
+                    continue
+                existing_cols = {c["name"] for c in inspector.get_columns(table)}
+                for col_name, ddl in cols.items():
+                    if col_name not in existing_cols:
+                        conn.execute(text(ddl))
+                        logger.info("[DB] Added missing column %s.%s", table, col_name)
+    except Exception as exc:
+        logger.warning("[DB] Auto-migration collateral columns skipped: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Khởi tạo Firebase Admin SDK
@@ -57,6 +94,7 @@ async def lifespan(app: FastAPI):
     # Lưu ý: create_all KHÔNG sửa bảng đã tồn tại. Đổi cột -> sửa bằng SQL hoặc xoá bảng tạo lại.
     try:
         Base.metadata.create_all(bind=engine)
+        _ensure_collateral_columns()
         logger.info(
             "[DB] Connected to MySQL %s:%s/%s",
             settings.DB_HOST,
@@ -78,15 +116,18 @@ async def lifespan(app: FastAPI):
         logger.error("[DB] Connection detail: %s", error.orig)
 
     await start_expiry_job()
+    await start_cleanup_job()
     try:
         yield
     finally:
+        await stop_cleanup_job()
         await stop_expiry_job()
 
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
 app.add_exception_handler(StoreAPIError, store_api_error_handler)
 app.add_exception_handler(HTTPException, store_http_exception_handler)
+app.add_exception_handler(KycBusinessError, kyc_business_error_handler)
 
 
 # CORS: cho phép trang FE (khác cổng/khác domain) gọi được API này kèm Cookie
@@ -119,6 +160,8 @@ app.include_router(delivery.router, prefix="/api")
 app.include_router(store_staff.router, prefix="/api")
 app.include_router(stores.router, prefix="/api")
 app.include_router(admin_reviews.router, prefix="/api")
+app.include_router(kyc.router, prefix="/api")
+app.include_router(kyc.admin_router, prefix="/api")
 app.include_router(audit_logs.router, prefix="/api")
 app.include_router(policies.router, prefix="/api")
 app.include_router(login.router)

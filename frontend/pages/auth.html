@@ -354,9 +354,9 @@
 
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
         <div>
-          <span class="status-badge status-badge--transit">Xác thực danh tính điện tử eKYC</span>
+          <span class="status-badge status-badge--transit">Xác thực danh tính điện tử eKYC — mô phỏng</span>
           <h3 id="ekycModalTitle" style="margin:6px 0 2px;font-family:var(--font-display);font-size:1.25rem;">Phòng chờ xác thực &amp; Kích hoạt tài khoản</h3>
-          <div style="font-size:12px;color:var(--text-muted);">Hoàn tất xác thực CCCD và khuôn mặt để được duyệt tài khoản &amp; miễn cọc</div>
+          <div style="font-size:12px;color:var(--text-muted);">Đây là luồng mô phỏng. Gửi hồ sơ thực tại trang hồ sơ sau khi đăng ký.</div>
         </div>
         <button type="button" id="closeEkycModalBtn" style="background:transparent;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);">&times;</button>
       </div>
@@ -371,10 +371,11 @@
           <div class="ekyc-step-circle">2</div>
           <span>Khuôn mặt</span>
         </div>
-        <div class="ekyc-step-item" id="eStepTag3">
-          <div class="ekyc-step-circle">3</div>
-          <span>Phòng chờ AI</span>
-        </div>
+          <div class="ekyc-step-item" id="eStepTag3">
+            <div class="ekyc-step-circle">3</div>
+            <span>Đối chiếu mô phỏng</span>
+          </div>
+
         <div class="ekyc-step-item" id="eStepTag4">
           <div class="ekyc-step-circle">4</div>
           <span>Kích hoạt</span>
@@ -386,7 +387,7 @@
         <div style="padding:14px;border-radius:14px;background:var(--bg-surface-soft);border:1px solid var(--green-100);margin-bottom:14px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <strong style="font-size:13px;color:var(--text-primary);">Chụp hoặc tải ảnh CCCD 2 mặt (Gắn chip)</strong>
-            <button type="button" id="btnAutoFillCCCD" class="btn btn-soft" style="min-height:28px;padding:2px 10px;font-size:11px;color:var(--green-800);background:#fff;border:1px solid var(--green-300);">⚡ Quét mẫu tự động</button>
+            <button type="button" id="btnAutoFillCCCD" class="btn btn-soft" style="min-height:28px;padding:2px 10px;font-size:11px;color:var(--green-800);background:#fff;border:1px solid var(--green-300);">⚡ Điền dữ liệu mẫu</button>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
@@ -418,17 +419,17 @@
           <!-- Kết quả OCR tự động trích xuất -->
           <div id="cccdOcrResultCard" style="display:none;padding:12px;border-radius:10px;background:#f0fdf4;border:1px solid var(--green-300);font-size:12px;color:var(--text-secondary);line-height:1.7;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <strong style="color:var(--green-900);font-size:13px;">✓ Đã trích xuất thông tin OCR từ chip CCCD</strong>
-              <span class="status-badge status-badge--available" style="font-size:10px;">Hợp lệ</span>
+              <strong style="color:var(--green-900);font-size:13px;">✓ Dữ liệu mẫu đã được điền (mô phỏng)</strong>
+              <span class="status-badge status-badge--booked" style="font-size:10px;">Chưa kiểm chứng</span>
             </div>
-            <div>• Số định danh CCCD: <strong id="ocrCccdNum" style="color:#0f172a;font-family:monospace;font-size:13px;">079201008892</strong></div>
+            <div>• Số định danh CCCD: <strong id="ocrCccdNum" style="color:#0f172a;font-family:monospace;font-size:13px;">079201008892</strong> (dữ liệu mẫu)</div>
             <div>• Họ và tên: <strong id="ocrFullName" style="color:#0f172a;"></strong></div>
-            <div>• Ngày sinh: <strong>15/08/1998</strong> • Giới tính: <strong>Nam</strong></div>
-            <div>• Nơi thường trú: <strong>Bến Nghé, Quận 1, TP. Hồ Chí Minh</strong></div>
+            <div>• Ngày sinh: <strong>15/08/1998</strong> • Giới tính: <strong>Nam</strong> (dữ liệu mẫu)</div>
+            <div>• Nơi thường trú: <strong>Bến Nghé, Quận 1, TP. Hồ Chí Minh</strong> (dữ liệu mẫu)</div>
           </div>
         </div>
 
-        <button id="btnGotoStep2" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button" disabled>Tiếp tục: Quét khuôn mặt sinh trắc học ›</button>
+        <button id="btnGotoStep2" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button" disabled>Tiếp tục: Quét khuôn mặt (mô phỏng) ›</button>
       </div>
 
       <!-- BƯỚC 2: QUÉT KHUÔN MẶT SINH TRẮC HỌC & LIVENESS -->
@@ -451,7 +452,7 @@
             Vui lòng giữ thẳng khuôn mặt trong khung hình...
           </div>
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;">
-            Hệ thống AI tự động phân tích 128 điểm nhận dạng 3D và kiểm tra chuyển động sống (Anti-Deepfake).
+            Kiểm tra chuyển động sống (mô phỏng). Hệ thống thực tế chỉ ghi cờ đối chiếu để admin duyệt.
           </div>
 
           <!-- Liveness checklist -->
@@ -462,7 +463,7 @@
           </div>
 
           <div id="faceMatchSuccessBox" style="display:none;padding:10px 14px;border-radius:10px;background:#ecfdf5;border:1px solid var(--green-300);color:var(--green-800);font-size:12px;font-weight:700;margin-bottom:14px;">
-            ✓ Trùng khớp sinh trắc học: 99.4% (Đạt chuẩn)
+            ✓ Đối chiếu khuôn mặt — mô phỏng, chờ xác thực eKYC thực tế
           </div>
 
           <button id="btnStartFaceScan" class="btn btn-soft" style="width:100%;margin-bottom:8px;" type="button">Bắt đầu quét khuôn mặt</button>
@@ -481,35 +482,35 @@
           <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#86efac;box-shadow:0 0 10px #22c55e;"></div>
         </div>
 
-        <h4 style="margin:0 0 6px;font-size:1.15rem;color:var(--green-900);">Phòng chờ kích hoạt &amp; Đối soát AI</h4>
+        <h4 style="margin:0 0 6px;font-size:1.15rem;color:var(--green-900);">Đối chiếu eKYC (mô phỏng)</h4>
         <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
-          Hệ thống đang đối chiếu dữ liệu CCCD, sinh trắc học và lịch sử tín nhiệm an toàn.
+          Các bước dưới đây chỉ để minh họa. Hệ thống thực tế không tự cấp hạn mức hay miễn cọc.
         </div>
 
         <!-- Verification Checklist -->
         <div style="padding:14px;border-radius:12px;background:var(--bg-surface-soft);border:1px solid var(--green-100);text-align:left;font-size:12.5px;display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
           <div id="aiCheckItem1" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
             <span class="status-dot"></span>
-            <span>1. Xác thực tính toàn vẹn chữ ký số trên Chip CCCD</span>
+            <span>1. Kiểm tra dữ liệu CCCD (mô phỏng)</span>
           </div>
           <div id="aiCheckItem2" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
             <span class="status-dot"></span>
-            <span>2. Đối soát dữ liệu nhân thân &amp; giấy phép lái xe hợp lệ</span>
+            <span>2. Kiểm tra thông tin nhân thân (mô phỏng)</span>
           </div>
           <div id="aiCheckItem3" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
             <span class="status-dot"></span>
-            <span>3. Xác thực sinh trắc học Face Liveness chống giả mạo</span>
+            <span>3. Kiểm tra chuyển động sống (mô phỏng)</span>
           </div>
           <div id="aiCheckItem4" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
             <span class="status-dot"></span>
-            <span>4. Cấp hạn mức tín nhiệm &amp; Miễn cọc bảo lưu phương tiện</span>
+            <span>4. Chuyển sang hồ sơ để gửi xác thực thực tế</span>
           </div>
         </div>
 
         <div style="height:6px;border-radius:99px;background:var(--green-100);overflow:hidden;margin-bottom:8px;">
           <div id="aiProgressBar" style="height:100%;width:0%;background:var(--green-600);transition:width 0.6s ease;"></div>
         </div>
-        <div id="aiProgressText" style="font-size:11px;color:var(--text-muted);font-weight:700;">Đang khởi tạo kết nối an toàn (25%)...</div>
+        <div id="aiProgressText" style="font-size:11px;color:var(--text-muted);font-weight:700;">Đang mô phỏng các bước đối chiếu...</div>
       </div>
 
       <!-- BƯỚC 4: HOÀN TẤT & TẠO TÀI KHOẢN THÀNH CÔNG -->
@@ -520,16 +521,16 @@
 
         <h3 style="margin:0 0 6px;font-size:1.3rem;font-family:var(--font-display);color:var(--green-900);">Tài khoản đã tạo thành công!</h3>
         <p style="margin:0 0 16px;font-size:13px;color:var(--text-secondary);">
-          Chúc mừng bạn đã hoàn tất xác thực định danh eKYC. Hồ sơ của bạn đã được kích hoạt với đặc quyền <strong>Miễn thế chấp xe</strong> trên hệ thống RideHub.
+          Bạn đã hoàn tất luồng eKYC mô phỏng. Vui lòng mở trang hồ sơ để gửi CCCD và khuôn mặt thực tế; admin sẽ duyệt trước khi áp dụng quyền miễn thế chấp.
         </p>
 
         <div style="padding:14px;border-radius:12px;background:var(--green-50);border:1px solid var(--green-300);text-align:left;font-size:12.5px;line-height:1.8;margin-bottom:14px;">
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <span>Chủ tài khoản: <strong id="succUserName"></strong></span>
-            <span class="status-badge status-badge--available">eKYC Đạt</span>
+            <span class="status-badge status-badge--booked">eKYC mô phỏng</span>
           </div>
           <div>Email: <strong id="succUserEmail"></strong></div>
-          <div>Số CCCD: <strong id="succUserCccd" style="font-family:monospace;">079201008892</strong></div>
+          <div>Số CCCD: <strong id="succUserCccd">không lưu trên thiết bị</strong></div>
           <div>Số điện thoại: <strong id="succUserPhone"></strong></div>
           <div>Hạn mức bảo lãnh: <strong style="color:var(--green-800);">Miễn thế chấp phương tiện</strong></div>
         </div>
@@ -537,10 +538,10 @@
         <!-- Hộp tự động chuyển hướng -->
         <div id="ekycAutoRedirectBox" style="padding:10px 14px;border-radius:10px;background:#f0fdf4;border:1px solid #86efac;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px;color:#15803d;font-weight:700;">
           <span class="status-dot status-dot-pulse" style="background:#22c55e;"></span>
-          <span>Đang tự động chuyển hướng vào kho xe trong <strong id="ekycCountdownSec">2</strong>s...</span>
+          <span>Đang tự động mở hồ sơ eKYC trong <strong id="ekycCountdownSec">2</strong>s...</span>
         </div>
 
-        <button id="btnFinishAuth" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button">Vào thuê xe ngay ›</button>
+        <button id="btnFinishAuth" class="btn btn-primary btn-premium btn-shine" style="width:100%;" type="button">Xem hồ sơ eKYC ›</button>
       </div>
 
     </div>
@@ -554,7 +555,7 @@
   <script src="../js/vehicle-anim.js?v=20261116_10"></script>
   <script src="../js/effects.js?v=20261116_10"></script>
   <script src="../js/auth-rbac.js?v=20261116_10"></script>
-  <script src="../js/auth.js?v=20261120_1"></script>
+  <script src="../js/auth.js?v=20261127_02"></script>
 </body>
 </html>
 

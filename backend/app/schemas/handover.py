@@ -40,6 +40,7 @@ class HandoverMediaItem(BaseModel):
 class ChecklistItem(BaseModel):
     item: str = Field(..., description="Tên hạng mục kiểm tra, vd: Đèn pha trước")
     ok: bool = Field(True, description="Trạng thái OK/Not OK")
+    status: Optional[str] = Field(None, description="Trạng thái chi tiết: ok | miss | broken | na (Không có)")
     note: Optional[str] = Field(None, description="Ghi chú thêm nếu có vấn đề")
 
 
@@ -82,7 +83,13 @@ class HandoverProtocolCreate(BaseModel):
     damage_points: Optional[List[DamagePoint]] = None
     checklist_data: Optional[List[ChecklistItem]] = None
 
-    # Tài chính
+    # Tài chính & Thế chấp
+    deposit_type: str = Field("CASH", description="CASH (Chỉ cọc tiền) | VEHICLE_PLEDGE (Chỉ thế chấp) | COMBINED (Kết hợp)")
+    collateral_info: Optional[str] = Field(None, max_length=500, description="Thông tin xe & giấy tờ thế chấp")
+    collateral_status: Optional[str] = Field(None, max_length=30, description="HELD | RETURNED | PENDING")
+    collateral_handler_name: Optional[str] = Field(None, max_length=100, description="Nhân viên bàn giao/tiếp nhận tài sản")
+    collateral_handled_at: Optional[datetime] = Field(None, description="Thời gian bàn giao/tiếp nhận tài sản")
+    collateral_customer_confirmed: bool = Field(False, description="Khách hàng đã xác nhận giao/nhận lại tài sản")
     deposit_original: Decimal = Field(Decimal("0"), ge=0, description="Tiền cọc ban đầu (VNĐ)")
 
     # Chữ ký (nếu ký ngay)
@@ -94,10 +101,12 @@ class HandoverProtocolCreate(BaseModel):
     @field_validator("fuel_checkout")
     @classmethod
     def validate_fuel(cls, v: str) -> str:
+        fuel_map = {"E": "EMPTY", "2/4": "1/2"}
+        normalized = fuel_map.get(v, v)
         allowed = {"FULL", "3/4", "1/2", "1/4", "EMPTY"}
-        if v not in allowed:
+        if normalized not in allowed:
             raise ValueError(f"fuel_checkout phải là một trong: {', '.join(sorted(allowed))}")
-        return v
+        return normalized
 
     @field_validator("protocol_type")
     @classmethod
@@ -136,7 +145,13 @@ class HandoverCheckinCreate(BaseModel):
     fee_cleaning: Decimal = Field(Decimal("0"), ge=0, max_digits=12, decimal_places=2)
     fee_damage: Decimal = Field(Decimal("0"), ge=0, max_digits=12, decimal_places=2)
 
-    # Quyết toán cọc
+    # Quyết toán cọc & Thế chấp
+    deposit_type: Optional[str] = Field(None, description="CASH | VEHICLE_PLEDGE | COMBINED")
+    collateral_info: Optional[str] = Field(None, max_length=500)
+    collateral_status: Optional[str] = Field(None, max_length=30, description="HELD | RETURNED")
+    collateral_handler_name: Optional[str] = Field(None, max_length=100)
+    collateral_handled_at: Optional[datetime] = None
+    collateral_customer_confirmed: bool = False
     deposit_original: Optional[Decimal] = Field(
         None, ge=0, max_digits=12, decimal_places=2
     )
@@ -163,10 +178,12 @@ class HandoverCheckinCreate(BaseModel):
     @field_validator("fuel_checkin")
     @classmethod
     def validate_fuel_checkin(cls, v: str) -> str:
+        fuel_map = {"E": "EMPTY", "2/4": "1/2"}
+        normalized = fuel_map.get(v, v)
         allowed = {"FULL", "3/4", "1/2", "1/4", "EMPTY"}
-        if v not in allowed:
+        if normalized not in allowed:
             raise ValueError(f"fuel_checkin phải là một trong: {', '.join(sorted(allowed))}")
-        return v
+        return normalized
 
     @model_validator(mode="after")
     def validate_deposit_settlement(self):
@@ -281,6 +298,12 @@ class HandoverProtocolResponse(BaseModel):
     damage_points: Optional[Any] = None
     checklist_data: Optional[Any] = None
 
+    deposit_type: str = "CASH"
+    collateral_info: Optional[str] = None
+    collateral_status: Optional[str] = None
+    collateral_handler_name: Optional[str] = None
+    collateral_handled_at: Optional[datetime] = None
+    collateral_customer_confirmed: bool = False
     deposit_original: Decimal
     fee_overtime: Decimal
     fee_excess_km: Decimal

@@ -216,6 +216,32 @@ def api_search_knowledge_base(
     return [KnowledgeItemResponse.model_validate(f) for f in faqs]
 
 
+@router.get(
+    "/knowledge-base/admin",
+    response_model=List[KnowledgeItemResponse],
+    summary="Lấy toàn bộ danh sách FAQ kể cả mục tạm ẩn (Chỉ Admin)",
+)
+def api_admin_list_knowledge_base(
+    q: Optional[str] = Query(None, description="Từ khóa tìm theo câu hỏi hoặc câu trả lời"),
+    category: Optional[str] = Query(None, description="Lọc theo mã nhóm tri thức"),
+    is_active: Optional[bool] = Query(None, description="Lọc theo trạng thái bật/tắt"),
+    limit: int = Query(100, ge=1, le=200),
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_admin),
+):
+    """API dành riêng cho trang Admin quản lý FAQ: trả về toàn bộ FAQ (kể cả đang tắt)."""
+    query = db.query(FAQ)
+    if category and category != "all":
+        query = query.filter(FAQ.category == category)
+    if is_active is not None:
+        query = query.filter(FAQ.is_active == is_active)
+    if q and q.strip():
+        kw = f"%{q.strip()}%"
+        query = query.filter((FAQ.question.ilike(kw)) | (FAQ.answer.ilike(kw)) | (FAQ.category_name.ilike(kw)))
+    faqs = query.order_by(FAQ.display_order.asc(), FAQ.id.desc()).limit(limit).all()
+    return [KnowledgeItemResponse.model_validate(f) for f in faqs]
+
+
 @router.post(
     "/knowledge-base",
     response_model=KnowledgeItemResponse,

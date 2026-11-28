@@ -4,8 +4,9 @@ Muốn thêm cấu hình mới: thêm 1 dòng vào class Settings + thêm vào .
 """
 import secrets
 from decimal import Decimal
+from typing import Optional
 from urllib.parse import quote_plus
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -108,6 +109,47 @@ class Settings(BaseSettings):
     CHATBOT_RATE_LIMIT_PER_DAY: int = 100    # Tối đa 100 tin nhắn/ngày mỗi session/IP
     CHATBOT_MAX_CONTEXT_MESSAGES: int = 10   # Số tin nhắn lịch sử gần nhất nạp vào prompt AI
 
+    # ---- eKYC / xác thực danh tính (TASK_BONUS_FACECHECK) ----
+    # Bật luồng eKYC ở dev; KYC_REQUIRED_FOR_BOOKING mặc định TẮT để không vỡ demo/test cũ.
+    KYC_ENABLED: bool = True
+    KYC_REQUIRED_FOR_BOOKING: bool = False
+
+    KYC_FACE_PROVIDER: str = "manual"  # manual | mock | vendor
+    KYC_MOCK_SCORE: float = 0.82       # Điểm cố định cho MockProvider, chưa hiệu chỉnh.
+    KYC_MATCH_THRESHOLD: Optional[float] = None  # Chưa đặt: cần hiệu chỉnh trước khi dùng.
+    KYC_VENDOR_BASE_URL: str = ""
+    KYC_VENDOR_API_KEY: str = ""
+    KYC_VENDOR_TIMEOUT_SECONDS: int = 10
+
+    KYC_CONSENT_VERSION: str = "2026-11-v1"
+    KYC_PRIVACY_CONTACT_EMAIL: str = "vietanh282007@gmail.com"
+    KYC_LEGAL_REVIEWER: str = "Đỗ Việt Anh"
+
+    KYC_SESSION_TTL_MINUTES: int = 15
+    KYC_DAILY_ATTEMPT_LIMIT: int = 5
+    KYC_MAX_UPLOAD_BYTES: int = 5 * 1024 * 1024
+    KYC_MIN_IMAGE_WIDTH: int = 640
+    KYC_MIN_IMAGE_HEIGHT: int = 480
+    KYC_MAX_IMAGE_PIXELS: int = 20_000_000  # Chống decompression bomb.
+    KYC_ID_ASPECT_MIN: float = 1.20
+    KYC_ID_ASPECT_MAX: float = 2.00
+    KYC_SELFIE_ASPECT_MIN: float = 0.50
+    KYC_SELFIE_ASPECT_MAX: float = 2.00
+    KYC_BLUR_CHECK_ENABLED: bool = True
+    KYC_QR_CHECK_ENABLED: bool = True
+
+    KYC_FACE_RETENTION_DAYS: int = 30
+    KYC_ID_RETENTION_DAYS: int = 180
+    KYC_PRIVATE_UPLOAD_DIR: str = "private_uploads/kyc"
+    KYC_CLEANUP_JOB_ENABLED: bool = True
+    KYC_CLEANUP_JOB_INTERVAL_SECONDS: int = 3600
+    KYC_CLEANUP_BATCH_SIZE: int = 100
+
+    @field_validator("KYC_FACE_PROVIDER", mode="before")
+    @classmethod
+    def normalize_kyc_provider(cls, value: object) -> str:
+        return str(value or "manual").strip().lower()
+
     @field_validator("PAYMENT_GATEWAY_SECRET", "JWT_SECRET_KEY", mode="before")
     @classmethod
     def replace_placeholder_secrets(cls, value: str) -> str:
@@ -120,6 +162,39 @@ class Settings(BaseSettings):
         if not isinstance(value, str) or value.strip().lower() in placeholders:
             return secrets.token_urlsafe(48)
         return value
+
+    @model_validator(mode="after")
+    def validate_kyc_settings(self) -> "Settings":
+        if self.KYC_FACE_PROVIDER not in {"manual", "mock", "vendor"}:
+            raise ValueError(
+                "KYC_FACE_PROVIDER chỉ nhận manual, mock hoặc vendor. "
+                f"Giá trị hiện tại: {self.KYC_FACE_PROVIDER}"
+            )
+        if self.KYC_FACE_PROVIDER == "vendor" and (
+            not self.KYC_VENDOR_BASE_URL.strip() or not self.KYC_VENDOR_API_KEY.strip()
+        ):
+            raise ValueError(
+                "Đã chọn KYC_FACE_PROVIDER=vendor nhưng thiếu KYC_VENDOR_BASE_URL "
+                "hoặc KYC_VENDOR_API_KEY. Vui lòng cấu hình lại hoặc đổi về manual."
+            )
+        positive_fields = {
+            "KYC_SESSION_TTL_MINUTES": self.KYC_SESSION_TTL_MINUTES,
+            "KYC_DAILY_ATTEMPT_LIMIT": self.KYC_DAILY_ATTEMPT_LIMIT,
+            "KYC_MAX_UPLOAD_BYTES": self.KYC_MAX_UPLOAD_BYTES,
+            "KYC_MIN_IMAGE_WIDTH": self.KYC_MIN_IMAGE_WIDTH,
+            "KYC_MIN_IMAGE_HEIGHT": self.KYC_MIN_IMAGE_HEIGHT,
+            "KYC_MAX_IMAGE_PIXELS": self.KYC_MAX_IMAGE_PIXELS,
+            "KYC_FACE_RETENTION_DAYS": self.KYC_FACE_RETENTION_DAYS,
+            "KYC_ID_RETENTION_DAYS": self.KYC_ID_RETENTION_DAYS,
+        }
+        for name, value in positive_fields.items():
+            if value <= 0:
+                raise ValueError(f"{name} phải lớn hơn 0.")
+        if not self.KYC_CONSENT_VERSION.strip():
+            raise ValueError("KYC_CONSENT_VERSION không được để trống.")
+        if self.KYC_MATCH_THRESHOLD is not None and not 0 <= self.KYC_MATCH_THRESHOLD <= 1:
+            raise ValueError("KYC_MATCH_THRESHOLD phải nằm trong đoạn [0, 1] hoặc để trống.")
+        return self
 
     @property
     def database_url(self) -> str:

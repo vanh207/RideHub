@@ -37,7 +37,35 @@
     'Bảo dưỡng': 'status-badge--maintenance'
   };
 
-  let fleetList = JSON.parse(JSON.stringify(DEFAULT_FLEET));
+  const FLEET_STORAGE_KEY = 'ridehub_store_fleet_v2';
+
+  // Tự động tải từ kho xe thực tế (do trang vehicle_management.html quản lý)
+  function getRealFleetList() {
+    try {
+      const raw = localStorage.getItem(FLEET_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((v) => ({
+            id: v.id,
+            name: `${v.brand || ''} ${v.name || v.model || ''}`.trim(),
+            category: v.type === 'car' ? 'car' : 'motorcycle',
+            transmission: v.transmission || 'Tự động',
+            fuel: v.fuel || (v.type === 'moto' ? 'Điện' : 'Xăng/Điện'),
+            price: Number(v.price || 0),
+            status: v.status || 'Sẵn sàng',
+            alertText: v.status === 'Bảo dưỡng' ? '🔧 Đang bảo dưỡng' : (v.status === 'Đang thuê' ? 'Đang trong lịch thuê' : 'Trống lịch'),
+            conflict: false
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn('Lỗi đọc kho xe thật:', e);
+    }
+    return JSON.parse(JSON.stringify(DEFAULT_FLEET));
+  }
+
+  let fleetList = getRealFleetList();
 
   // 2. DỮ LIỆU ĐƠN THUÊ MẪU
   const mockOrders = [
@@ -64,6 +92,17 @@
     }
   ];
 
+  function getRealOrders() {
+    try {
+      const raw = localStorage.getItem('ridehub_store_orders_v1');
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list) && list.length > 0) return list;
+      }
+    } catch (_) {}
+    return mockOrders;
+  }
+
   // 3. TOAST THÔNG BÁO
   function showRideHubToast(msg, isWarning = false) {
     const container = document.getElementById('toastContainer');
@@ -84,7 +123,10 @@
   function renderStats() {
     const totalVeh = fleetList.length;
     const cleaningMaint = fleetList.filter(v => v.status === 'Đang vệ sinh' || v.status === 'Bảo dưỡng').length;
-    const conflicts = fleetList.filter(v => v.conflict).length;
+    
+    const realOrders = getRealOrders();
+    const pendingReschedules = realOrders.filter(o => o.hasConflict || o.rescheduleRequest?.status === 'pending_store').length;
+    const conflicts = fleetList.filter(v => v.conflict).length + pendingReschedules;
     const elTot = document.getElementById('statTotalVeh');
     const elCl = document.getElementById('statCleaningMaint');
     const elCf = document.getElementById('statConflictCount');
@@ -107,9 +149,9 @@
             <strong>${v.name}</strong>
             ${v.conflict ? '<span class="alert-tag alert-tag--danger" style="margin-left:6px;">Xung đột</span>' : ''}
           </td>
-          <td>${isCar ? 'Ô tô' : 'Xe máy'} • ${v.transmission} • ${v.fuel}</td>
-          <td><strong>${Number(v.price).toLocaleString('vi-VN')}đ</strong></td>
-          <td>
+          <td data-label="Phân loại">${isCar ? 'Ô tô' : 'Xe máy'} • ${v.transmission} • ${v.fuel}</td>
+          <td data-label="Giá thuê/ngày"><strong>${Number(v.price).toLocaleString('vi-VN')}đ</strong></td>
+          <td data-label="Trạng thái">
             <label class="status-badge ${badgeClass}" title="Bấm để chọn trạng thái xe">
               <span class="status-dot ${hasPulse ? 'status-dot-pulse' : ''}"></span>
               <select class="status-select" data-vehicle-idx="${idx}">
@@ -118,13 +160,13 @@
               <span style="font-size:10px;margin-left:-4px;pointer-events:none;">▾</span>
             </label>
           </td>
-          <td>
+          <td data-label="Cảnh báo">
             <span style="${v.conflict ? 'color:#be123c;font-weight:700;' : v.status === 'Bảo dưỡng' ? 'color:#b45309;font-weight:600;' : 'color:var(--text-secondary);'}">
               ${v.alertText}
             </span>
           </td>
-          <td>
-            <button type="button" class="btn btn-soft" style="min-height:26px;padding:1px 8px;font-size:11.5px;" data-quick-toggle-idx="${idx}">
+          <td data-label="Thao tác">
+            <button type="button" class="btn btn-soft" data-quick-toggle-idx="${idx}">
               Đổi nhanh
             </button>
           </td>
@@ -151,6 +193,18 @@
     const cur = fleetList[idx];
     if (!cur) return;
     cur.status = newStatus;
+        // Đồng bộ trạng thái mới ngược về kho xe thật (FLEET_STORAGE_KEY)
+    try {
+      const raw = localStorage.getItem(FLEET_STORAGE_KEY);
+      if (raw) {
+        const list = JSON.parse(raw);
+        const target = list.find((item) => item.id === cur.id);
+        if (target) {
+          target.status = newStatus;
+          localStorage.setItem(FLEET_STORAGE_KEY, JSON.stringify(list));
+        }
+      }
+    } catch (_) {}
     if (newStatus === 'Bảo dưỡng') {
       cur.alertText = '🔧 Đang bảo dưỡng • Đã ẩn khỏi tìm kiếm (FR-60)';
       showRideHubToast(`Xe "${cur.name}" chuyển sang BẢO DƯỠNG (đã ẩn xe khỏi tìm kiếm)`, true);
@@ -175,6 +229,10 @@
   let currentViewMode = 'month';
 
   function pad2(n) { return String(n).padStart(2, '0'); }
+  function parseLocalDateKey(key) {
+    const [y, m, d] = String(key).split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
 
   function getCalendarEventsMap() {
     const map = {};
@@ -182,7 +240,7 @@
       if (!map[dateKey]) map[dateKey] = [];
       map[dateKey].push(ev);
     };
-    mockOrders.forEach(o => {
+    getRealOrders().forEach(o => {
       const matches = (o.schedule || '').match(/(\d{2})\/(\d{2})\/(\d{4})/g) || [];
       if (matches[0]) {
         const [d, m, y] = matches[0].split('/');
@@ -236,7 +294,7 @@
       const evs = evMap[key] || [];
       const hasConflict = evs.some(e => e.type === 'conflict' || e.conflict);
       const pills = evs.slice(0, 2).map(ev => `<span class="rh-cal-pill rh-cal-pill--${ev.type}">${ev.label}</span>`).join('');
-      const more = evs.length > 2 ? `<span style="font-size:9.5px;color:var(--text-muted);font-weight:700;">+${evs.length - 2} lịch khác</span>` : '';
+      const more = evs.length > 2 ? `<span class="rh-cal-more">+${evs.length - 2}</span>` : '';
       html += `
         <button type="button" class="rh-cal-cell ${key === calSelectedKey ? 'is-selected' : ''} ${key === todayKey ? 'is-today' : ''}" data-cal-date="${key}" style="${hasConflict ? 'border-color:#f43f5e;' : ''}">
           <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -262,7 +320,7 @@
     const weekGrid = document.getElementById('weekGrid');
     const titleEl = document.getElementById('calMonthTitle');
     if (!weekGrid || !titleEl) return;
-    const selDate = new Date(calSelectedKey);
+    const selDate = parseLocalDateKey(calSelectedKey);
     const dayOfWeek = selDate.getDay();
     const monDate = new Date(selDate);
     monDate.setDate(selDate.getDate() - ((dayOfWeek + 6) % 7));
@@ -322,9 +380,9 @@
       const isConflict = ev.type === 'conflict' || ev.conflict;
       return `
         <div class="event-detail-card ${isConflict ? 'has-conflict' : ''}">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
-            <strong style="font-size:12.5px;color:${isConflict ? '#9f1239' : 'var(--text-primary)'};">${ev.title}</strong>
-            <span class="rh-cal-pill rh-cal-pill--${ev.type}">${ev.status}</span>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;">
+            <strong style="font-size:12.5px;color:${isConflict ? '#9f1239' : 'var(--text-primary)'};min-width:0;overflow-wrap:anywhere;">${ev.title}</strong>
+            <span class="rh-cal-pill rh-cal-pill--${ev.type}" style="flex-shrink:0;">${ev.status}</span>
           </div>
           <div style="font-size:12px;color:var(--text-secondary);line-height:1.4;">${ev.detail}</div>
           <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:2px;">
@@ -356,7 +414,7 @@
         calMonth -= 1;
         if (calMonth < 0) { calMonth = 11; calYear -= 1; }
       } else {
-        const cur = new Date(calSelectedKey);
+        const cur = parseLocalDateKey(calSelectedKey);
         cur.setDate(cur.getDate() - 7);
         calSelectedKey = `${cur.getFullYear()}-${pad2(cur.getMonth() + 1)}-${pad2(cur.getDate())}`;
       }
@@ -368,7 +426,7 @@
         calMonth += 1;
         if (calMonth > 11) { calMonth = 0; calYear += 1; }
       } else {
-        const cur = new Date(calSelectedKey);
+        const cur = parseLocalDateKey(calSelectedKey);
         cur.setDate(cur.getDate() + 7);
         calSelectedKey = `${cur.getFullYear()}-${pad2(cur.getMonth() + 1)}-${pad2(cur.getDate())}`;
       }

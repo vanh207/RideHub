@@ -31,11 +31,10 @@
       <nav class="nav-links">
         <a href="index.html" class="nav-link">Trang chủ</a>
         <a href="vehicles.html" class="nav-link is-active">Tìm &amp; Thuê xe</a>
+        <a href="pages/vehicle_management.html" class="nav-link">Quản lý xe</a>
+        <a href="pages/vehicle_schedule.html" class="nav-link">Lịch trình</a>
+        <a href="pages/store_revenue_dashboard.html" class="nav-link">Báo cáo doanh thu</a>
         <a href="trips.html" class="nav-link">Chuyến đi</a>
-        <a href="chat.html" class="nav-link">Tin nhắn</a>
-        <a href="index.html#storySection" class="nav-link">Hướng dẫn thuê xe</a>
-        <a href="store-portal.html" class="nav-link">Cửa hàng</a>
-        <a href="admin-ops.html" class="nav-link">Quản trị Admin</a>
       </nav>
       <div class="nav-actions">
         <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
@@ -183,6 +182,42 @@
                 <label class="pill-check"><input type="checkbox" class="addon-chk" data-price="35000" data-perday="1" /> Bảo hiểm chuyến đi (+35.000đ/ngày)</label>
                 <label class="pill-check"><input type="checkbox" class="addon-chk" data-price="20000" data-perday="0" /> Ghế trẻ em / Nón bảo hiểm thêm (+20.000đ)</label>
                 <label class="pill-check"><input type="checkbox" class="addon-chk" data-price="25000" data-perday="0" /> Giao nhận ngoài giờ (+25.000đ)</label>
+              </div>
+            </div>
+
+            <div class="detail-booking-block">
+              <div class="detail-booking-label">Chính sách đặt cọc / thế chấp</div>
+              <div id="depositOptionGroup" style="display:grid;gap:8px;">
+                <label class="deposit-option-card is-selected" data-deposit-type="CASH" style="display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border-radius:12px;border:1.5px solid #16a34a;background:#f0fdf4;cursor:pointer;transition:all .16s ease;">
+                  <input type="radio" name="depositType" value="CASH" checked style="margin-top:3px;accent-color:#16a34a;" />
+                  <div>
+                    <div style="font-weight:700;font-size:13.5px;color:#132a1c;">💳 Chỉ đặt cọc tiền (VietQR 30%)</div>
+                    <div style="font-size:12px;color:#4d6b57;margin-top:2px;">Thanh toán cọc 30% online. Không cần thế chấp xe tại trạm.</div>
+                  </div>
+                </label>
+                <label class="deposit-option-card" data-deposit-type="VEHICLE_PLEDGE" style="display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border-radius:12px;border:1.5px solid #d5e7dc;background:#ffffff;cursor:pointer;transition:all .16s ease;">
+                  <input type="radio" name="depositType" value="VEHICLE_PLEDGE" style="margin-top:3px;accent-color:#16a34a;" />
+                  <div>
+                    <div style="font-weight:700;font-size:13.5px;color:#132a1c;">🏍️ Chỉ thế chấp tài sản (0đ tiền cọc)</div>
+                    <div style="font-size:12px;color:#4d6b57;margin-top:2px;">Miễn cọc tiền. Mang xe cá nhân &amp; cà vẹt gốc giữ tại trạm khi nhận xe.</div>
+                  </div>
+                </label>
+                <label class="deposit-option-card" data-deposit-type="COMBINED" style="display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border-radius:12px;border:1.5px solid #d5e7dc;background:#ffffff;cursor:pointer;transition:all .16s ease;">
+                  <input type="radio" name="depositType" value="COMBINED" style="margin-top:3px;accent-color:#16a34a;" />
+                  <div>
+                    <div style="font-weight:700;font-size:13.5px;color:#132a1c;">🛡️ Kết hợp đặt cọc &amp; thế chấp</div>
+                    <div style="font-size:12px;color:#4d6b57;margin-top:2px;">Đặt cọc 30% online + Thế chấp xe &amp; giấy tờ gốc (hoàn trả cả hai khi trả xe).</div>
+                  </div>
+                </label>
+              </div>
+              <div id="collateralVehicleWrap" hidden style="margin-top:10px;padding:12px;border-radius:12px;background:#f0fdf4;border:1.5px solid #bbf7d0;display:grid;gap:8px;">
+                <div style="font-size:12px;font-weight:800;color:#166534;">Thông tin tài sản thế chấp *</div>
+                <select id="collateralVehicleType" class="form-input" style="min-height:38px;font-size:13px;">
+                  <option value="Xe máy">Xe máy chính chủ</option>
+                  <option value="Ô tô">Ô tô chính chủ</option>
+                </select>
+                <input id="collateralVehicleName" class="form-input" type="text" placeholder="Tên xe &amp; Biển số (VD: Wave Alpha - 59P1-123.45)" style="min-height:38px;font-size:13px;" />
+                <input id="collateralDocs" class="form-input" type="text" value="Cà vẹt gốc + CCCD" placeholder="Giấy tờ kèm theo (VD: Cà vẹt gốc + CCCD)" style="min-height:38px;font-size:13px;" />
               </div>
             </div>
 
