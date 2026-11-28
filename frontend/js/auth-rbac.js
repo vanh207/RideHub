@@ -950,11 +950,37 @@
     }
   };
 
+  const showPendingAuthNotice = () => {
+    let msg = '';
+    try {
+      msg = sessionStorage.getItem('ridehub_auth_notice') || '';
+      if (msg) sessionStorage.removeItem('ridehub_auth_notice');
+    } catch (_) {}
+    if (!msg) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('verified') === '1') {
+        msg = 'Xác thực tài khoản thành công! Chào mừng bạn đến với RideHub.';
+      }
+    }
+    if (!msg) return;
+    if (typeof global.showRideHubToast === 'function') {
+      global.showRideHubToast(msg, 'success');
+      return;
+    }
+    const toast = document.createElement('div');
+    toast.style.cssText =
+      'position:fixed;right:20px;bottom:20px;z-index:9999;background:#15803d;color:#ffffff;padding:12px 18px;border-radius:12px;font-size:13.5px;font-weight:700;box-shadow:0 12px 30px rgba(21,128,61,0.28);';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4500);
+  };
+
   global.AuthRBAC = AuthRBAC;
   document.addEventListener('DOMContentLoaded', () => {
     AuthRBAC.applyUI();
     initPageTransitionLoader();
     initGlobalChatWidget();
     initGlobalGeoMap();
+    showPendingAuthNotice();
   });
 })(window);
