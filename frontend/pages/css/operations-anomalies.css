@@ -160,7 +160,7 @@ td { font-size: 13px; }
 }
 
 @media (max-width: 520px) {
-  .page-shell { width: min(100% - 24px, 1440px); padding-top: 24px; }
+  .page-shell { width: min(100% - 24px, 1440px); padding-top: 86px; padding-bottom: 40px; }
   .stats { gap: 8px; }
   .stat-card { padding: 13px; }
   .filters { align-items: stretch; flex-direction: column; }

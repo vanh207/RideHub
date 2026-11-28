@@ -76,6 +76,32 @@
           grid-template-columns: 1fr;
         }
       }
+      .profile-two-col {
+        max-width: 1040px;
+        grid-template-columns: 270px 1fr;
+      }
+      .profile-sidebar {
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        position: sticky;
+        top: 92px;
+      }
+      @media (max-width: 860px) {
+        .profile-two-col {
+          grid-template-columns: 1fr !important;
+        }
+        .profile-sidebar {
+          position: static !important;
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+        .profile-sidebar .prof-nav-btn {
+          flex: 1 1 140px;
+          justify-content: center;
+        }
+      }
       .kyc-upload-box {
         background: #ffffff;
         border: 1px solid #e2e8f0;
@@ -299,15 +325,17 @@
             >Hướng dẫn thuê xe</a
           >
         </nav>
-        <div class="nav-actions"></div>
+        <div class="nav-actions">
+          <button id="hamburgerBtn" class="hamburger-btn" aria-label="Mở menu" type="button">
+            <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+          </button>
+        </div>
       </div>
     </header>
+    <aside id="mobileDrawer" class="mobile-drawer"></aside>
 
-    <main class="subpage-main profile-main">
-      <div
-        class="container two-col-layout profile-layout"
-        style="max-width: 1040px"
-      >
+    <main class="subpage-main" style="padding-top: 92px">
+      <div class="container two-col-layout profile-two-col">
         <!-- Sidebar chức năng bên cạnh -->
         <aside class="panel-card profile-sidebar">
           <button
