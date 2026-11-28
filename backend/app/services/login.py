@@ -142,10 +142,11 @@ def register_user(db: Session, body: UserCreate):
     refresh_token = create_refresh_token(token_data)
 
     # 6. Gửi email xác thực chính thức từ Firebase tới hòm thư người dùng
+    sent = False
     if new_user.firebase_uid:
-        send_firebase_verification_email(new_user.firebase_uid, new_user.email)
+        sent = send_firebase_verification_email(new_user.firebase_uid, new_user.email)
 
-    new_user.verification_link = generate_verification_link(new_user.email)
+    new_user.verification_link = None if sent else generate_verification_link(new_user.email)
 
     return new_user, access_token, refresh_token
 

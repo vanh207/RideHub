@@ -45,6 +45,37 @@
   let currentWaitingEmail = '';
   let checkVerificationInterval = null;
 
+  const completeVerifiedLogin = (targetUser) => {
+    const pending = window.__pendingVerificationAuth || {};
+    if (pending.access_token) {
+      setCookie('ridehub_token', pending.access_token, 7);
+      setCookie('token', pending.access_token, 7);
+      setCookie('ridehub_auth_token', pending.access_token, 7);
+      localStorage.setItem('ridehub_token', pending.access_token);
+      localStorage.setItem('token', pending.access_token);
+      localStorage.setItem('ridehub_auth_token', pending.access_token);
+    }
+    if (pending.refresh_token) {
+      setCookie('ridehub_refresh_token', pending.refresh_token, 30);
+      localStorage.setItem('ridehub_refresh_token', pending.refresh_token);
+    }
+    targetUser.status = 'active';
+    targetUser.is_verified = true;
+    if (typeof AuthRBAC !== 'undefined') {
+      AuthRBAC.setCurrentUser(targetUser);
+    }
+    window.__lastRegisteredUser = targetUser;
+    window.__pendingVerificationAuth = null;
+    localStorage.setItem('ridehub_require_docs', 'true');
+    sessionStorage.setItem('ridehub_auth_notice', 'Xác thực email thành công! Chào mừng bạn đến với RideHub.');
+    if (typeof showRideHubToast === 'function') {
+      showRideHubToast('🎉 Email đã được xác thực thành công! Đang chuyển hướng vào trang tìm xe...');
+    }
+    setTimeout(() => {
+      window.location.href = '../vehicles.html?verified=1&require_docs=1';
+    }, 750);
+  };
+
   const startAutoCheckVerification = (email, user) => {
     if (checkVerificationInterval) {
       clearInterval(checkVerificationInterval);
@@ -60,23 +91,8 @@
         if (resData && resData.data && resData.data.verified) {
           clearInterval(checkVerificationInterval);
           checkVerificationInterval = null;
-
-          if (typeof showRideHubToast === 'function') {
-            showRideHubToast('🎉 Email đã được xác thực thành công! Đang chuyển hướng vào trang tìm xe...');
-          }
-
-          const targetUser = user || window.__lastRegisteredUser || (typeof AuthRBAC !== 'undefined' && AuthRBAC.getCurrentUser()) || { email };
-          targetUser.status = 'active';
-          targetUser.is_verified = true;
-          if (typeof AuthRBAC !== 'undefined') {
-            AuthRBAC.setCurrentUser(targetUser);
-          }
-          window.__lastRegisteredUser = targetUser;
-          localStorage.setItem('ridehub_require_docs', 'true');
-
-          setTimeout(() => {
-            window.location.href = '../vehicles.html?require_docs=1';
-          }, 800);
+          const targetUser = user || window.__lastRegisteredUser || (window.__pendingVerificationAuth && window.__pendingVerificationAuth.user) || { email };
+          completeVerifiedLogin(targetUser);
         }
       } catch (_) {}
     }, 2000);
@@ -117,6 +133,12 @@
       else if (mode === 'register') cardTitle.textContent = 'Đăng ký tài khoản';
       else if (mode === 'forgot') cardTitle.textContent = 'Quên mật khẩu';
       else cardTitle.textContent = 'Đăng nhập';
+    }
+
+    if (mode === 'forgot' || mode === 'waiting') {
+      if (typeof AuthRBAC !== 'undefined' && AuthRBAC.getCurrentUser()) {
+        AuthRBAC.logout();
+      }
     }
 
     if (mode === 'waiting') {
@@ -189,19 +211,8 @@
         clearInterval(checkVerificationInterval);
         checkVerificationInterval = null;
       }
-      const user = window.__lastRegisteredUser || (typeof AuthRBAC !== 'undefined' && AuthRBAC.getCurrentUser()) || { email };
-      user.status = 'active';
-      user.is_verified = true;
-      if (typeof AuthRBAC !== 'undefined') {
-        AuthRBAC.setCurrentUser(user);
-      }
-      if (typeof showRideHubToast === 'function') {
-        showRideHubToast('🎉 Email đã được xác thực thành công! Đang chuyển hướng vào trang tìm xe...');
-      }
-      localStorage.setItem('ridehub_require_docs', 'true');
-      setTimeout(() => {
-        window.location.href = '../vehicles.html?require_docs=1';
-      }, 700);
+      const user = window.__lastRegisteredUser || (window.__pendingVerificationAuth && window.__pendingVerificationAuth.user) || { email };
+      completeVerifiedLogin(user);
     } else {
       if (typeof showRideHubToast === 'function') {
         showRideHubToast('Hệ thống chưa ghi nhận bạn đã bấm link xác thực. Bạn vui lòng kiểm tra hộp thư (hoặc mục Spam/Rác) và bấm vào liên kết trong email gửi từ Firebase trước nhé!', true);
@@ -778,30 +789,17 @@
           verification_link: payload.verification_link,
         };
 
-        if (payload.access_token) {
-          setCookie('ridehub_token', payload.access_token, 7);
-          setCookie('token', payload.access_token, 7);
-          setCookie('ridehub_auth_token', payload.access_token, 7);
-          localStorage.setItem('ridehub_token', payload.access_token);
-          localStorage.setItem('token', payload.access_token);
-          localStorage.setItem('ridehub_auth_token', payload.access_token);
-        }
-        if (payload.refresh_token) {
-          setCookie('ridehub_refresh_token', payload.refresh_token, 30);
-          localStorage.setItem('ridehub_refresh_token', payload.refresh_token);
-        }
-
-        if (typeof AuthRBAC !== 'undefined') {
-          AuthRBAC.setCurrentUser(user);
-          AuthRBAC.applyUI();
-        }
+        // Giữ phiên tạm trong bộ nhớ; CHỈ lưu token & user khi đã xác thực email thành công
+        window.__pendingVerificationAuth = {
+          user,
+          access_token: payload.access_token || '',
+          refresh_token: payload.refresh_token || '',
+        };
+        window.__lastRegisteredUser = user;
 
         if (typeof showRideHubToast === 'function') {
-          showRideHubToast('Xác thực tài khoản thành công!');
+          showRideHubToast('Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.');
         }
-
-        // Lưu thông tin để eKYC sử dụng
-        window.__lastRegisteredUser = user;
 
         // CHUYỂN NGAY VÀO PHÒNG CHỜ XÁC THỰC TÀI KHOẢN (WAITING ROOM & MODAL EKYC)
         setTimeout(() => {

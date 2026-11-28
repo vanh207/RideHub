@@ -110,12 +110,6 @@ async def register(body: UserCreate, db: Session = Depends(get_db)):
             "token_type": "bearer",
         },
     )
-    _set_auth_cookies(
-        response,
-        access_token,
-        refresh_token,
-        remember_me=bool(getattr(body, "remember_me", False)),
-    )
     return response
 
 
